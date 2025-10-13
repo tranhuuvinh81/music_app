@@ -69,6 +69,43 @@
 //   });
 // };
 // backend/controllers/playlistController.js (updated)
+
+// // 🟢 Tạo playlist mới (sử dụng req.user.id)
+// export const createPlaylist = (req, res) => {
+//   const { name, description } = req.body;
+//   const user_id = req.user.id; // Lấy từ token, không từ body
+
+//   if (!name) {
+//     return res.status(400).json({ message: "Thiếu thông tin name" });
+//   }
+
+//   let thumbnail_url = null;
+//   if (req.file) {
+//     thumbnail_url = `/uploads/thumbnails/${req.file.filename}`;
+//   }
+
+//   const sql = "INSERT INTO playlists (user_id, name, description, thumbnail_url) VALUES (?, ?, ?, ?)";
+//   connection.query(sql, [user_id, name, description || null, thumbnail_url], (err, result) => {
+//     if (err) return res.status(500).json({ message: "Lỗi khi tạo playlist", error: err });
+//     res.status(201).json({ message: "Tạo playlist thành công", playlist_id: result.insertId });
+//   });
+// };
+
+// // 🟢 Lấy tất cả playlist của 1 user (kiểm tra quyền)
+// export const getPlaylistsByUser = (req, res) => {
+//   const user_id = req.params.user_id;
+
+//   // Chỉ cho phép user xem playlist của chính mình hoặc admin
+//   if (req.user.id.toString() !== user_id && req.user.role !== 'admin') {
+//     return res.status(403).json({ message: "Bạn không có quyền xem playlist này" });
+//   }
+
+//   const sql = "SELECT * FROM playlists WHERE user_id = ?";
+//   connection.query(sql, [user_id], (err, results) => {
+//     if (err) return res.status(500).json({ message: "Lỗi khi lấy playlist", error: err });
+//     res.json(results);
+//   });
+// };
 import connection from "../config/db.js";
 
 // 🟢 Tạo playlist mới (sử dụng req.user.id)

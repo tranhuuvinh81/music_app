@@ -1,3 +1,4 @@
+// backend/controllers/songController.js (updated - add image_url handling)
 import db from "../config/db.js";
 
 // 🔹 Lấy tất cả bài hát
@@ -21,76 +22,55 @@ export const getSongById = (req, res) => {
   });
 };
 
-// 🔹 Thêm bài hát mới (chỉ admin)
-// export const addSong = (req, res) => {
-//   const { title, artist, album, genre, release_year, file_url } = req.body;
-//   if (!title || !artist)
-//     return res.status(400).json({ error: "Thiếu tiêu đề hoặc nghệ sĩ" });
-  
-//   const query = `
-//     INSERT INTO songs (title, artist, album, genre, release_year, file_url)
-//     VALUES (?, ?, ?, ?, ?, ?)
-//   `;
-//   db.query(query, [title, artist, album, genre, release_year, file_url], (err, result) => {
-//     if (err) return res.status(500).json({ error: "Lỗi khi thêm bài hát" });
-//     res.status(201).json({ message: "Thêm bài hát thành công", id: result.insertId });
-//   });
-// };
 export const addSong = (req, res) => {
   const { title, artist, album, genre, release_year } = req.body;
 
   if (!title || !artist) {
     return res.status(400).json({ error: "Thiếu tiêu đề hoặc nghệ sĩ" });
   }
-  if (!req.file) {
+  if (!req.files || !req.files.songFile) {
     return res.status(400).json({ error: "Vui lòng upload file nhạc" });
   }
 
-  const file_url = `/uploads/songs/${req.file.filename}`;
+  const file_url = `/uploads/songs/${req.files.songFile[0].filename}`;
+  let image_url = null;
+  if (req.files.imageFile) {
+    image_url = `/uploads/images/${req.files.imageFile[0].filename}`;
+  }
 
-  const query = `INSERT INTO songs (title, artist, album, genre, release_year, file_url) VALUES (?, ?, ?, ?, ?, ?)`;
-  db.query(query, [title, artist, album, genre, release_year, file_url], (err, result) => {
+  const query = `INSERT INTO songs (title, artist, album, genre, release_year, file_url, image_url) VALUES (?, ?, ?, ?, ?, ?, ?)`;
+  db.query(query, [title, artist, album, genre, release_year, file_url, image_url], (err, result) => {
     if (err) return res.status(500).json({ error: "Lỗi khi thêm bài hát", details: err.message });
     res.status(201).json({ message: "Thêm bài hát thành công", id: result.insertId });
   });
 };
 
-// // 🔹 Cập nhật bài hát (chỉ admin)
-// export const updateSong = (req, res) => {
-//   const { id } = req.params;
-//   const { title, artist, album, genre, release_year, file_url } = req.body;
-//   const query = `
-//     UPDATE songs 
-//     SET title=?, artist=?, album=?, genre=?, release_year=?, file_url=? 
-//     WHERE id=?`;
-//   db.query(query, [title, artist, album, genre, release_year, file_url, id], (err, result) => {
-//     if (err) return res.status(500).json({ error: "Lỗi khi cập nhật bài hát" });
-//     if (result.affectedRows === 0)
-//       return res.status(404).json({ message: "Không tìm thấy bài hát" });
-//     res.json({ message: "Cập nhật thành công" });
-//   });
-// };
 export const updateSong = (req, res) => {
   const { id } = req.params;
   const { title, artist, album, genre, release_year } = req.body;
   let file_url;
+  let image_url;
 
-  // Nếu có file mới được upload thì cập nhật file_url
-  if (req.file) {
-    file_url = `/uploads/songs/${req.file.filename}`;
-  }
-
-  // Lấy file_url cũ nếu không có file mới
-  db.query("SELECT file_url FROM songs WHERE id = ?", [id], (err, results) => {
+  // Lấy file_url và image_url cũ
+  db.query("SELECT file_url, image_url FROM songs WHERE id = ?", [id], (err, results) => {
     if (err) return res.status(500).json({ error: "Lỗi truy vấn" });
     if (results.length === 0) return res.status(404).json({ message: "Không tìm thấy bài hát" });
 
-    if (!file_url) {
-      file_url = results[0].file_url;
+    file_url = results[0].file_url;
+    image_url = results[0].image_url;
+
+    // Nếu có file mới được upload thì cập nhật
+    if (req.files) {
+      if (req.files.songFile) {
+        file_url = `/uploads/songs/${req.files.songFile[0].filename}`;
+      }
+      if (req.files.imageFile) {
+        image_url = `/uploads/images/${req.files.imageFile[0].filename}`;
+      }
     }
 
-    const query = `UPDATE songs SET title=?, artist=?, album=?, genre=?, release_year=?, file_url=? WHERE id=?`;
-    db.query(query, [title, artist, album, genre, release_year, file_url, id], (err, result) => {
+    const query = `UPDATE songs SET title=?, artist=?, album=?, genre=?, release_year=?, file_url=?, image_url=? WHERE id=?`;
+    db.query(query, [title, artist, album, genre, release_year, file_url, image_url, id], (err, result) => {
       if (err) return res.status(500).json({ error: "Lỗi khi cập nhật bài hát" });
       if (result.affectedRows === 0) return res.status(404).json({ message: "Không tìm thấy bài hát" });
       res.json({ message: "Cập nhật thành công" });

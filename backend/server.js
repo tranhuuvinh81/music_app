@@ -1,3 +1,4 @@
+// backend/server.js (updated - serve static for images)
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
