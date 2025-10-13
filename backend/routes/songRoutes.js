@@ -35,6 +35,7 @@
 
 // export default router;
 
+// backend/routes/songRoutes.js (updated - reorder routes to put /search before /:id)
 import express from "express";
 import {
   getAllSongs,
@@ -51,8 +52,8 @@ const router = express.Router();
 
 // Public
 router.get("/", getAllSongs);
+router.get("/search", searchSongs); // Moved before /:id
 router.get("/:id", getSongById);
-router.get("/search", searchSongs);
 // Admin only
 // 'songFile' là tên của field trong form-data khi upload
 router.post("/", verifyToken, isAdmin, upload.single('songFile'), addSong);
