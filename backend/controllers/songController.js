@@ -105,3 +105,45 @@ export const searchSongs = (req, res) => {
     res.json(results);
   });
 };
+
+// backend/controllers/songController.js (updated - add new endpoints)
+
+// ... existing functions ...
+
+// 🔹 Lấy danh sách nghệ sĩ unique
+export const getArtists = (req, res) => {
+  const query = "SELECT DISTINCT artist FROM songs WHERE artist IS NOT NULL ORDER BY artist";
+  db.query(query, (err, results) => {
+    if (err) return res.status(500).json({ error: "Lỗi khi lấy danh sách nghệ sĩ" });
+    res.json(results.map(row => row.artist));
+  });
+};
+
+// 🔹 Lấy danh sách thể loại unique
+export const getGenres = (req, res) => {
+  const query = "SELECT DISTINCT genre FROM songs WHERE genre IS NOT NULL ORDER BY genre";
+  db.query(query, (err, results) => {
+    if (err) return res.status(500).json({ error: "Lỗi khi lấy danh sách thể loại" });
+    res.json(results.map(row => row.genre));
+  });
+};
+
+// 🔹 Lấy bài hát theo nghệ sĩ
+export const getSongsByArtist = (req, res) => {
+  const { artist } = req.params;
+  const query = "SELECT * FROM songs WHERE artist = ? ORDER BY title";
+  db.query(query, [decodeURIComponent(artist)], (err, results) => {
+    if (err) return res.status(500).json({ error: "Lỗi khi lấy bài hát theo nghệ sĩ" });
+    res.json(results);
+  });
+};
+
+// 🔹 Lấy bài hát theo thể loại
+export const getSongsByGenre = (req, res) => {
+  const { genre } = req.params;
+  const query = "SELECT * FROM songs WHERE genre = ? ORDER BY title";
+  db.query(query, [decodeURIComponent(genre)], (err, results) => {
+    if (err) return res.status(500).json({ error: "Lỗi khi lấy bài hát theo thể loại" });
+    res.json(results);
+  });
+};
