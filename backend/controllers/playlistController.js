@@ -172,6 +172,11 @@ export const addSongToPlaylist = (req, res) => {
   });
 };
 
+// backend/controllers/playlistController.js (updated - select full song details in getSongsInPlaylist)
+
+
+// ... existing functions ...
+
 // 🟢 Lấy danh sách bài hát trong 1 playlist (kiểm tra quyền)
 export const getSongsInPlaylist = (req, res) => {
   const playlist_id = req.params.playlist_id;
@@ -184,7 +189,7 @@ export const getSongsInPlaylist = (req, res) => {
     }
 
     const sql = `
-      SELECT s.id, s.title, s.artist, s.album, s.file_url
+      SELECT s.*
       FROM songs s
       JOIN playlist_songs ps ON s.id = ps.song_id
       WHERE ps.playlist_id = ?
@@ -197,6 +202,7 @@ export const getSongsInPlaylist = (req, res) => {
   });
 };
 
+// ... other functions remain the same ...
 // 🟢 Xóa bài hát khỏi playlist (mới thêm)
 export const removeSongFromPlaylist = (req, res) => {
   const { playlist_id, song_id } = req.body;
