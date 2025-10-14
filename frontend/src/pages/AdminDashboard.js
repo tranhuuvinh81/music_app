@@ -1,7 +1,8 @@
+// frontend/src/pages/AdminDashboard.js (updated - replace edit with view details)
 import React, { useState, useEffect, useCallback } from 'react';
 import api from '../api/api';
 import SongForm from '../components/SongForm';
-import UserForm from '../components/UserForm'; // 👈 1. Import UserForm
+import UserDetailsModal from '../components/UserDetailsModal'; // Thay vì UserForm
 
 function AdminDashboard() {
   const [users, setUsers] = useState([]);
@@ -11,9 +12,9 @@ function AdminDashboard() {
   const [showSongForm, setShowSongForm] = useState(false);
   const [editingSong, setEditingSong] = useState(null);
 
-  // 👇 2. Thêm state cho User Form
-  const [showUserForm, setShowUserForm] = useState(false);
-  const [editingUser, setEditingUser] = useState(null);
+  // State cho User Details Modal
+  const [showUserDetails, setShowUserDetails] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   const fetchUsers = useCallback(() => {
     api.get('/api/users').then(res => setUsers(res.data)).catch(console.error);
@@ -28,22 +29,15 @@ function AdminDashboard() {
     fetchSongs();
   }, [fetchUsers, fetchSongs]);
 
-  // --- Logic cho User ---
-  // 👇 3. Thêm các hàm xử lý cho User Form
-  const handleEditUserClick = (user) => {
-    setEditingUser(user);
-    setShowUserForm(true);
-  };
-  
-  const handleUserFormSubmit = () => {
-    setShowUserForm(false);
-    setEditingUser(null);
-    fetchUsers(); // Tải lại danh sách user
+  // Logic cho User
+  const handleViewUserClick = (user) => {
+    setSelectedUser(user);
+    setShowUserDetails(true);
   };
 
-  const handleUserFormCancel = () => {
-    setShowUserForm(false);
-    setEditingUser(null);
+  const handleUserDetailsClose = () => {
+    setShowUserDetails(false);
+    setSelectedUser(null);
   };
 
   const deleteUser = (userId) => {
@@ -52,7 +46,7 @@ function AdminDashboard() {
     }
   }
 
-  // --- Logic cho Song (giữ nguyên) ---
+  // Logic cho Song (giữ nguyên)
   const handleAddSongClick = () => {
     setEditingSong(null);
     setShowSongForm(true);
@@ -92,12 +86,10 @@ function AdminDashboard() {
           onCancel={handleSongFormCancel}
         />
       )}
-      {/* 👇 4. Render UserForm khi cần */}
-      {showUserForm && (
-        <UserForm
-          userToEdit={editingUser}
-          onFormSubmit={handleUserFormSubmit}
-          onCancel={handleUserFormCancel}
+      {showUserDetails && (
+        <UserDetailsModal
+          user={selectedUser}
+          onClose={handleUserDetailsClose}
         />
       )}
 
@@ -122,8 +114,7 @@ function AdminDashboard() {
                 <td>{user.email}</td>
                 <td>{user.role}</td>
                 <td>
-                  {/* 👇 5. Thêm nút Sửa cho User */}
-                  <button className="btn-edit" onClick={() => handleEditUserClick(user)}>Sửa</button>
+                  <button className="btn-view" onClick={() => handleViewUserClick(user)}>Xem chi tiết</button>
                   <button className="btn-delete" onClick={() => deleteUser(user.id)}>Xóa</button>
                 </td>
               </tr>

@@ -1,4 +1,4 @@
-// frontend/src/context/AuthContext.js (updated - add loading state to prevent redirect on initial load)
+// frontend/src/context/AuthContext.js (updated - add loading state)
 import React, { createContext, useState, useEffect } from 'react';
 import { jwtDecode } from 'jwt-decode';
 
@@ -6,7 +6,7 @@ export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); // Thêm state loading
+  const [isLoading, setIsLoading] = useState(true); // Thêm loading state
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -23,7 +23,7 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem('token');
       }
     }
-    setLoading(false); // Kết thúc loading sau khi kiểm tra
+    setIsLoading(false); // Kết thúc loading sau khi kiểm tra
   }, []);
 
   const login = (token) => {
@@ -38,7 +38,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user, loading }}>
+    <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

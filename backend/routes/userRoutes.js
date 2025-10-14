@@ -1,33 +1,4 @@
-// import express from "express";
-// import { registerUser, getAllUsers,updateUser, deleteUser } from "../controllers/userController.js";
-
-// const router = express.Router();
-
-// router.post("/", registerUser); // POST /api/users → đăng ký
-// router.get("/", getAllUsers);   // GET /api/users → lấy danh sách
-// router.put("/:id", updateUser);       // 🆕 Cập nhật user
-// router.delete("/:id", deleteUser);    // 🆕 Xóa user
-
-// // export default router;
-// import express from "express";
-// import {
-//   loginUser,
-//   registerUser,
-//   getAllUsers,
-//   updateUser,
-//   deleteUser,
-// } from "../controllers/userController.js";
-
-// const router = express.Router();
-
-// router.post("/login", loginUser);
-// router.post("/", registerUser);
-// router.get("/", getAllUsers);
-// router.put("/:id", updateUser);
-// router.delete("/:id", deleteUser);
-
-// export default router;
-// routes/userRoutes.js
+// backend/routes/userRoutes.js (updated - add get by id, use upload for update)
 import express from "express";
 import {
   loginUser,
@@ -35,8 +6,10 @@ import {
   getAllUsers,
   updateUser,
   deleteUser,
+  getUserById, // Thêm mới
 } from "../controllers/userController.js";
-import { verifyToken, isAdmin } from "../middleware/authMiddleware.js"; // 👈 Thêm vào
+import { verifyToken, isAdmin } from "../middleware/authMiddleware.js";
+import upload from "../middleware/upload.js"; // Thêm upload
 
 const router = express.Router();
 
@@ -44,9 +17,12 @@ const router = express.Router();
 router.post("/login", loginUser);
 router.post("/register", registerUser); // Đổi từ "/" thành "/register" cho rõ ràng
 
+// Protected routes
+router.get("/:id", verifyToken, getUserById); // Lấy chi tiết user (user tự xem hoặc admin)
+
 // Admin only routes
 router.get("/", verifyToken, isAdmin, getAllUsers);
-router.put("/:id", verifyToken, isAdmin, updateUser); // Có thể thêm logic để user tự sửa thông tin của mình
+router.put("/:id", verifyToken, upload.fields([{ name: 'avatarFile', maxCount: 1 }]), updateUser); // Thêm upload cho avatar
 router.delete("/:id", verifyToken, isAdmin, deleteUser);
 
 export default router;

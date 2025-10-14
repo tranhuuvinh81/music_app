@@ -1,4 +1,4 @@
-// frontend/src/App.js (updated - add form and button in Navigation)
+// frontend/src/App.js (updated - handle loading in ProtectedRoute)
 import React, { useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import { AuthProvider, AuthContext } from './context/AuthContext';
@@ -10,12 +10,13 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import AdminDashboard from './pages/AdminDashboard';
 import PlaylistPage from './pages/PlaylistPage';
+import ProfilePage from './pages/ProfilePage';
 import './App.css';
 
 // Component bảo vệ route, yêu cầu đăng nhập
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useContext(AuthContext);
-  if (loading) {
+  const { isAuthenticated, isLoading } = useContext(AuthContext);
+  if (isLoading) {
     return <div>Đang tải...</div>; // Hoặc spinner
   }
   return isAuthenticated ? children : <Navigate to="/login" />;
@@ -23,8 +24,8 @@ const ProtectedRoute = ({ children }) => {
 
 // Component bảo vệ route cho Admin
 const AdminRoute = ({ children }) => {
-  const { user, loading } = useContext(AuthContext);
-  if (loading) {
+  const { user, isLoading } = useContext(AuthContext);
+  if (isLoading) {
     return <div>Đang tải...</div>;
   }
   return user && user.role === 'admin' ? children : <Navigate to="/" />;
@@ -59,6 +60,7 @@ function Navigation() {
         {user ? (
           <>
             <Link to="/playlists">Playlist</Link>
+            <Link to="/profile">Profile</Link>
             {user.role === 'admin' && <Link to="/admin">Admin Dashboard</Link>}
             <span>Chào, {user.username}!</span>
             <button onClick={logout} className="btn-logout">Đăng xuất</button>
@@ -89,6 +91,11 @@ function App() {
                 <Route path="/playlists" element={
                   <ProtectedRoute>
                     <PlaylistPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/profile" element={
+                  <ProtectedRoute>
+                    <ProfilePage />
                   </ProtectedRoute>
                 } />
                 <Route path="/admin" element={
