@@ -1,0 +1,205 @@
+// frontend/src/pages/HomePage.js (updated - add sidebar and dynamic content)
+import React, { useState, useContext, useEffect } from 'react';
+import api from '../api/api';
+import { AuthContext } from '../context/AuthContext';
+import { AudioContext } from '../context/AudioContext';
+import { SongContext } from '../context/SongContext';
+import SongDetails from '../components/SongDetails';
+import AddToPlaylistModal from '../components/AddToPlaylistModal';
+
+function HomePage() {
+  const { songs: allSongs, searchQuery } = useContext(SongContext); // Sử dụng allSongs từ context (khi search)
+  const [displaySongs, setDisplaySongs] = useState([]); // Danh sách bài hát hiển thị
+  const [artists, setArtists] = useState([]);
+  const [genres, setGenres] = useState([]);
+  const [selectedTab, setSelectedTab] = useState('songs'); // 'songs', 'artists', 'genres'
+  const [selectedArtist, setSelectedArtist] = useState(null);
+  const [selectedGenre, setSelectedGenre] = useState(null);
+  const { user, isAuthenticated } = useContext(AuthContext);
+  const { playSong } = useContext(AudioContext);
+  const [menuOpenSongId, setMenuOpenSongId] = useState(null);
+  const [modalSongId, setModalSongId] = useState(null);
+
+  useEffect(() => {
+    api.get('/api/songs/artists')
+      .then(res => setArtists(res.data))
+      .catch(err => console.error(err));
+
+    api.get('/api/songs/genres')
+      .then(res => setGenres(res.data))
+      .catch(err => console.error(err));
+  }, []);
+
+  useEffect(() => {
+    if (selectedTab === 'songs') {
+      setDisplaySongs(allSongs); // Sử dụng từ search context
+    } else if (selectedTab === 'artists' && selectedArtist) {
+      api.get(`/api/songs/artist/${encodeURIComponent(selectedArtist)}`)
+        .then(res => setDisplaySongs(res.data))
+        .catch(err => console.error(err));
+    } else if (selectedTab === 'genres' && selectedGenre) {
+      api.get(`/api/songs/genre/${encodeURIComponent(selectedGenre)}`)
+        .then(res => setDisplaySongs(res.data))
+        .catch(err => console.error(err));
+    } else {
+      setDisplaySongs([]); // Khi chọn tab nhưng chưa chọn sub-item
+    }
+  }, [selectedTab, selectedArtist, selectedGenre, allSongs]);
+
+  const handlePlaySong = (song, playlist, index) => {
+    playSong(song, playlist, index);
+  };
+
+  const toggleMenu = (songId) => {
+    setMenuOpenSongId(menuOpenSongId === songId ? null : songId);
+  };
+
+  const openAddModal = (songId) => {
+    setModalSongId(songId);
+    setMenuOpenSongId(null);
+  };
+
+  const closeModal = () => {
+    setModalSongId(null);
+  };
+
+  const handleTabChange = (tab) => {
+    setSelectedTab(tab);
+    setSelectedArtist(null);
+    setSelectedGenre(null);
+  };
+
+  const handleSelectArtist = (artist) => {
+    setSelectedArtist(artist);
+  };
+
+  const handleSelectGenre = (genre) => {
+    setSelectedGenre(genre);
+  };
+
+  return (
+    <div className="home-layout">
+      <div className="sidebar">
+        <ul>
+          <li onClick={() => handleTabChange('songs')} className={selectedTab === 'songs' ? 'active' : ''}>Bài hát</li>
+          <li onClick={() => handleTabChange('artists')} className={selectedTab === 'artists' ? 'active' : ''}>Nghệ sĩ</li>
+          <li onClick={() => handleTabChange('genres')} className={selectedTab === 'genres' ? 'active' : ''}>Thể loại</li>
+        </ul>
+      </div>
+      <div className="main-content">
+        {selectedTab === 'songs' && (
+          <>
+            <h1>Khám phá âm nhạc</h1>
+            <ul className="song-list">
+              {displaySongs.map((song, index) => (
+                <li key={song.id} className="song-item">
+                  <div>
+                    <strong>{song.title}</strong>
+                    <p>{song.artist}</p>
+                  </div>
+                  <button onClick={() => handlePlaySong(song, displaySongs, index)}>Nghe</button>
+                  {isAuthenticated && (
+                    <div className="menu-container" style={{ position: 'relative', display: 'inline-block' }}>
+                      <button onClick={() => toggleMenu(song.id)}>...</button>
+                      {menuOpenSongId === song.id && (
+                        <div className="menu-dropdown" style={{ position: 'absolute', right: 0, backgroundColor: 'white', border: '1px solid #ccc', padding: '10px' }}>
+                          <button onClick={() => openAddModal(song.id)}>Thêm vào playlist</button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+        {selectedTab === 'artists' && (
+          <>
+            {!selectedArtist ? (
+              <>
+                <h1>Danh sách nghệ sĩ</h1>
+                <ul>
+                  {artists.map(artist => (
+                    <li key={artist} onClick={() => handleSelectArtist(artist)} style={{ cursor: 'pointer' }}>{artist}</li>
+                  ))}
+                </ul>
+              </>
+            ) : (
+              <>
+                <h1>Bài hát của {selectedArtist}</h1>
+                <button onClick={() => setSelectedArtist(null)}>Quay lại</button>
+                <ul className="song-list">
+                  {displaySongs.map((song, index) => (
+                    <li key={song.id} className="song-item">
+                      <div>
+                        <strong>{song.title}</strong>
+                        <p>{song.artist}</p>
+                      </div>
+                      <button onClick={() => handlePlaySong(song, displaySongs, index)}>Nghe</button>
+                      {isAuthenticated && (
+                        <div className="menu-container" style={{ position: 'relative', display: 'inline-block' }}>
+                          <button onClick={() => toggleMenu(song.id)}>...</button>
+                          {menuOpenSongId === song.id && (
+                            <div className="menu-dropdown" style={{ position: 'absolute', right: 0, backgroundColor: 'white', border: '1px solid #ccc', padding: '10px' }}>
+                              <button onClick={() => openAddModal(song.id)}>Thêm vào playlist</button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </>
+        )}
+        {selectedTab === 'genres' && (
+          <>
+            {!selectedGenre ? (
+              <>
+                <h1>Danh sách thể loại</h1>
+                <ul>
+                  {genres.map(genre => (
+                    <li key={genre} onClick={() => handleSelectGenre(genre)} style={{ cursor: 'pointer' }}>{genre}</li>
+                  ))}
+                </ul>
+              </>
+            ) : (
+              <>
+                <h1>Bài hát thuộc thể loại {selectedGenre}</h1>
+                <button onClick={() => setSelectedGenre(null)}>Quay lại</button>
+                <ul className="song-list">
+                  {displaySongs.map((song, index) => (
+                    <li key={song.id} className="song-item">
+                      <div>
+                        <strong>{song.title}</strong>
+                        <p>{song.artist}</p>
+                      </div>
+                      <button onClick={() => handlePlaySong(song, displaySongs, index)}>Nghe</button>
+                      {isAuthenticated && (
+                        <div className="menu-container" style={{ position: 'relative', display: 'inline-block' }}>
+                          <button onClick={() => toggleMenu(song.id)}>...</button>
+                          {menuOpenSongId === song.id && (
+                            <div className="menu-dropdown" style={{ position: 'absolute', right: 0, backgroundColor: 'white', border: '1px solid #ccc', padding: '10px' }}>
+                              <button onClick={() => openAddModal(song.id)}>Thêm vào playlist</button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </>
+        )}
+      </div>
+      <div className="right-column">
+        <SongDetails />
+      </div>
+      {modalSongId && <AddToPlaylistModal songId={modalSongId} onClose={closeModal} />}
+    </div>
+  );
+}
+
+export default HomePage;
