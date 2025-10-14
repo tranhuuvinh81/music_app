@@ -1,90 +1,4 @@
-// import bcrypt from "bcryptjs";
-// import db from "../config/db.js";
-
-// // Đăng ký
-// export const registerUser = async (req, res) => {
-//   const { username, password } = req.body;
-
-//   if (!username || !password)
-//     return res.status(400).json({ message: "Thiếu username hoặc password" });
-
-//   try {
-//     // Kiểm tra username tồn tại
-//     db.query("SELECT * FROM users WHERE username = ?", [username], async (err, result) => {
-//       if (err) return res.status(500).json({ error: err.message });
-//       if (result.length > 0) return res.status(400).json({ message: "Tên đăng nhập đã tồn tại" });
-
-//       // Mã hóa mật khẩu
-//       const hashedPassword = await bcrypt.hash(password, 10);
-
-//       // Lưu vào database
-//       db.query(
-//         "INSERT INTO users (username, password) VALUES (?, ?)",
-//         [username, hashedPassword],
-//         (err, results) => {
-//           if (err) return res.status(500).json({ error: err.message });
-//           res.status(201).json({ message: "Đăng ký thành công!", userId: results.insertId });
-//         }
-//       );
-//     });
-//   } catch (error) {
-//     res.status(500).json({ error: error.message });
-//   }
-// };
-
-// // Lấy danh sách user (ẩn mật khẩu)
-// export const getAllUsers = (req, res) => {
-//   db.query("SELECT id, username FROM users", (err, results) => {
-//     if (err) return res.status(500).json({ error: err.message });
-//     res.json(results);
-//   });
-// };
-
-// // 🆕 Cập nhật user
-// export const updateUser = async (req, res) => {
-//   const { id } = req.params;
-//   const { username, password } = req.body;
-
-//   if (!username && !password)
-//     return res.status(400).json({ message: "Cần cung cấp username hoặc password để cập nhật" });
-
-//   try {
-//     let updateFields = [];
-//     let values = [];
-
-//     if (username) {
-//       updateFields.push("username = ?");
-//       values.push(username);
-//     }
-//     if (password) {
-//       const hashedPassword = await bcrypt.hash(password, 10);
-//       updateFields.push("password = ?");
-//       values.push(hashedPassword);
-//     }
-
-//     values.push(id);
-
-//     const sql = `UPDATE users SET ${updateFields.join(", ")} WHERE id = ?`;
-//     db.query(sql, values, (err, result) => {
-//       if (err) return res.status(500).json({ error: err.message });
-//       if (result.affectedRows === 0) return res.status(404).json({ message: "Không tìm thấy user" });
-
-//       res.json({ message: "Cập nhật thành công" });
-//     });
-//   } catch (error) {
-//     res.status(500).json({ error: error.message });
-//   }
-// };
-
-// // 🆕 Xóa user
-// export const deleteUser = (req, res) => {
-//   const { id } = req.params;
-//   db.query("DELETE FROM users WHERE id = ?", [id], (err, result) => {
-//     if (err) return res.status(500).json({ error: err.message });
-//     if (result.affectedRows === 0) return res.status(404).json({ message: "Không tìm thấy user" });
-//     res.json({ message: "Đã xóa user thành công" });
-//   });
-// };
+// backend/controllers/userController.js (updated - handle avatar in updateUser)
 import bcrypt from "bcryptjs";
 import db from "../config/db.js";
 
@@ -128,10 +42,24 @@ export const registerUser = async (req, res) => {
 // Lấy danh sách người dùng (ẩn mật khẩu)
 export const getAllUsers = (req, res) => {
   db.query(
-    "SELECT id, username, full_name, age, email, phone, role FROM users",
+    "SELECT id, username, full_name, age, email, phone, role, avatar_url FROM users",
     (err, results) => {
       if (err) return res.status(500).json({ error: err.message });
       res.json(results);
+    }
+  );
+};
+
+// Lấy thông tin chi tiết user theo ID (cho profile hoặc admin view)
+export const getUserById = (req, res) => {
+  const { id } = req.params;
+  db.query(
+    "SELECT id, username, full_name, age, email, phone, role, avatar_url FROM users WHERE id = ?",
+    [id],
+    (err, results) => {
+      if (err) return res.status(500).json({ error: err.message });
+      if (results.length === 0) return res.status(404).json({ message: "Không tìm thấy user" });
+      res.json(results[0]);
     }
   );
 };
@@ -171,6 +99,13 @@ export const updateUser = async (req, res) => {
     if (role && loggedInUser.role === 'admin') {
         updateFields.push("role = ?");
         values.push(role);
+    }
+
+    // Xử lý avatar nếu có upload
+    if (req.files && req.files.avatarFile) {
+      const avatar_url = `/uploads/avatars/${req.files.avatarFile[0].filename}`;
+      updateFields.push("avatar_url = ?");
+      values.push(avatar_url);
     }
 
     if (updateFields.length === 0) {
