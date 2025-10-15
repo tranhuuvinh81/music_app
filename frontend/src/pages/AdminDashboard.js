@@ -1,8 +1,9 @@
-// frontend/src/pages/AdminDashboard.js (updated - replace edit with view details)
+// frontend/src/pages/AdminDashboard.js (updated - pass onUpdate to modal)
 import React, { useState, useEffect, useCallback } from 'react';
 import api from '../api/api';
 import SongForm from '../components/SongForm';
-import UserDetailsModal from '../components/UserDetailsModal'; // Thay vì UserForm
+import UserDetailsModal from '../components/UserDetailsModal';
+
 
 function AdminDashboard() {
   const [users, setUsers] = useState([]);
@@ -38,6 +39,10 @@ function AdminDashboard() {
   const handleUserDetailsClose = () => {
     setShowUserDetails(false);
     setSelectedUser(null);
+  };
+
+  const handleUserUpdate = () => {
+    fetchUsers(); // Refresh danh sách user sau khi update role
   };
 
   const deleteUser = (userId) => {
@@ -90,6 +95,7 @@ function AdminDashboard() {
         <UserDetailsModal
           user={selectedUser}
           onClose={handleUserDetailsClose}
+          onUpdate={handleUserUpdate} // Pass hàm refresh
         />
       )}
 

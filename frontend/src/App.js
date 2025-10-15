@@ -1,4 +1,4 @@
-// frontend/src/App.js (updated - handle loading in ProtectedRoute)
+// frontend/src/App.js (updated - import CSS files)
 import React, { useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import { AuthProvider, AuthContext } from './context/AuthContext';
@@ -11,7 +11,16 @@ import RegisterPage from './pages/RegisterPage';
 import AdminDashboard from './pages/AdminDashboard';
 import PlaylistPage from './pages/PlaylistPage';
 import ProfilePage from './pages/ProfilePage';
-import './App.css';
+import './App.css'; // Giữ file gốc nếu cần style chung
+import './components/Navbar.css';
+import './pages/HomePage.css';
+import './pages/PlaylistPage.css';
+import './components/AudioPlayer.css';
+import './components/Modal.css';
+import './pages/ProfilePage.css';
+import './pages/AdminDashboard.css';
+
+// ... (rest of the code remains the same)
 
 // Component bảo vệ route, yêu cầu đăng nhập
 const ProtectedRoute = ({ children }) => {
