@@ -1,14 +1,12 @@
-// frontend/src/pages/HomePage.js (updated - add sidebar and dynamic content)
+// frontend/src/pages/HomePage.js (updated - remove search results display)
 import React, { useState, useContext, useEffect } from 'react';
 import api from '../api/api';
 import { AuthContext } from '../context/AuthContext';
 import { AudioContext } from '../context/AudioContext';
-import { SongContext } from '../context/SongContext';
 import SongDetails from '../components/SongDetails';
 import AddToPlaylistModal from '../components/AddToPlaylistModal';
 
 function HomePage() {
-  const { songs: allSongs, searchQuery } = useContext(SongContext); // Sử dụng allSongs từ context (khi search)
   const [displaySongs, setDisplaySongs] = useState([]); // Danh sách bài hát hiển thị
   const [artists, setArtists] = useState([]);
   const [genres, setGenres] = useState([]);
@@ -20,7 +18,13 @@ function HomePage() {
   const [menuOpenSongId, setMenuOpenSongId] = useState(null);
   const [modalSongId, setModalSongId] = useState(null);
 
+  // Fetch danh sách bài hát mặc định khi tab 'songs' được chọn
   useEffect(() => {
+    if (selectedTab === 'songs') {
+      api.get('/api/songs') // Fetch tất cả bài hát từ API (không liên quan đến tìm kiếm)
+        .then(res => setDisplaySongs(res.data))
+        .catch(err => console.error(err));
+    }
     api.get('/api/songs/artists')
       .then(res => setArtists(res.data))
       .catch(err => console.error(err));
@@ -28,12 +32,10 @@ function HomePage() {
     api.get('/api/songs/genres')
       .then(res => setGenres(res.data))
       .catch(err => console.error(err));
-  }, []);
+  }, [selectedTab]);
 
   useEffect(() => {
-    if (selectedTab === 'songs') {
-      setDisplaySongs(allSongs); // Sử dụng từ search context
-    } else if (selectedTab === 'artists' && selectedArtist) {
+    if (selectedTab === 'artists' && selectedArtist) {
       api.get(`/api/songs/artist/${encodeURIComponent(selectedArtist)}`)
         .then(res => setDisplaySongs(res.data))
         .catch(err => console.error(err));
@@ -41,10 +43,14 @@ function HomePage() {
       api.get(`/api/songs/genre/${encodeURIComponent(selectedGenre)}`)
         .then(res => setDisplaySongs(res.data))
         .catch(err => console.error(err));
+    } else if (selectedTab === 'songs') {
+      api.get('/api/songs') // Fetch lại khi quay về tab 'songs'
+        .then(res => setDisplaySongs(res.data))
+        .catch(err => console.error(err));
     } else {
-      setDisplaySongs([]); // Khi chọn tab nhưng chưa chọn sub-item
+      setDisplaySongs([]); // Khi chưa chọn sub-item trong artists hoặc genres
     }
-  }, [selectedTab, selectedArtist, selectedGenre, allSongs]);
+  }, [selectedTab, selectedArtist, selectedGenre]);
 
   const handlePlaySong = (song, playlist, index) => {
     playSong(song, playlist, index);

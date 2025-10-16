@@ -1,14 +1,14 @@
 // frontend/src/pages/AdminDashboard.js (updated - pass onUpdate to modal)
-import React, { useState, useEffect, useCallback } from 'react';
-import api from '../api/api';
-import SongForm from '../components/SongForm';
-import UserDetailsModal from '../components/UserDetailsModal';
-
+import React, { useState, useEffect, useCallback } from "react";
+import api from "../api/api";
+import SongForm from "../components/SongForm";
+import UserDetailsModal from "../components/UserDetailsModal";
+import "./AdminDashboard.css";
 
 function AdminDashboard() {
   const [users, setUsers] = useState([]);
   const [songs, setSongs] = useState([]);
-  
+
   // State cho Song Form
   const [showSongForm, setShowSongForm] = useState(false);
   const [editingSong, setEditingSong] = useState(null);
@@ -18,11 +18,17 @@ function AdminDashboard() {
   const [selectedUser, setSelectedUser] = useState(null);
 
   const fetchUsers = useCallback(() => {
-    api.get('/api/users').then(res => setUsers(res.data)).catch(console.error);
+    api
+      .get("/api/users")
+      .then((res) => setUsers(res.data))
+      .catch(console.error);
   }, []);
 
   const fetchSongs = useCallback(() => {
-    api.get('/api/songs').then(res => setSongs(res.data)).catch(console.error);
+    api
+      .get("/api/songs")
+      .then((res) => setSongs(res.data))
+      .catch(console.error);
   }, []);
 
   useEffect(() => {
@@ -46,10 +52,10 @@ function AdminDashboard() {
   };
 
   const deleteUser = (userId) => {
-    if (window.confirm('Bạn có chắc muốn xóa người dùng này?')) {
+    if (window.confirm("Bạn có chắc muốn xóa người dùng này?")) {
       api.delete(`/api/users/${userId}`).then(fetchUsers).catch(console.error);
     }
-  }
+  };
 
   // Logic cho Song (giữ nguyên)
   const handleAddSongClick = () => {
@@ -63,10 +69,10 @@ function AdminDashboard() {
   };
 
   const deleteSong = (songId) => {
-    if (window.confirm('Bạn có chắc muốn xóa bài hát này?')) {
+    if (window.confirm("Bạn có chắc muốn xóa bài hát này?")) {
       api.delete(`/api/songs/${songId}`).then(fetchSongs).catch(console.error);
     }
-  }
+  };
 
   const handleSongFormSubmit = () => {
     setShowSongForm(false);
@@ -80,9 +86,11 @@ function AdminDashboard() {
   };
 
   return (
-    <div>
-      <h1>Trang quản trị</h1>
-      
+    <div className="dashboard-container">
+      <header>
+        <h1>Admin Dashboard</h1>
+      </header>
+
       {/* --- FORM MODALS --- */}
       {showSongForm && (
         <SongForm
@@ -100,59 +108,86 @@ function AdminDashboard() {
       )}
 
       {/* --- BẢNG QUẢN LÝ USER --- */}
-      <section>
-        <h2>Quản lý người dùng</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Username</th>
-              <th>Email</th>
-              <th>Role</th>
-              <th>Hành động</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map(user => (
-              <tr key={user.id}>
-                <td>{user.id}</td>
-                <td>{user.username}</td>
-                <td>{user.email}</td>
-                <td>{user.role}</td>
-                <td>
-                  <button className="btn-view" onClick={() => handleViewUserClick(user)}>Xem chi tiết</button>
-                  <button className="btn-delete" onClick={() => deleteUser(user.id)}>Xóa</button>
-                </td>
+      <section className="section">
+        <div className="section-header">
+          <h2>User Management</h2>
+        </div>
+        <div className="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {users.map((user) => (
+                <tr key={user.id}>
+                  <td>{user.id}</td>
+                  <td>{user.username}</td>
+                  <td>{user.email}</td>
+                  <td>{user.role}</td>
+                  <td>
+                    <button
+                      className="btn btn-view"
+                      onClick={() => handleViewUserClick(user)}
+                    >
+                      {" "}
+                      View
+                    </button>
+                    <button
+                      className="btn btn-delete"
+                      onClick={() => deleteUser(user.id)}
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </section>
 
       {/* --- BẢNG QUẢN LÝ BÀI HÁT (giữ nguyên) --- */}
-      <section>
+      <section className="section">
         <div className="section-header">
-          <h2>Quản lý bài hát</h2>
-          <button onClick={handleAddSongClick}>+ Thêm bài hát mới</button>
+          <h2>Songs Management</h2>
+          <button className="btn btn-primary" onClick={handleAddSongClick}>
+            + Add new song
+          </button>
         </div>
         <table>
           <thead>
             <tr>
               <th>ID</th>
-              <th>Tiêu đề</th>
-              <th>Nghệ sĩ</th>
-              <th>Hành động</th>
+              <th>Title</th>
+              <th>Single</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
-            {songs.map(song => (
+            {songs.map((song) => (
               <tr key={song.id}>
                 <td>{song.id}</td>
                 <td>{song.title}</td>
                 <td>{song.artist}</td>
                 <td>
-                  <button className="btn-edit" onClick={() => handleEditSongClick(song)}>Sửa</button>
-                  <button className="btn-delete" onClick={() => deleteSong(song.id)}>Xóa</button>
+                  <button
+                    className="btn btn-edit"
+                    onClick={() => handleEditSongClick(song)}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    className="btn btn-delete"
+                    onClick={() => deleteSong(song.id)}
+                  >
+                    Delete
+                  </button>
                 </td>
               </tr>
             ))}

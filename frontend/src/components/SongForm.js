@@ -73,22 +73,75 @@ function SongForm({ songToEdit, onFormSubmit, onCancel }) {
 
   return (
     <div className="modal-overlay">
-      <div className="modal-content">
-        <h2>{isEditing ? 'Chỉnh sửa bài hát' : 'Thêm bài hát mới'}</h2>
+      <div className="modal">
+        <div className="modal-header">
+          <h3>{isEditing ? 'Chỉnh sửa bài hát' : 'Thêm bài hát mới'}</h3>
+          <button className="modal-close" onClick={onCancel}>&times;</button>
+        </div>
         <form onSubmit={handleSubmit}>
-          <input name="title" value={formData.title} onChange={handleChange} placeholder="Tiêu đề" required />
-          <input name="artist" value={formData.artist} onChange={handleChange} placeholder="Nghệ sĩ" required />
-          <input name="album" value={formData.album} onChange={handleChange} placeholder="Album" />
-          <input name="genre" value={formData.genre} onChange={handleChange} placeholder="Thể loại" />
-          <input type="number" name="release_year" value={formData.release_year} onChange={handleChange} placeholder="Năm phát hành" />
-          <label>File nhạc:</label>
-          <input type="file" name="songFile" onChange={handleSongFileChange} accept="audio/*" required={!isEditing} />
-          <label>Hình ảnh (tùy chọn):</label>
-          <input type="file" name="imageFile" onChange={handleImageFileChange} accept="image/*" />
-          {error && <p className="error">{error}</p>}
-          <div className="form-actions">
-            <button type="submit">{isEditing ? 'Lưu thay đổi' : 'Thêm bài hát'}</button>
-            <button type="button" onClick={onCancel}>Hủy</button>
+          <div className='modal-body'>
+            <div className="form-group">
+              <label htmlFor="title">Tiêu đề</label>
+              <input
+                type='text'
+                id='title'
+                name="title"
+                value={formData.title}
+                onChange={handleChange}
+                required />
+            </div>
+            <div className="form-group">
+              <label htmlFor="artist">Nghệ sĩ</label>
+              <input
+                type='text'
+                id='artist'
+                name="artist"
+                value={formData.artist}
+                onChange={handleChange}
+                required />
+            </div>
+            <div className="form-group">
+              <label htmlFor="album">Album</label>
+              <input 
+                type='text'
+                id='album'
+                name="album"
+                value={formData.album}
+                onChange={handleChange}/>
+            </div>
+            <div className="form-group">
+              <label htmlFor="genre">Thể loại</label>
+              <input
+                type='text'
+                id='genre'
+                name="genre" 
+                value={formData.genre} 
+                onChange={handleChange} />
+            </div>
+            <div className="form-group">
+              <label htmlFor="release_year">Năm phát hành</label>
+              <input
+                type='number'
+                id='release_year'
+                name="release_year" 
+                value={formData.release_year} 
+                onChange={handleChange} />
+            </div>
+            <div className="form-group">
+              <label>File bài hát (MP3):</label>
+              <input type="file" name="songFile" onChange={handleSongFileChange} accept="audio/*" />
+            </div>
+            <div className="form-group">
+              <label>Ảnh nền (nếu có):</label>
+              <input type="file" name="imageFile" onChange={handleImageFileChange} accept="image/*" />
+            </div>
+          </div>
+          <div className="error">
+            {error && <p className="error">{error}</p>}
+          </div>
+          <div className='modal-footer'>
+            <button className='btn btn-cancel' type="button" onClick={onCancel}>Hủy</button>
+            <button className='btn btn-primary' type="submit">{isEditing ? 'Lưu thay đổi' : 'Thêm bài hát'}</button>
           </div>
         </form>
       </div>

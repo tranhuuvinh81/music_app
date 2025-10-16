@@ -1,4 +1,4 @@
-// frontend/src/context/SongContext.js (updated - trigger fetch on activeQuery)
+// frontend/src/context/SongContext.js
 import React, { createContext, useState, useEffect } from 'react';
 import api from '../api/api';
 
@@ -9,8 +9,8 @@ export const SongProvider = ({ children }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeQuery, setActiveQuery] = useState('');
 
-  const performSearch = () => {
-    setActiveQuery(searchQuery);
+  const performSearch = (query) => {
+    setActiveQuery(query); // Cập nhật activeQuery với query được truyền vào
   };
 
   useEffect(() => {
@@ -21,6 +21,7 @@ export const SongProvider = ({ children }) => {
         setSongs(res.data);
       } catch (err) {
         console.error(err);
+        setSongs([]); // Đặt songs là mảng rỗng nếu có lỗi, hỗ trợ hiển thị "Không tìm thấy kết quả"
       }
     };
     fetchSongs();

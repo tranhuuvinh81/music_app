@@ -1,42 +1,10 @@
-/* src/pages/HomePage.css */
-/* .home-layout {
-  display: flex;
-  gap: 20px;
-  min-height: calc(100vh - 60px);
-  padding-top: 10px;
+/* src/pages/SearchPage.css (new file)
+.search-page {
+  padding: 20px;
 }
 
-.sidebar {
-  width: 200px;
-  background-color: #f0f0f0;
-  padding: 10px;
-  border-right: 1px solid #ccc;
-}
-
-.sidebar ul {
-  list-style: none;
-  padding: 0;
-}
-
-.sidebar li {
-  padding: 10px;
-  cursor: pointer;
-}
-
-.sidebar li.active {
-  background-color: #ddd;
-  font-weight: bold;
-}
-
-.main-content {
-  flex: 1;
-  overflow-y: auto;
-}
-
-.right-column {
-  width: 300px;
-  border-left: 1px solid #ccc;
-  padding: 10px;
+.search-page h1 {
+  margin-bottom: 20px;
 }
 
 .song-list {

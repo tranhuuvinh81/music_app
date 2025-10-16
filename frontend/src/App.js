@@ -1,6 +1,6 @@
-// frontend/src/App.js (updated - import CSS files)
+// frontend/src/App.js (updated Navigation)
 import React, { useContext } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
 import { AuthProvider, AuthContext } from './context/AuthContext';
 import { AudioProvider } from './context/AudioContext';
 import { SongContext, SongProvider } from './context/SongContext';
@@ -11,22 +11,15 @@ import RegisterPage from './pages/RegisterPage';
 import AdminDashboard from './pages/AdminDashboard';
 import PlaylistPage from './pages/PlaylistPage';
 import ProfilePage from './pages/ProfilePage';
-import './App.css'; // Giữ file gốc nếu cần style chung
-import './components/Navbar.css';
-import './pages/HomePage.css';
-import './pages/PlaylistPage.css';
-import './components/AudioPlayer.css';
-import './components/Modal.css';
-import './pages/ProfilePage.css';
-import './pages/AdminDashboard.css';
+import SearchPage from './pages/SearchPage';
+import './App.css';
 
-// ... (rest of the code remains the same)
 
 // Component bảo vệ route, yêu cầu đăng nhập
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, isLoading } = useContext(AuthContext);
   if (isLoading) {
-    return <div>Đang tải...</div>; // Hoặc spinner
+    return <div>Đang tải...</div>;
   }
   return isAuthenticated ? children : <Navigate to="/login" />;
 };
@@ -40,9 +33,11 @@ const AdminRoute = ({ children }) => {
   return user && user.role === 'admin' ? children : <Navigate to="/" />;
 };
 
+// frontend/src/App.js (Navigation updated)
 function Navigation() {
   const { user, logout } = useContext(AuthContext);
   const { searchQuery, setSearchQuery, performSearch } = useContext(SongContext);
+  const navigate = useNavigate();
 
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
@@ -50,7 +45,8 @@ function Navigation() {
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    performSearch();
+    performSearch(searchQuery); // Gọi performSearch với query hiện tại
+    navigate(`/search?q=${encodeURIComponent(searchQuery)}`); // Điều hướng đến trang search
   };
 
   return (
@@ -112,6 +108,7 @@ function App() {
                     <AdminDashboard />
                   </AdminRoute>
                 } />
+                <Route path="/search" element={<SearchPage />} />
               </Routes>
             </main>
             <AudioPlayer />
