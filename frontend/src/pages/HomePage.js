@@ -85,12 +85,35 @@ function HomePage() {
 
   return (
     <div className="home-layout">
-      <div className="sidebar">
-        <ul>
-          <li onClick={() => handleTabChange('songs')} className={selectedTab === 'songs' ? 'active' : ''}>Bài hát</li>
-          <li onClick={() => handleTabChange('artists')} className={selectedTab === 'artists' ? 'active' : ''}>Nghệ sĩ</li>
-          <li onClick={() => handleTabChange('genres')} className={selectedTab === 'genres' ? 'active' : ''}>Thể loại</li>
-        </ul>
+      <div className="app-container">
+        <div className="main-layout">
+          <div className="sidebar">
+            <div className="logo">
+              <span>Vinhsic</span>
+            </div>
+            <div className="nav-menu">
+              <li
+                className="nav-item"
+                onClick={() => handleTabChange("songs")}
+              >
+                <span>Home</span>
+              </li>
+              <li
+                className="nav-item"
+                onClick={() => handleTabChange("artists")}
+              >
+                <span>Singer</span>
+              </li>
+              <li
+                className="nav-item"
+                onClick={() => handleTabChange("genres")}
+              >
+                <span>Genre</span>
+              </li>
+            </div>
+            <div class="divider"></div>
+          </div>
+        </div>
       </div>
       <div className="main-content">
         {selectedTab === 'songs' && (
@@ -209,3 +232,4 @@ function HomePage() {
 }
 
 export default HomePage;
+
