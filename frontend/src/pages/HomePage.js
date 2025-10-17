@@ -207,10 +207,10 @@ function HomePage() {
                       </div>
                       <button onClick={() => handlePlaySong(song, displaySongs, index)}>Nghe</button>
                       {isAuthenticated && (
-                        <div className="menu-container" style={{ position: 'relative', display: 'inline-block' }}>
+                        <div className="menu-container">
                           <button onClick={() => toggleMenu(song.id)}>...</button>
                           {menuOpenSongId === song.id && (
-                            <div className="menu-dropdown" style={{ position: 'absolute', right: 0, backgroundColor: 'white', border: '1px solid #ccc', padding: '10px' }}>
+                            <div className="menu-dropdown" >
                               <button onClick={() => openAddModal(song.id)}>Thêm vào playlist</button>
                             </div>
                           )}

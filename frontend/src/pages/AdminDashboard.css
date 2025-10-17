@@ -732,7 +732,6 @@ body {
   top: 40px;
   background-color: white;
   border-radius: 8px;
-  box-shadow: var(--hover-shadow);
   padding: 10px;
   min-width: 180px;
   z-index: 10;
