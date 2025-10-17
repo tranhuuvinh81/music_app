@@ -5,6 +5,7 @@ import { AuthContext } from '../context/AuthContext';
 import { AudioContext } from '../context/AudioContext';
 import SongDetails from '../components/SongDetails';
 import AddToPlaylistModal from '../components/AddToPlaylistModal';
+import './HomePage.css';
 
 function HomePage() {
   const [displaySongs, setDisplaySongs] = useState([]); // Danh sách bài hát hiển thị
@@ -88,9 +89,9 @@ function HomePage() {
       <div className="app-container">
         <div className="main-layout">
           <div className="sidebar">
-            <div className="logo">
-              <span>Vinhsic</span>
-            </div>
+            {/* <div className="logo">
+              <<span>Vinhsic</span>>
+            </div> */}
             <div className="nav-menu">
               <li
                 className="nav-item"
@@ -128,10 +129,10 @@ function HomePage() {
                   </div>
                   <button onClick={() => handlePlaySong(song, displaySongs, index)}>Nghe</button>
                   {isAuthenticated && (
-                    <div className="menu-container" style={{ position: 'relative', display: 'inline-block' }}>
+                    <div className="menu-container">
                       <button onClick={() => toggleMenu(song.id)}>...</button>
                       {menuOpenSongId === song.id && (
-                        <div className="menu-dropdown" style={{ position: 'absolute', right: 0, backgroundColor: 'white', border: '1px solid #ccc', padding: '10px' }}>
+                        <div className="menu-dropdown">
                           <button onClick={() => openAddModal(song.id)}>Thêm vào playlist</button>
                         </div>
                       )}
@@ -166,10 +167,10 @@ function HomePage() {
                       </div>
                       <button onClick={() => handlePlaySong(song, displaySongs, index)}>Nghe</button>
                       {isAuthenticated && (
-                        <div className="menu-container" style={{ position: 'relative', display: 'inline-block' }}>
+                        <div className="menu-container">
                           <button onClick={() => toggleMenu(song.id)}>...</button>
                           {menuOpenSongId === song.id && (
-                            <div className="menu-dropdown" style={{ position: 'absolute', right: 0, backgroundColor: 'white', border: '1px solid #ccc', padding: '10px' }}>
+                            <div className="menu-dropdown">
                               <button onClick={() => openAddModal(song.id)}>Thêm vào playlist</button>
                             </div>
                           )}

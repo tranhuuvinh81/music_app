@@ -497,8 +497,8 @@ tr:hover {
 /* --- Styles added/merged from second file (only missing selectors/properties) --- */
 
 :root {
-  --sidebar-width: 250px;
-  --right-column-width: 320px;
+  --sidebar-width: 180px;
+  --right-column-width: 340px;
 }
 
 body {
@@ -609,10 +609,10 @@ body {
 .main-content {
   margin-left: var(--sidebar-width);
   margin-right: var(--right-column-width);
-  margin-top: 70px;
+  /* margin-top: 20px; */
   padding: 30px;
   height: calc(100vh - 70px);
-  overflow-y: auto;
+  /* overflow-y: auto; */
 }
 
 .content-header {
@@ -956,7 +956,7 @@ body {
 
 @media (max-width: 1200px) {
   .right-column {
-    width: 280px;
+    width: 340px;
   }
   .main-content {
     margin-right: 280px;
@@ -977,3 +977,16 @@ body {
     margin-right: 250px;
   }
 }
+
+.image-container {
+  width: 300px; /* Kích thước cố định của khung */
+  height: 300px; /* Kích thước cố định của khung */
+  overflow: hidden; /* Ẩn phần ảnh vượt ra ngoài khung */
+}
+
+.image-container img {
+  width: 100%; /* Đảm bảo ảnh không vượt quá kích thước khung */
+  height: 100%; /* Đảm bảo ảnh không vượt quá kích thước khung */
+  object-fit: cover; /* Đảm bảo ảnh lấp đầy khung mà không bị méo */
+}
+

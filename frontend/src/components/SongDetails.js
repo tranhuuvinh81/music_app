@@ -8,6 +8,24 @@ function SongDetails() {
   const currentSong = currentPlaylist[currentIndex];
   const { isPlaying, setIsPlaying } = useContext(AudioContext);
 
+  const {
+    
+    togglePlay,
+    nextSong,
+    prevSong,
+    volume,
+    handleVolumeChange,
+    progress,
+    handleSeek,
+    
+  } = useContext(AudioContext);
+  if (!currentSong) return null;
+
+  const currentSongObj = currentPlaylist[currentIndex] || {};
+  const songTitle = currentSongObj.title || currentSong.split('/').pop();
+  const songArtist = currentSongObj.artist || 'Unknown';
+
+
   if (!currentSong) {
     return <div className="song-details">Chưa có bài hát đang phát</div>;
   }
@@ -16,30 +34,43 @@ function SongDetails() {
 
   return (
     <div className="now-playing">
-      <h2>Thông tin bài hát đang phát</h2>
-      <div className='now-playing-art'>
-        {imageSrc && <img src={imageSrc} alt={currentSong.title}/>}
+      <h2>Cùng nghe nào</h2>
+      <div className='now-playing-corver'>
+        {imageSrc && <img className='image-container' src={imageSrc} alt={currentSong.title}/>}
       </div>
       <div className='now-playing-title'>{currentSong.title}</div>
       <div className='now-playing-artist'>{currentSong.artist}</div>
-      <div className='player-controls'>
-        <button className='control-button'>&lt;</button>
-        <button className='control-button play-pause'>
+      <div className='audio-controls'>
+        <button onClick={prevSong} disabled={currentIndex <=0} className='control-btn'>&lt;</button>
+        <button onClick={togglePlay} className='control-btn control-btn.play'>
           {isPlaying ? (
             <span>&#10074;&#10074;</span> // Pause icon
           ) : (
-            <span >&#9z654;</span> // Play icon
+            <span>&#9654;</span> // Play icon
           )}
         </button>
-        <button className='control-button'>&gt;</button>
+        <button onClick={nextSong} disabled={currentIndex>= currentPlaylist.length - 1} className='control-btn'>&gt;</button>
+        <input
+          type="range"
+          min="0"
+          max="100"
+          value={progress}
+          onChange={handleSeek}
+          className="seek-bar"
+        />
+        <div className="volume-control">
+          <label>Âm lượng:</label>
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.01"
+            value={volume}
+            onChange={handleVolumeChange}
+          />
+        </div>
       </div>
       
-
-      <p><strong>Tiêu đề:</strong> {currentSong.title}</p>
-      <p><strong>Nghệ sĩ:</strong> {currentSong.artist}</p>
-      <p><strong>Album:</strong> {currentSong.album || 'Không có'}</p>
-      <p><strong>Thể loại:</strong> {currentSong.genre || 'Không có'}</p>
-      <p><strong>Năm phát hành:</strong> {currentSong.release_year || 'Không có'}</p>
     </div>
   );
 }
