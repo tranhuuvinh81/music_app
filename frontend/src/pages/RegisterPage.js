@@ -29,7 +29,8 @@ function RegisterPage() {
   };
 
   return (
-    <div className="auth-form">
+    <div className='body1'>
+      <div className="auth-form">
       <h2>Đăng ký tài khoản</h2>
       <form onSubmit={handleSubmit}>
         <input type="text" name="username" placeholder="Tên đăng nhập" onChange={handleChange} required />
@@ -41,6 +42,7 @@ function RegisterPage() {
         {error && <p className="error">{error}</p>}
         {success && <p className="success">{success}</p>}
       </form>
+    </div>
     </div>
   );
 }

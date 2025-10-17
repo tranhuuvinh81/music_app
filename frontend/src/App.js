@@ -19,6 +19,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import PlaylistPage from "./pages/PlaylistPage";
 import ProfilePage from "./pages/ProfilePage";
 import SearchPage from "./pages/SearchPage";
+import api from './api/api';
 import "./App.css";
 
 // Component bảo vệ route, yêu cầu đăng nhập
@@ -41,7 +42,7 @@ const AdminRoute = ({ children }) => {
 
 // frontend/src/App.js (Navigation updated)
 function Navigation() {
-  const { user, logout } = useContext(AuthContext);
+  const { user, fullUser, logout } = useContext(AuthContext);
   const { searchQuery, setSearchQuery, performSearch } =
     useContext(SongContext);
   const navigate = useNavigate();
@@ -61,10 +62,15 @@ function Navigation() {
     setUserDropdownOpen(!userDropdownOpen);
   };
 
+  // Tính toán avatar URL đầy đủ
+  const avatarSrc = fullUser && fullUser.avatar_url 
+    ? `${api.defaults.baseURL}${fullUser.avatar_url}` 
+    : "/default-user-icon.png";
+
   return (
     <nav className="navbar">
       <Link to="/" className="nav-brand">
-        MusicApp
+        Nghe & Khen
       </Link>
       <form className="nav-search" onSubmit={handleSearchSubmit}>
         <input
@@ -96,10 +102,10 @@ function Navigation() {
         <div className="dropdown-toggle" onClick={toggleUserDropdown}>
           <i className="fas fa-user-circle"></i>
             <img
-              src={user && user.avatar_url ? user.avatar_url : "/default-user-icon.png"}
-              className="user-icon"
+              src={avatarSrc}
+              className="user-avatar"
             />
-            <span>{user ? user.username : 'Tài khoản'}</span>
+            <span>{fullUser ? fullUser.full_name : 'Tài khoản'}</span>
           <i className="fas fa-chevron-down"></i>
         </div>
         <div className="dropdown-menu">

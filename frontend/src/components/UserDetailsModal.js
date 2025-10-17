@@ -48,6 +48,7 @@ function UserDetailsModal({ user, onClose, onUpdate }) {
                       borderRadius: "50%",
                       width: "100px",
                       height: "100px",
+                      objectFit: "cover",
                     }}
                   />
                 )}

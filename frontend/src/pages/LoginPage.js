@@ -3,6 +3,7 @@ import React, { useState, useContext } from 'react';
 import api from '../api/api';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import './LoginPage.css';
 
 function LoginPage() {
   const [formData, setFormData] = useState({ username: '', password: '' });
@@ -27,7 +28,8 @@ function LoginPage() {
   };
 
   return (
-    <div className="auth-form">
+    <div className='body1'>
+      <div className="auth-form ">
       <h2>Đăng nhập</h2>
       <form onSubmit={handleSubmit}>
         <input type="text" name="username" placeholder="Tên đăng nhập" onChange={handleChange} required />
@@ -35,6 +37,7 @@ function LoginPage() {
         <button type="submit">Đăng nhập</button>
         {error && <p className="error">{error}</p>}
       </form>
+    </div>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import api from '../api/api';
 import { AuthContext } from '../context/AuthContext';
 import { AudioContext } from '../context/AudioContext';
 import PlaylistForm from '../components/PlaylistForm';
+import './PlaylistPage.css';
 
 function PlaylistPage() {
   const [playlists, setPlaylists] = useState([]);

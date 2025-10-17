@@ -93,6 +93,13 @@ export const AudioProvider = ({ children }) => {
     }
   }, [currentIndex, currentPlaylist]);
 
+  // Thêm resume function để resume playback
+  const resumePlay = () => {
+    if (audioRef.current && isPlaying) {
+      audioRef.current.play().catch(error => console.log('Playback resumption failed', error));
+    }
+  };
+
   return (
     <AudioContext.Provider value={{
       currentSong,
@@ -106,7 +113,8 @@ export const AudioProvider = ({ children }) => {
       handleSeek,
       handleVolumeChange,
       currentPlaylist,
-      currentIndex
+      currentIndex,
+      resumePlay // Thêm resumePlay
     }}>
       {children}
       <audio ref={audioRef} />

@@ -2,6 +2,7 @@
 import React, { useContext } from 'react';
 import { AudioContext } from '../context/AudioContext';
 import api from '../api/api'; // Để lấy baseURL
+import './SongDetails.css';
 
 function SongDetails() {
   const { currentPlaylist, currentIndex } = useContext(AudioContext);
@@ -41,7 +42,8 @@ function SongDetails() {
       <div className='now-playing-title'>{currentSong.title}</div>
       <div className='now-playing-artist'>{currentSong.artist}</div>
       <div className='audio-controls'>
-        <button onClick={prevSong} disabled={currentIndex <=0} className='control-btn'>&lt;</button>
+      <div className='playpause-btn'>
+                <button onClick={prevSong} disabled={currentIndex <=0} className='control-btn'>&#9198;</button>
         <button onClick={togglePlay} className='control-btn control-btn.play'>
           {isPlaying ? (
             <span>&#10074;&#10074;</span> // Pause icon
@@ -49,7 +51,8 @@ function SongDetails() {
             <span>&#9654;</span> // Play icon
           )}
         </button>
-        <button onClick={nextSong} disabled={currentIndex>= currentPlaylist.length - 1} className='control-btn'>&gt;</button>
+        <button onClick={nextSong} disabled={currentIndex>= currentPlaylist.length - 1} className='control-btn'>&#9197;</button>
+      </div>
         <input
           type="range"
           min="0"

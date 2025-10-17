@@ -50,21 +50,62 @@ function ProfileForm({ user, onFormSubmit, onCancel }) {
   };
 
   return (
-    <div className="profile-form">
-      <h2>Chỉnh sửa thông tin</h2>
-      <form onSubmit={handleSubmit}>
-        <input name="full_name" value={formData.full_name} onChange={handleChange} placeholder="Họ và tên" />
-        <input type="number" name="age" value={formData.age} onChange={handleChange} placeholder="Tuổi" />
-        <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Email" />
-        <input name="phone" value={formData.phone} onChange={handleChange} placeholder="Số điện thoại" />
-        <label>Ảnh đại diện:</label>
-        <input type="file" name="avatarFile" onChange={handleAvatarChange} accept="image/*" />
-        {error && <p className="error">{error}</p>}
-        <div className="form-actions">
-          <button type="submit">Lưu thay đổi</button>
-          <button type="button" onClick={onCancel}>Hủy</button>
+    <div className="modal-overlay">
+      <div className="modal">
+        <div className="modal-header">
+          <button className="modal-close" onClick={onCancel}>&times;</button>
         </div>
-      </form>
+        <form onSubmit={handleSubmit}>
+          <div className='modal-body'>
+            <div className="form-group">
+              <label htmlFor="full_name">Họ và tên</label>
+              <input
+                type='text'
+                id='full_name'
+                name="full_name"
+                value={formData.full_name}
+                onChange={handleChange}
+                required />
+            </div>
+            <div className="form-group">
+              <label htmlFor="age">Tuổi</label>
+              <input
+                type='text'
+                id='age'
+                name="age"
+                value={formData.age}
+                onChange={handleChange}
+                required />
+            </div>
+            <div className="form-group">
+              <label htmlFor="album">Email</label>
+              <input 
+                type='text'
+                id='email'
+                name="email"
+                value={formData.email}
+                onChange={handleChange}/>
+            </div>
+            <div className="form-group">
+              <label htmlFor="genre">Số điện thoại</label>
+              <input
+                type='text'
+                id='phone'
+                name="phone" 
+                value={formData.phone} 
+                onChange={handleChange} />
+            </div>
+          </div>
+          <div className="error">
+            {error && <p className="error">{error}</p>}
+          </div>
+          <div className='modal-footer'>
+            <button className='btn btn-cancel' onClick={onCancel}>Hủy</button>
+            <button className='btn btn-primary' type="submit">Lưu</button>
+
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

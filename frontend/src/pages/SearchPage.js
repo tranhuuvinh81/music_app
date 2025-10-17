@@ -5,6 +5,7 @@ import { SongContext } from '../context/SongContext';
 import { AuthContext } from '../context/AuthContext';
 import { AudioContext } from '../context/AudioContext';
 import AddToPlaylistModal from '../components/AddToPlaylistModal';
+import './SearchPage.css';
 
 function SearchPage() {
   const { songs, searchQuery, setSearchQuery, performSearch } = useContext(SongContext);

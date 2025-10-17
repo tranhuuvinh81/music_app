@@ -3,6 +3,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import api from '../api/api';
 import { AuthContext } from '../context/AuthContext';
 import ProfileForm from '../components/ProfileForm';
+import './ProfilePage.css';
 
 function ProfilePage() {
   const { user } = useContext(AuthContext);
@@ -45,7 +46,7 @@ function ProfilePage() {
       {isEditing && (
         <ProfileForm user={profile} onFormSubmit={handleFormSubmit} onCancel={() => setIsEditing(false)} />
       )}
-      <h2>Danh sách playlist</h2>
+      <h3>Playlist của bạn</h3>
       <ul>
         {playlists.map(pl => (
           <li key={pl.id}>{pl.name}</li>
