@@ -77,7 +77,7 @@ function ProfileForm({ user, onFormSubmit, onCancel }) {
                 value={formData.full_name}
                 onChange={handleChange}
                 required 
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
               />
             </div>
             <div>
@@ -91,7 +91,7 @@ function ProfileForm({ user, onFormSubmit, onCancel }) {
                 value={formData.age}
                 onChange={handleChange}
                 required 
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
               />
             </div>
             <div>
@@ -104,7 +104,7 @@ function ProfileForm({ user, onFormSubmit, onCancel }) {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
               />
             </div>
             <div>
@@ -117,7 +117,7 @@ function ProfileForm({ user, onFormSubmit, onCancel }) {
                 name="phone" 
                 value={formData.phone} 
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
               />
             </div>
             <div>
@@ -130,7 +130,7 @@ function ProfileForm({ user, onFormSubmit, onCancel }) {
                 name="avatarFile" 
                 onChange={handleAvatarChange} 
                 accept="image/*" 
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100"
               />
             </div>
           </div>
@@ -147,7 +147,7 @@ function ProfileForm({ user, onFormSubmit, onCancel }) {
             </button>
             <button 
               type="submit" 
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+              className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
             >
               Lưu
             </button>
