@@ -73,7 +73,7 @@ function SongForm({ songToEdit, onFormSubmit, onCancel }) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md max-h-screen overflow-y-auto">
+      <div className="bg-white rounded-lg shadow-xl p-3 w-full max-w-md max-h-screen overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold text-gray-900">{isEditing ? 'Chỉnh sửa bài hát' : 'Thêm bài hát mới'}</h3>
           <button 
@@ -164,7 +164,7 @@ function SongForm({ songToEdit, onFormSubmit, onCancel }) {
                 name="songFile" 
                 onChange={handleSongFileChange} 
                 accept="audio/*" 
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100"
               />
             </div>
             <div>
@@ -176,7 +176,7 @@ function SongForm({ songToEdit, onFormSubmit, onCancel }) {
                 name="imageFile" 
                 onChange={handleImageFileChange} 
                 accept="image/*" 
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100"
               />
             </div>
           </div>
@@ -193,7 +193,7 @@ function SongForm({ songToEdit, onFormSubmit, onCancel }) {
             </button>
             <button 
               type="submit" 
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+              className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
             >
               {isEditing ? 'Lưu thay đổi' : 'Thêm bài hát'}
             </button>

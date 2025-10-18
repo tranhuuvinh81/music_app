@@ -86,7 +86,7 @@ function UserDetailsModal({ user, onClose, onUpdate }) {
                   <select 
                     value={newRole} 
                     onChange={handleRoleChange}
-                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm rounded-md"
                   >
                     <option value="user">User</option>
                     <option value="admin">Admin</option>
@@ -103,7 +103,7 @@ function UserDetailsModal({ user, onClose, onUpdate }) {
                   </span>
                   {currentUser.role === "admin" && (
                     <button 
-                      className="ml-2 px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+                      className="ml-2 px-2 py-1 bg-gray-500 text-white text-xs rounded hover:bg-gray-600"
                       onClick={() => setEditingRole(true)}
                     >
                       Chỉnh sửa
@@ -114,11 +114,11 @@ function UserDetailsModal({ user, onClose, onUpdate }) {
               {editingRole && (
                 <div className="flex space-x-2 mt-2">
                   <button 
-                    className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
+                    className="px-2 py-1 bg-gray-500 text-white text-xs rounded hover:bg-gray-600"
                     onClick={handleSaveRole}
                   >Lưu</button>
                   <button 
-                    className="px-2 py-1 bg-gray-500 text-white text-xs rounded hover:bg-gray-600"
+                    className="px-2 py-1 bg-gray-400 text-white text-xs rounded hover:bg-gray-300"
                     onClick={() => setEditingRole(false)}
                   >Hủy</button>
                 </div>
