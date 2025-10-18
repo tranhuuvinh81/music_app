@@ -72,76 +72,131 @@ function SongForm({ songToEdit, onFormSubmit, onCancel }) {
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="modal">
-        <div className="modal-header">
-          <h3>{isEditing ? 'Chỉnh sửa bài hát' : 'Thêm bài hát mới'}</h3>
-          <button className="modal-close" onClick={onCancel}>&times;</button>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md max-h-screen overflow-y-auto">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">{isEditing ? 'Chỉnh sửa bài hát' : 'Thêm bài hát mới'}</h3>
+          <button 
+            onClick={onCancel} 
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+            aria-label="Close"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
         </div>
         <form onSubmit={handleSubmit}>
-          <div className='modal-body'>
-            <div className="form-group">
-              <label htmlFor="title">Tiêu đề</label>
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
+                Tiêu đề
+              </label>
               <input
                 type='text'
                 id='title'
                 name="title"
                 value={formData.title}
                 onChange={handleChange}
-                required />
+                required 
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
             </div>
-            <div className="form-group">
-              <label htmlFor="artist">Nghệ sĩ</label>
+            <div>
+              <label htmlFor="artist" className="block text-sm font-medium text-gray-700 mb-1">
+                Nghệ sĩ
+              </label>
               <input
                 type='text'
                 id='artist'
                 name="artist"
                 value={formData.artist}
                 onChange={handleChange}
-                required />
+                required 
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
             </div>
-            <div className="form-group">
-              <label htmlFor="album">Album</label>
+            <div>
+              <label htmlFor="album" className="block text-sm font-medium text-gray-700 mb-1">
+                Album
+              </label>
               <input 
                 type='text'
                 id='album'
                 name="album"
                 value={formData.album}
-                onChange={handleChange}/>
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
             </div>
-            <div className="form-group">
-              <label htmlFor="genre">Thể loại</label>
+            <div>
+              <label htmlFor="genre" className="block text-sm font-medium text-gray-700 mb-1">
+                Thể loại
+              </label>
               <input
                 type='text'
                 id='genre'
                 name="genre" 
                 value={formData.genre} 
-                onChange={handleChange} />
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
             </div>
-            <div className="form-group">
-              <label htmlFor="release_year">Năm phát hành</label>
+            <div>
+              <label htmlFor="release_year" className="block text-sm font-medium text-gray-700 mb-1">
+                Năm phát hành
+              </label>
               <input
                 type='number'
                 id='release_year'
                 name="release_year" 
                 value={formData.release_year} 
-                onChange={handleChange} />
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
             </div>
-            <div className="form-group">
-              <label>File bài hát (MP3):</label>
-              <input type="file" name="songFile" onChange={handleSongFileChange} accept="audio/*" />
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                File bài hát (MP3):
+              </label>
+              <input 
+                type="file" 
+                name="songFile" 
+                onChange={handleSongFileChange} 
+                accept="audio/*" 
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              />
             </div>
-            <div className="form-group">
-              <label>Ảnh nền (nếu có):</label>
-              <input type="file" name="imageFile" onChange={handleImageFileChange} accept="image/*" />
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Ảnh nền (nếu có):
+              </label>
+              <input 
+                type="file" 
+                name="imageFile" 
+                onChange={handleImageFileChange} 
+                accept="image/*" 
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              />
             </div>
           </div>
-          <div className="error">
-            {error && <p className="error">{error}</p>}
-          </div>
-          <div className='modal-footer'>
-            <button className='btn btn-cancel' type="button" onClick={onCancel}>Hủy</button>
-            <button className='btn btn-primary' type="submit">{isEditing ? 'Lưu thay đổi' : 'Thêm bài hát'}</button>
+          {error && (
+            <p className="mt-4 text-sm text-red-600">{error}</p>
+          )}
+          <div className="flex justify-end space-x-3 mt-6">
+            <button 
+              type="button" 
+              onClick={onCancel}
+              className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-colors"
+            >
+              Hủy
+            </button>
+            <button 
+              type="submit" 
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+            >
+              {isEditing ? 'Lưu thay đổi' : 'Thêm bài hát'}
+            </button>
           </div>
         </form>
       </div>

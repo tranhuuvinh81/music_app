@@ -1,16 +1,18 @@
 // frontend/src/context/AudioContext.js (updated)
-import React, { createContext, useState, useRef, useEffect } from 'react';
-
+import React, { createContext, useState, useRef, useEffect, useContext } from 'react';
+import api from '../api/api';
+import { AuthContext } from '../context/AuthContext';
 export const AudioContext = createContext();
 
 export const AudioProvider = ({ children }) => {
   const [currentSong, setCurrentSong] = useState(null);
-  const [currentPlaylist, setCurrentPlaylist] = useState([]); // Mảng các song objects
+  const [currentPlaylist, setCurrentPlaylist] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(-1);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [volume, setVolume] = useState(1); // Từ 0 đến 1
-  const [progress, setProgress] = useState(0); // Phần trăm tiến độ
+  const [volume, setVolume] = useState(1);
+  const [progress, setProgress] = useState(0);
   const audioRef = useRef(null);
+  const { isAuthenticated } = useContext(AuthContext);
 
   useEffect(() => {
     if (audioRef.current) {
@@ -53,12 +55,18 @@ export const AudioProvider = ({ children }) => {
     }
   }, [currentSong]);
 
-  const playSong = (song, playlist = [], index = 0) => {
-    const songUrl = `${process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000'}${song.file_url}`;
+ const playSong = (song, playlist = [], index = 0) => {
+    const songUrl = `${api.defaults.baseURL}${song.file_url}`;
     setCurrentPlaylist(playlist);
     setCurrentIndex(index);
     setCurrentSong(songUrl);
     setIsPlaying(true);
+
+    // Log listening if authenticated
+    if (isAuthenticated) {
+      api.post('/api/songs/log-listen', { song_id: song.id })
+        .catch(err => console.error('Error logging listen:', err));
+    }
   };
 
   const togglePlay = () => {

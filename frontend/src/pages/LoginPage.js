@@ -3,7 +3,6 @@ import React, { useState, useContext } from 'react';
 import api from '../api/api';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import './LoginPage.css';
 
 function LoginPage() {
   const [formData, setFormData] = useState({ username: '', password: '' });
@@ -28,16 +27,39 @@ function LoginPage() {
   };
 
   return (
-    <div className='body1'>
-      <div className="auth-form ">
-      <h2>Đăng nhập</h2>
-      <form onSubmit={handleSubmit}>
-        <input type="text" name="username" placeholder="Tên đăng nhập" onChange={handleChange} required />
-        <input type="password" name="password" placeholder="Mật khẩu" onChange={handleChange} required />
-        <button type="submit">Đăng nhập</button>
-        {error && <p className="error">{error}</p>}
-      </form>
-    </div>
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+        <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Đăng nhập</h2>
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <input 
+              type="text" 
+              name="username" 
+              placeholder="Tên đăng nhập" 
+              onChange={handleChange} 
+              required 
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
+            />
+          </div>
+          <div className="mb-6">
+            <input 
+              type="password" 
+              name="password" 
+              placeholder="Mật khẩu" 
+              onChange={handleChange} 
+              required 
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
+            />
+          </div>
+          <button 
+            type="submit" 
+            className="w-full bg-gray-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 transition-colors"
+          >
+            Đăng nhập
+          </button>
+          {error && <p className="mt-4 text-red-500 text-center text-sm">{error}</p>}
+        </form>
+      </div>
     </div>
   );
 }

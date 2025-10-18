@@ -22,58 +22,73 @@ function PlaylistForm({ onFormSubmit, onCancel }) {
   };
 
   return (
-    // <div className="modal-overlay">
-    //   <div className="modal-content">
-    //     <h2>Tạo playlist mới</h2>
-    //     <form onSubmit={handleSubmit}>
-    //       <input name="name" value={formData.name} onChange={handleChange} placeholder="Tên playlist" required />
-    //       <input name="description" value={formData.description} onChange={handleChange} placeholder="Mô tả" />
-    //       {error && <p className="error">{error}</p>}
-    //       <div className="form-actions">
-    //         <button type="submit">Tạo</button>
-    //         <button type="button" onClick={onCancel}>Hủy</button>
-    //       </div>
-    //     </form>
-    //   </div>
-    // </div>
-    <div className="modal-overlay">
-      <div className="modal">
-        <div className="modal-header">
-          <h3>Tạo playlist mới</h3>
-          <button className="modal-close" onClick={onCancel}>&times;</button>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">Tạo playlist mới</h3>
+          <button 
+            onClick={onCancel} 
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+            aria-label="Close"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
         </div>
-      <form onSubmit={handleSubmit}>
-        <div className='modal-body'>
-          <div className="form-group">
-            <label htmlFor="name">Tên playlist</label>
-            <input
-              type='text'
-              id='name'
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              required />
+        
+        <form onSubmit={handleSubmit}>
+          <div className="mb-6">
+            <div className="mb-4">
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                Tên playlist
+              </label>
+              <input
+                type='text'
+                id='name'
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                required 
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            <div className="mb-4">
+              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+                Mô tả
+              </label>
+              <input
+                type='text'
+                id='description'
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            {error && (
+              <p className="mt-2 text-sm text-red-600">{error}</p>
+            )}
           </div>
-          <div className="form-group">
-            <label htmlFor="description">Mô tả</label>
-            <input
-              type='text'
-              id='description'
-              name="description"
-              value={formData.description}
-              onChange={handleChange} />
+          
+          <div className="flex justify-end space-x-3">
+            <button 
+              type="button" 
+              onClick={onCancel}
+              className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-colors"
+            >
+              Hủy
+            </button>
+            <button 
+              type="submit" 
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+            >
+              Tạo
+            </button>
           </div>
-          <div className='error'>
-            {error && <p className="error">{error}</p>}
-          </div>
-        </div>
-        <div className="modal-footer">
-          <button className='btn btn-cancel' onClick={onCancel}>Hủy</button>
-          <button className='btn btn-primary' type="submit">Tạo</button>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
-          </div>
   );
 }
 

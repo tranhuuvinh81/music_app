@@ -4,7 +4,6 @@ import api from '../api/api';
 import { AuthContext } from '../context/AuthContext';
 import { AudioContext } from '../context/AudioContext';
 import PlaylistForm from '../components/PlaylistForm';
-import './PlaylistPage.css';
 
 function PlaylistPage() {
   const [playlists, setPlaylists] = useState([]);
@@ -95,43 +94,104 @@ function PlaylistPage() {
   };
 
   return (
-    <div className="playlist-page">
-      <h1>Playlist của bạn</h1>
-      <div className="section-header">
-        <button onClick={handleCreatePlaylist}>+ Tạo playlist mới</button>
+    <div className="container mx-auto px-4 py-8 max-w-6xl">
+      <h1 className="text-3xl font-bold mb-6 text-gray-800">Playlist của bạn</h1>
+      
+      <div className="flex justify-between items-center mb-6">
+        <div className="text-gray-600">
+          {playlists.length > 0 && `Bạn có ${playlists.length} playlist`}
+        </div>
+        <button 
+          onClick={handleCreatePlaylist}
+          className="px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-600 transition-colors"
+        >
+          + Tạo playlist mới
+        </button>
       </div>
+      
       {showPlaylistForm && (
-        <PlaylistForm onFormSubmit={handlePlaylistFormSubmit} onCancel={handlePlaylistFormCancel} />
+        <div className="mb-8 p-4 bg-white rounded-lg shadow-md">
+          <PlaylistForm onFormSubmit={handlePlaylistFormSubmit} onCancel={handlePlaylistFormCancel} />
+        </div>
       )}
-      <ul className="playlist-list">
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         {playlists.map(pl => (
-          <li key={pl.id}>
-            <span onClick={() => viewPlaylist(pl.id)} style={{ cursor: 'pointer' }}>{pl.name}</span>
-            <button onClick={() => deletePlaylist(pl.id)}>Xóa</button>
-          </li>
+          <div key={pl.id} className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow">
+            <div className="flex justify-between items-center">
+              <span 
+                onClick={() => viewPlaylist(pl.id)} 
+                className="text-lg text-gray-500 font-medium cursor-pointer hover:text-black transition-colors"
+              >
+                {pl.name}
+              </span>
+              <button 
+                onClick={() => deletePlaylist(pl.id)}
+                className="px-3 py-1 text-sm bg-red-100 text-red-600 rounded hover:bg-red-200 transition-colors"
+              >
+                Xóa
+              </button>
+            </div>
+          </div>
         ))}
-      </ul>
+      </div>
+      
       {currentPlaylistId && (
-        <div>
-          <h2>Danh sách bài hát trong playlist</h2>
-          <input
-            type="text"
-            placeholder="Tìm kiếm bài hát trong playlist..."
-            value={playlistSearchQuery}
-            onChange={(e) => setPlaylistSearchQuery(e.target.value)}
-          />
-          <ul className="song-list">
-            {filteredPlaylistSongs.map((song, index) => (
-              <li key={song.id} className="song-item">
-                <div>
-                  <strong>{song.title}</strong>
-                  <p>{song.artist}</p>
-                </div>
-                <button onClick={() => handlePlaySong(song, playlistSongs, index)}>Nghe</button>
-                <button onClick={() => removeFromPlaylist(song.id, currentPlaylistId)}>Xóa khỏi playlist</button>
-              </li>
-            ))}
-          </ul>
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-2xl font-bold mb-4 text-gray-800">Danh sách bài hát trong playlist</h2>
+          
+          <div className="mb-4">
+            <input
+              type="text"
+              placeholder="Tìm kiếm bài hát trong playlist..."
+              value={playlistSearchQuery}
+              onChange={(e) => setPlaylistSearchQuery(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400"
+            />
+          </div>
+          
+          {filteredPlaylistSongs.length > 0 ? (
+            <ul className="space-y-3">
+              {filteredPlaylistSongs.map((song, index) => (
+                <li key={song.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                  <div className="flex-1">
+                    <strong className="block text-gray-800">{song.title}</strong>
+                    <p className="text-gray-600">{song.artist}</p>
+                  </div>
+                  <div className="flex space-x-2">
+                    <button 
+                      onClick={() => handlePlaySong(song, playlistSongs, index)}
+                      className="px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
+                    >
+                      Nghe
+                    </button>
+                    <button 
+                      onClick={() => removeFromPlaylist(song.id, currentPlaylistId)}
+                      className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                    >
+                      Xóa khỏi playlist
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              {playlistSearchQuery ? 'Không tìm thấy bài hát nào' : 'Playlist này trống'}
+            </div>
+          )}
+        </div>
+      )}
+      
+      {playlists.length === 0 && !showPlaylistForm && (
+        <div className="text-center py-12 bg-white rounded-lg shadow">
+          <p className="text-gray-500 mb-4">Bạn chưa có playlist nào</p>
+          <button 
+            onClick={handleCreatePlaylist}
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+          >
+            Tạo playlist mới
+          </button>
         </div>
       )}
     </div>
