@@ -72,7 +72,7 @@ function Navigation() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <Link to="/" className="flex-shrink-0 flex items-center">
-            <span className="text-xl font-bold text-gray-600">Nghe & Khen</span>
+            <span className="text-xl font-bold text-gray-600">𝙉𝙜𝙝𝙚 &amp; 𝙆𝙝𝙚𝙣</span>
           </Link>
           
           <form className="flex-1 max-w-md mx-8" onSubmit={handleSearchSubmit}>

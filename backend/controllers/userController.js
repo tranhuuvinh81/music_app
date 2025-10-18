@@ -1,4 +1,4 @@
-// backend/controllers/userController.js (updated - handle avatar in updateUser)
+// backend/controllers/userController.js
 import bcrypt from "bcryptjs";
 import db from "../config/db.js";
 
@@ -182,5 +182,43 @@ export const loginUser = (req, res) => {
         role: user.role,
       },
     });
+  });
+};
+
+// Thêm lịch sử nghe nhạc
+export const addListenHistory = (req, res) => {
+  const { song_id } = req.body;
+  const user_id = req.user.id;
+
+  if (!song_id) {
+    return res.status(400).json({ message: "Thiếu song_id" });
+  }
+
+  const sql = "INSERT INTO user_history (user_id, song_id) VALUES (?, ?)";
+  db.query(sql, [user_id, song_id], (err, result) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.status(201).json({ message: "Đã thêm vào lịch sử nghe" });
+  });
+};
+
+// Lấy lịch sử nghe nhạc (gần nhất trước, unique songs)
+export const getListenHistory = (req, res) => {
+  const user_id = req.user.id;
+
+  const sql = `
+    SELECT s.*
+    FROM (
+      SELECT song_id, MAX(listened_at) as last_listened
+      FROM user_history
+      WHERE user_id = ?
+      GROUP BY song_id
+      ORDER BY last_listened DESC
+      LIMIT 20
+    ) uh
+    JOIN songs s ON uh.song_id = s.id
+  `;
+  db.query(sql, [user_id], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(results);
   });
 };
