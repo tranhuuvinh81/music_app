@@ -247,3 +247,69 @@ export const deletePlaylist = (req, res) => {
     });
   });
 };
+
+// 🟢 CẬP NHẬT PLAYLIST (Tên, Mô tả, Thumbnail)
+export const updatePlaylist = (req, res) => {
+  const { playlist_id } = req.params;
+  const { name, description } = req.body;
+  const user_id = req.user.id;
+
+  // 1. Kiểm tra quyền sở hữu
+  connection.query(
+    "SELECT user_id FROM playlists WHERE id = ?",
+    [playlist_id],
+    (err, results) => {
+      if (err)
+        return res
+          .status(500)
+          .json({ message: "Lỗi kiểm tra playlist", error: err });
+      if (results.length === 0)
+        return res.status(404).json({ message: "Không tìm thấy playlist" });
+      if (results[0].user_id !== user_id)
+        return res.status(403).json({ message: "Bạn không sở hữu playlist này" });
+
+      // 2. Chuẩn bị câu lệnh UPDATE
+      let updateFields = [];
+      let values = [];
+
+      if (name) {
+        updateFields.push("name = ?");
+        values.push(name);
+      }
+      
+      // Cho phép cập nhật description thành rỗng
+      if (description !== undefined) {
+          updateFields.push("description = ?");
+          values.push(description || null);
+      }
+
+      // 3. Xử lý file thumbnail nếu có
+      if (req.files && req.files.thumbnailFile) {
+        // Giả sử bạn lưu thumbnail trong /uploads/thumbnails/
+        const thumbnail_url = `/uploads/thumbnails/${req.files.thumbnailFile[0].filename}`;
+        updateFields.push("thumbnail_url = ?");
+        values.push(thumbnail_url);
+      }
+
+      if (updateFields.length === 0) {
+        return res
+          .status(400)
+          .json({ message: "Không có dữ liệu để cập nhật!" });
+      }
+
+      // 4. Thực thi query
+      values.push(playlist_id); // Thêm playlist_id vào cuối cho điều kiện WHERE
+      const sql = `UPDATE playlists SET ${updateFields.join(
+        ", "
+      )} WHERE id = ?`;
+
+      connection.query(sql, values, (err, result) => {
+        if (err)
+          return res
+            .status(500)
+            .json({ message: "Lỗi khi cập nhật playlist", error: err });
+        res.json({ message: "Cập nhật playlist thành công!" });
+      });
+    }
+  );
+};

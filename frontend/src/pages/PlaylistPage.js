@@ -1,9 +1,12 @@
-// frontend/src/pages/PlaylistPage.js (new file)
+// frontend/src/pages/PlaylistPage.js 
 import React, { useState, useEffect, useContext } from 'react';
 import api from '../api/api';
 import { AuthContext } from '../context/AuthContext';
 import { AudioContext } from '../context/AudioContext';
 import PlaylistForm from '../components/PlaylistForm';
+import EditPlaylistModal from '../components/EditPlaylistModal'; // 👈 1. Import component mới
+
+const BACKEND_URL = 'http://localhost:5000'; // 👈 THÊM DÒNG NÀY
 
 function PlaylistPage() {
   const [playlists, setPlaylists] = useState([]);
@@ -12,8 +15,25 @@ function PlaylistPage() {
   const [filteredPlaylistSongs, setFilteredPlaylistSongs] = useState([]);
   const [playlistSearchQuery, setPlaylistSearchQuery] = useState('');
   const [showPlaylistForm, setShowPlaylistForm] = useState(false);
+  // 👇 2. Thêm state mới để quản lý modal edit
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingPlaylist, setEditingPlaylist] = useState(null);
+
   const { user, isAuthenticated } = useContext(AuthContext);
   const { playSong } = useContext(AudioContext);
+
+// Hàm tải lại danh sách playlists
+  const fetchPlaylists = () => {
+    if (isAuthenticated) {
+      api.get(`/api/playlists/user/${user.id}`)
+        .then(res => setPlaylists(res.data))
+        .catch(err => console.error(err));
+    }
+  };
+
+  useEffect(() => {
+    fetchPlaylists(); // 👈 3. Sử dụng hàm fetch
+  }, [isAuthenticated, user]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -47,9 +67,10 @@ function PlaylistPage() {
 
   const handlePlaylistFormSubmit = () => {
     setShowPlaylistForm(false);
-    api.get(`/api/playlists/user/${user.id}`)
-      .then(res => setPlaylists(res.data))
-      .catch(err => console.error(err));
+    // api.get(`/api/playlists/user/${user.id}`)
+    //   .then(res => setPlaylists(res.data))
+    //   .catch(err => console.error(err));
+    fetchPlaylists(); // 👈 4. Gọi hàm fetch để tải lại danh sách playlists
   };
 
   const handlePlaylistFormCancel = () => {
@@ -92,6 +113,21 @@ function PlaylistPage() {
       }
     }
   };
+// 👇 5. Thêm các hàm xử lý cho Edit Modal
+  const handleOpenEditModal = (playlist) => {
+    setEditingPlaylist(playlist);
+    setShowEditModal(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setEditingPlaylist(null);
+    setShowEditModal(false);
+  };
+
+  const handleEditSuccess = () => {
+    handleCloseEditModal();
+    fetchPlaylists(); // Tải lại danh sách sau khi sửa thành công
+  };
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
@@ -117,14 +153,38 @@ function PlaylistPage() {
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         {playlists.map(pl => (
-          <div key={pl.id} className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow">
-            <div className="flex justify-between items-center">
+          // 👇 6. Cập nhật JSX để hiển thị thumbnail (nếu có)
+          <div key={pl.id} className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow flex items-center space-x-4">
+            
+            {/* Thumbnail */}
+            <img 
+  // 👇 SỬA LẠI DÒNG NÀY
+  src={pl.thumbnail_url ? `${BACKEND_URL}${pl.thumbnail_url}` : 'https://via.placeholder.com/60'}
+  alt={pl.name}
+  className="w-16 h-16 rounded object-cover cursor-pointer"
+  onClick={() => viewPlaylist(pl.id)}
+/>
+
+            {/* Tên và các nút */}
+            <div className="flex-1 min-w-0">
               <span 
                 onClick={() => viewPlaylist(pl.id)} 
-                className="text-lg text-gray-500 font-medium cursor-pointer hover:text-black transition-colors"
+                className="text-lg text-gray-500 font-medium cursor-pointer hover:text-black transition-colors block truncate"
               >
                 {pl.name}
               </span>
+              <p className="text-sm text-gray-500 truncate">{pl.description || '...'}</p>
+            </div>
+            
+            {/* Nút Sửa và Xóa */}
+            <div className="flex flex-col space-y-2">
+              {/* 👇 7. Thêm nút Sửa */}
+              <button 
+                onClick={() => handleOpenEditModal(pl)}
+                className="px-3 py-1 text-sm bg-blue-100 text-blue-600 rounded hover:bg-blue-200 transition-colors"
+              >
+                Sửa
+              </button>
               <button 
                 onClick={() => deletePlaylist(pl.id)}
                 className="px-3 py-1 text-sm bg-red-100 text-red-600 rounded hover:bg-red-200 transition-colors"
@@ -193,6 +253,14 @@ function PlaylistPage() {
             Tạo playlist mới
           </button>
         </div>
+      )}
+      {/* 👇 8. Render Edit Modal */}
+      {showEditModal && editingPlaylist && (
+        <EditPlaylistModal 
+          playlist={editingPlaylist}
+          onClose={handleCloseEditModal}
+          onSuccess={handleEditSuccess}
+        />
       )}
     </div>
   );
