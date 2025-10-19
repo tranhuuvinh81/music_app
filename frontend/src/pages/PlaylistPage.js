@@ -5,9 +5,7 @@ import { AuthContext } from '../context/AuthContext';
 import { AudioContext } from '../context/AudioContext';
 import PlaylistForm from '../components/PlaylistForm';
 import EditPlaylistModal from '../components/EditPlaylistModal'; // 👈 1. Import component mới
-
 const BACKEND_URL = 'http://localhost:5000'; // 👈 THÊM DÒNG NÀY
-
 function PlaylistPage() {
   const [playlists, setPlaylists] = useState([]);
   const [currentPlaylistId, setCurrentPlaylistId] = useState(null);
@@ -35,13 +33,13 @@ function PlaylistPage() {
     fetchPlaylists(); // 👈 3. Sử dụng hàm fetch
   }, [isAuthenticated, user]);
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      api.get(`/api/playlists/user/${user.id}`)
-        .then(res => setPlaylists(res.data))
-        .catch(err => console.error(err));
-    }
-  }, [isAuthenticated, user]);
+  // useEffect(() => {
+  //   if (isAuthenticated) {
+  //     api.get(`/api/playlists/user/${user.id}`)
+  //       .then(res => setPlaylists(res.data))
+  //       .catch(err => console.error(err));
+  //   }
+  // }, [isAuthenticated, user]);
 
   useEffect(() => {
     if (playlistSearchQuery) {

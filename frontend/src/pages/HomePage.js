@@ -168,7 +168,7 @@ function HomePage() {
           {(selectedTab === "songs" || selectedTab === "recently") && (
             <>
               <h2 className="text-2xl font-bold mb-6 text-gray-800">
-                {selectedTab === "songs" ? " Nhạc nổi bật" :"Nghe gần đây"}
+                {selectedTab === "songs" ? " Bài hát nổi bật" :"Nhạc nghe gần đây"}
               </h2>
               <ul className="space-y-4">
                 {displaySongs.map((song, index) => (
@@ -232,7 +232,7 @@ function HomePage() {
               {!selectedArtist ? (
                 <>
                   <h2 className="text-2xl font-bold mb-6 text-gray-800">
-                    Danh sách nghệ sĩ
+                    Nghệ sĩ nổi bật
                   </h2>
                   <ul className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {artists.map((artist) => (
@@ -256,7 +256,7 @@ function HomePage() {
                       Quay lại
                     </button>
                     <h2 className="text-2xl font-bold text-gray-800">
-                      Bài hát của {selectedArtist}
+                      Những bài hát của {selectedArtist}
                     </h2>
                   </div>
                   <ul className="space-y-4">
@@ -323,7 +323,7 @@ function HomePage() {
               {!selectedGenre ? (
                 <>
                   <h2 className="text-2xl font-bold mb-6 text-gray-800">
-                    Danh sách thể loại
+                    Thể loại âm nhạc
                   </h2>
                   <ul className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {genres.map((genre) => (
@@ -347,7 +347,7 @@ function HomePage() {
                       Quay lại
                     </button>
                     <h2 className="text-2xl font-bold text-gray-800">
-                      Bài hát thuộc thể loại {selectedGenre}
+                      Những bài hát thuộc thể loại {selectedGenre}
                     </h2>
                   </div>
                   <ul className="space-y-4">
