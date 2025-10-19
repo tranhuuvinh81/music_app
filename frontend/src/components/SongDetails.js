@@ -3,6 +3,13 @@ import React, { useContext } from "react";
 import { AudioContext } from "../context/AudioContext";
 import api from "../api/api"; // Để lấy baseURL
 
+const formatTime = (seconds) => {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = Math.floor(seconds % 60);
+  // Thêm '0' vào trước nếu số giây < 10 (ví dụ: 3:05 thay vì 3:5)
+  return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+};
+
 function SongDetails() {
   const { currentPlaylist, currentIndex } = useContext(AudioContext);
   const currentSong = currentPlaylist[currentIndex];
@@ -16,6 +23,8 @@ function SongDetails() {
     handleVolumeChange,
     progress,
     handleSeek,
+    currentTime,
+    duration,
   } = useContext(AudioContext);
 
   if (!currentSong) {
@@ -138,7 +147,10 @@ function SongDetails() {
               </svg>
             </button>
           </div>
-
+          <div className="flex justify-between text-sm text-gray-600 mb-2">
+            <span>{formatTime(currentTime)}</span>
+            <span>{formatTime(duration)}</span>
+          </div>
           <div className="mb-4">
             <input
               type="range"
