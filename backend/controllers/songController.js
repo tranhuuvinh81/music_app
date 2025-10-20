@@ -187,11 +187,20 @@ export const addSong = (req, res) => {
     image_url = `/uploads/images/${req.files.imageFile[0].filename}`;
   }
 
-  const query = `INSERT INTO songs (title, artist, album, genre, release_year, file_url, image_url) VALUES (?, ?, ?, ?, ?, ?, ?)`;
-  db.query(query, [title, artist, album, genre, release_year, file_url, image_url], (err, result) => {
-    if (err) return res.status(500).json({ error: "Lỗi khi thêm bài hát", details: err.message });
-    res.status(201).json({ message: "Thêm bài hát thành công", id: result.insertId });
-  });
+  // 👇 THÊM LOGIC LẤY LYRICS_URL
+  let lyrics_url = null;
+  if (req.files.lyricFile) {
+    lyrics_url = `/uploads/lyrics/${req.files.lyricFile[0].filename}`;
+  }
+
+  // 👇 CẬP NHẬT QUERY
+  const query = `INSERT INTO songs (title, artist, album, genre, release_year, file_url, image_url, lyrics_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+  
+  // 👇 CẬP NHẬT THAM SỐ
+  db.query(query, [title, artist, album, genre, release_year, file_url, image_url, lyrics_url], (err, result) => {
+    if (err) return res.status(500).json({ error: "Lỗi khi thêm bài hát", details: err.message });
+    res.status(201).json({ message: "Thêm bài hát thành công", id: result.insertId });
+  });
 };
 
 export const updateSong = (req, res) => {
@@ -199,6 +208,7 @@ export const updateSong = (req, res) => {
   const { title, artist, album, genre, release_year } = req.body;
   let file_url;
   let image_url;
+  let lyrics_url;
 
   // Lấy file_url và image_url cũ
   db.query("SELECT file_url, image_url FROM songs WHERE id = ?", [id], (err, results) => {
@@ -207,6 +217,7 @@ export const updateSong = (req, res) => {
 
     file_url = results[0].file_url;
     image_url = results[0].image_url;
+    lyrics_url = results[0].lyrics_url; // 👈 LẤY LYRICS CŨ
 
     // Nếu có file mới được upload thì cập nhật
     if (req.files) {
@@ -216,14 +227,21 @@ export const updateSong = (req, res) => {
       if (req.files.imageFile) {
         image_url = `/uploads/images/${req.files.imageFile[0].filename}`;
       }
+      // 👇 THÊM LOGIC CẬP NHẬT LYRICS
+      if (req.files.lyricFile) {
+        lyrics_url = `/uploads/lyrics/${req.files.lyricFile[0].filename}`;
+      }
     }
 
-    const query = `UPDATE songs SET title=?, artist=?, album=?, genre=?, release_year=?, file_url=?, image_url=? WHERE id=?`;
-    db.query(query, [title, artist, album, genre, release_year, file_url, image_url, id], (err, result) => {
-      if (err) return res.status(500).json({ error: "Lỗi khi cập nhật bài hát" });
-      if (result.affectedRows === 0) return res.status(404).json({ message: "Không tìm thấy bài hát" });
-      res.json({ message: "Cập nhật thành công" });
-    });
+    // 👇 CẬP NHẬT QUERY
+    const query = `UPDATE songs SET title=?, artist=?, album=?, genre=?, release_year=?, file_url=?, image_url=?, lyrics_url=? WHERE id=?`;
+    
+    // 👇 CẬP NHẬT THAM SỐ
+    db.query(query, [title, artist, album, genre, release_year, file_url, image_url, lyrics_url, id], (err, result) => {
+      if (err) return res.status(500).json({ error: "Lỗi khi cập nhật bài hát" });
+      if (result.affectedRows === 0) return res.status(404).json({ message: "Không tìm thấy bài hát" });
+      res.json({ message: "Cập nhật thành công" });
+    });
   });
 };
 // 🔹 Xóa bài hát (chỉ admin)

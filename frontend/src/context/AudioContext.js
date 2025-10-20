@@ -1,6 +1,12 @@
 // frontend/src/context/AudioContext.js (Đã sửa lỗi)
-import React, { createContext, useState, useRef, useEffect, useCallback } from 'react'; // 👈 1. Thêm useCallback
-import api from '../api/api';
+import React, {
+  createContext,
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+} from "react"; // 👈 1. Thêm useCallback
+import api from "../api/api";
 
 export const AudioContext = createContext();
 
@@ -13,6 +19,10 @@ export const AudioProvider = ({ children }) => {
   const [progress, setProgress] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+
+  // 👇 1. THÊM STATE MỚI CHO LYRICS URL
+  const [currentLyricsUrl, setCurrentLyricsUrl] = useState(null);
+
   const audioRef = useRef(null);
 
   useEffect(() => {
@@ -31,8 +41,8 @@ export const AudioProvider = ({ children }) => {
           setCurrentTime(audio.currentTime);
         }
       };
-      audio.addEventListener('timeupdate', updateProgress);
-      return () => audio.removeEventListener('timeupdate', updateProgress);
+      audio.addEventListener("timeupdate", updateProgress);
+      return () => audio.removeEventListener("timeupdate", updateProgress);
     }
   }, []);
 
@@ -62,17 +72,21 @@ export const AudioProvider = ({ children }) => {
       const setAudioDuration = () => {
         setDuration(audio.duration || 0);
       };
-      audio.addEventListener('loadedmetadata', setAudioDuration);
+      audio.addEventListener("loadedmetadata", setAudioDuration);
 
       return () => {
-        audio.removeEventListener('loadedmetadata', setAudioDuration);
+        audio.removeEventListener("loadedmetadata", setAudioDuration);
       };
     }
-  }, [currentSong, isPlaying]); // Giữ isPlaying ở đây để đảm bảo tự động phát khi chọn bài mới
+  }, [currentSong]); // Giữ isPlaying ở đây để đảm bảo tự động phát khi chọn bài mới
 
   // --- 2. BỌC CÁC HÀM TRONG useCallback ---
 
   const playSong = useCallback(async (song, playlist = [], index = 0) => {
+    console.log("Đang phát:", song);
+// 👇 THÊM DÒNG NÀY VÀO
+    setCurrentLyricsUrl(song.lyrics_url || null);
+
     const songUrl = `${api.defaults.baseURL}${song.file_url}`;
     setCurrentPlaylist(playlist);
     setCurrentIndex(index);
@@ -80,27 +94,38 @@ export const AudioProvider = ({ children }) => {
     setIsPlaying(true);
 
     try {
-      await api.post('/api/users/history', { song_id: song.id });
+      await api.post("/api/users/history", { song_id: song.id });
     } catch (err) {
-      console.error('Error saving history:', err);
+      console.error("Error saving history:", err);
     }
   }, []); // api.defaults.baseURL là hằng số, không cần đưa vào dependency
 
   const togglePlay = useCallback(() => {
-    setIsPlaying(prevIsPlaying => !prevIsPlaying);
+    setIsPlaying((prevIsPlaying) => !prevIsPlaying);
   }, []);
 
   // 👇 3. KHÔI PHỤC LOGIC VÀ BỌC useCallback
   const nextSong = useCallback(() => {
-    if (currentPlaylist.length > 0 && currentIndex < currentPlaylist.length - 1) {
-      playSong(currentPlaylist[currentIndex + 1], currentPlaylist, currentIndex + 1);
+    if (
+      currentPlaylist.length > 0 &&
+      currentIndex < currentPlaylist.length - 1
+    ) {
+      playSong(
+        currentPlaylist[currentIndex + 1],
+        currentPlaylist,
+        currentIndex + 1
+      );
     }
   }, [currentPlaylist, currentIndex, playSong]);
 
   // 👇 4. KHÔI PHỤC LOGIC VÀ BỌC useCallback
   const prevSong = useCallback(() => {
     if (currentPlaylist.length > 0 && currentIndex > 0) {
-      playSong(currentPlaylist[currentIndex - 1], currentPlaylist, currentIndex - 1);
+      playSong(
+        currentPlaylist[currentIndex - 1],
+        currentPlaylist,
+        currentIndex - 1
+      );
     }
   }, [currentPlaylist, currentIndex, playSong]);
 
@@ -131,26 +156,29 @@ export const AudioProvider = ({ children }) => {
       if (audio) {
         audio.onended = null;
       }
-    }
+    };
   }, [nextSong]); // Chỉ phụ thuộc vào nextSong
 
   return (
-    <AudioContext.Provider value={{
-      currentSong,
-      isPlaying,
-      volume,
-      progress,
-      currentTime,
-      duration,
-      playSong,
-      togglePlay,
-      nextSong,
-      prevSong,
-      handleSeek,
-      handleVolumeChange,
-      currentPlaylist,
-      currentIndex
-    }}>
+    <AudioContext.Provider
+      value={{
+        currentSong,
+        isPlaying,
+        volume,
+        progress,
+        currentTime,
+        duration,
+        currentLyricsUrl,
+        playSong,
+        togglePlay,
+        nextSong,
+        prevSong,
+        handleSeek,
+        handleVolumeChange,
+        currentPlaylist,
+        currentIndex,
+      }}
+    >
       {children}
       <audio ref={audioRef} />
     </AudioContext.Provider>

@@ -141,6 +141,7 @@ function AudioPlayer() {
   input[type="range"]:hover::-webkit-slider-thumb {
     opacity: 1;
     transform: scale(1.5);
+    
   }
 
   /* Firefox */

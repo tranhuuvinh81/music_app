@@ -1,4 +1,4 @@
-// backend/routes/songRoutes.js (updated - add new routes)
+// backend/routes/songRoutes.js
 import express from "express";
 import {
   getAllSongs,
@@ -26,8 +26,8 @@ router.get("/artist/:artist", getSongsByArtist);
 router.get("/genre/:genre", getSongsByGenre);
 router.get("/:id", getSongById);
 // Admin only
-router.post("/", verifyToken, isAdmin, upload.fields([{ name: 'songFile', maxCount: 1 }, { name: 'imageFile', maxCount: 1 }]), addSong);
-router.put("/:id", verifyToken, isAdmin, upload.fields([{ name: 'songFile', maxCount: 1 }, { name: 'imageFile', maxCount: 1 }]), updateSong);
+router.post("/", verifyToken, isAdmin, upload.fields([{ name: 'songFile', maxCount: 1 }, { name: 'imageFile', maxCount: 1 }, { name: 'lyricFile', maxCount: 1 }]), addSong);
+router.put("/:id", verifyToken, isAdmin, upload.fields([{ name: 'songFile', maxCount: 1 }, { name: 'imageFile', maxCount: 1 },{ name: 'lyricFile', maxCount: 1 }]), updateSong);
 router.delete("/:id", verifyToken, isAdmin, deleteSong);
 
 export default router;
