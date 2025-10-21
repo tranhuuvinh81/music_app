@@ -176,11 +176,20 @@ function HomePage() {
                     key={song.id}
                     className="bg-white p-4 rounded-lg shadow flex items-center justify-between hover:shadow-md transition-shadow"
                   >
-                    <div>
-                      <strong className="block text-gray-900">
-                        {song.title}
-                      </strong>
-                      <p className="text-gray-600">{song.artist}</p>
+                    <div className="flex items-center space-x-4">
+                      {song.image_url && (
+                        <img
+                          src={`${api.defaults.baseURL}${song.image_url}`}
+                          alt={`${song.title} thumbnail`}
+                          className="w-12 h-12 object-cover rounded"
+                        />
+                      )}
+                      <div>
+                        <strong className="block text-gray-900">
+                          {song.title}
+                        </strong>
+                        <p className="text-gray-600">{song.artist}</p>
+                      </div>
                     </div>
                     <div className="flex items-center space-x-2">
                       <button
@@ -265,11 +274,20 @@ function HomePage() {
                         key={song.id}
                         className="bg-white p-4 rounded-lg shadow flex items-center justify-between hover:shadow-md transition-shadow"
                       >
-                        <div>
-                          <strong className="block text-gray-900">
-                            {song.title}
-                          </strong>
-                          <p className="text-gray-600">{song.artist}</p>
+                        <div className="flex items-center space-x-4">
+                          {song.image_url && (
+                            <img
+                              src={`${api.defaults.baseURL}${song.image_url}`}
+                              alt={`${song.title} thumbnail`}
+                              className="w-12 h-12 object-cover rounded"
+                            />
+                          )}
+                          <div>
+                            <strong className="block text-gray-900">
+                              {song.title}
+                            </strong>
+                            <p className="text-gray-600">{song.artist}</p>
+                          </div>
                         </div>
                         <div className="flex items-center space-x-2">
                           <button
@@ -356,11 +374,20 @@ function HomePage() {
                         key={song.id}
                         className="bg-white p-4 rounded-lg shadow flex items-center justify-between hover:shadow-md transition-shadow"
                       >
-                        <div>
-                          <strong className="block text-gray-900">
-                            {song.title}
-                          </strong>
-                          <p className="text-gray-600">{song.artist}</p>
+                        <div className="flex items-center space-x-4">
+                          {song.image_url && (
+                            <img
+                              src={`${api.defaults.baseURL}${song.image_url}`}
+                              alt={`${song.title} thumbnail`}
+                              className="w-12 h-12 object-cover rounded"
+                            />
+                          )}
+                          <div>
+                            <strong className="block text-gray-900">
+                              {song.title}
+                            </strong>
+                            <p className="text-gray-600">{song.artist}</p>
+                          </div>
                         </div>
                         <div className="flex items-center space-x-2">
                           <button

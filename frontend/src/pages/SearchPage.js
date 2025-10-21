@@ -62,7 +62,7 @@ function SearchPage() {
                   <div className="flex items-center space-x-2">
                     <button 
                       onClick={() => handlePlaySong(song, songs, index)}
-                      className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
+                      className="px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
                     >
                       Nghe
                     </button>
