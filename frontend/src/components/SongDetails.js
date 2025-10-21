@@ -55,13 +55,13 @@ function SongDetails() {
     : null;
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-lg overflow-hidden">
+    <div className="flex flex-col h-full bg-white rounded-lg p-2 overflow-hidden">
       {/* PHẦN THÔNG TIN BÀI HÁT & ĐIỀU KHIỂN */}
       <div className="p-6 flex-shrink-0">
         {/* ... (Phần ảnh) ... */}
         <div className="flex flex-col items-center mb-6">
           {imageSrc ? (
-            <div className="w-48 h-48 overflow-hidden rounded-lg shadow-md mb-4 group">
+            <div className="w-56 h-56 overflow-hidden rounded-lg shadow-md mb-4 group">
               <img
                 className="w-full h-full object-cover transform transition-transform duration-300 ease-in-out group-hover:scale-110"
                 src={imageSrc}
@@ -88,7 +88,7 @@ function SongDetails() {
           </div>
           
         </div>
-        <div className="text-right text-xs text-gray-500 mb-5">
+        <div className="text-right text-xs text-gray-500 mb-2">
               <p>{currentSong.genre}</p>
             <span>Phát hành: {currentSong.release_year}</span>
             </div>
@@ -229,7 +229,7 @@ function SongDetails() {
 
       {/* PHẦN HIỂN THỊ LYRICS (Conditional) */}
       {showLyrics && (
-        <div className="flex-1 overflow-hidden bg-gray-900">
+        <div className="flex-1 overflow-hidden rounded-xl bg-gray-900">
           {/* LyricsViewer đã có overflow-y-auto bên trong nó */}
           <LyricsViewer />
         </div>

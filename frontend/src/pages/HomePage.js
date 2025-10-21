@@ -108,7 +108,7 @@ function HomePage() {
   return (
     <div className="flex h-screen bg-gray-50">
       {/* SIDEBAR */}
-      <div className="flex flex-col w-60 bg-white shadow-md">
+      <div className="flex flex-col w-60 h-[750px] bg-white shadow-md">
         <div className="flex-1">
           <div className="p-4">
             <ul className="space-y-2">
@@ -477,7 +477,7 @@ function HomePage() {
       </div>
 
       {/* RIGHT SIDEBAR */}
-      <div className="w-80 bg-white shadow-md p-4 ">
+      <div className="w-80 h-[750px] bg-white shadow-md p-1 ">
         <SongDetails />
       </div>
 
