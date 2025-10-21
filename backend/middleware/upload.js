@@ -71,7 +71,9 @@ const uploadDirs = {
   images: 'uploads/images',
   avatars: 'uploads/avatars',
   thumbnails: 'uploads/thumbnails',
-  lyrics: 'uploads/lyrics' // 👈 1. THÊM THƯ MỤC LYRICS
+  lyrics: 'uploads/lyrics', // 👈 1. THÊM THƯ MỤC LYRICS
+artists: 'uploads/artists' // 👈 1. THÊM THƯ MỤC MỚI
+
 };
 
 // Đảm bảo thư mục upload tồn tại
@@ -93,7 +95,9 @@ const storage = multer.diskStorage({
       cb(null, uploadDirs.thumbnails);
     } else if (file.fieldname === 'lyricFile') { // 👈 2. THÊM LOGIC CHO LYRICFILE
       cb(null, uploadDirs.lyrics);
-    } else {
+    } else if (file.fieldname === 'artistImage') { // 👈 2. THÊM LOGIC MỚI
+      cb(null, uploadDirs.artists);
+    }else {
       cb(new Error('Invalid fieldname'), null);
     }
   },
@@ -108,7 +112,7 @@ const fileFilter = (req, file, cb) => {
   let allowedTypes;
   if (file.fieldname === 'songFile') {
     allowedTypes = /mp3|wav|mpeg/;
-  } else if (file.fieldname === 'imageFile' || file.fieldname === 'avatarFile' || file.fieldname === 'thumbnailFile') {
+  } else if (file.fieldname === 'imageFile' || file.fieldname === 'avatarFile' || file.fieldname === 'thumbnailFile' || file.fieldname === 'artistImage') {
     allowedTypes = /jpeg|jpg|png|gif/;
   } else if (file.fieldname === 'lyricFile') { // 👈 3. THÊM LOGIC FILTER CHO LYRIC
     // Chấp nhận .lrc (text/plain)

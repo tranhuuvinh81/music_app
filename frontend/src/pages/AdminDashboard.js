@@ -3,10 +3,12 @@ import React, { useState, useEffect, useCallback } from "react";
 import api from "../api/api";
 import SongForm from "../components/SongForm";
 import UserDetailsModal from "../components/UserDetailsModal";
+import ArtistForm from "../components/ArtistForm";
 
 function AdminDashboard() {
   const [users, setUsers] = useState([]);
   const [songs, setSongs] = useState([]);
+  const [artists, setArtists] = useState([]);
 
   // State cho Song Form
   const [showSongForm, setShowSongForm] = useState(false);
@@ -15,6 +17,9 @@ function AdminDashboard() {
   // State cho User Details Modal
   const [showUserDetails, setShowUserDetails] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+
+  const [showArtistForm, setShowArtistForm] = useState(false);
+  const [editingArtist, setEditingArtist] = useState(null);
 
   const fetchUsers = useCallback(() => {
     api
@@ -30,10 +35,18 @@ function AdminDashboard() {
       .catch(console.error);
   }, []);
 
+  const fetchArtists = useCallback(() => {
+    api
+      .get("/api/artists")
+      .then((res) => setArtists(res.data))
+      .catch(console.error);
+  }, []);
+
   useEffect(() => {
     fetchUsers();
     fetchSongs();
-  }, [fetchUsers, fetchSongs]);
+    fetchArtists();
+  }, [fetchUsers, fetchSongs, fetchArtists]);
 
   // Logic cho User
   const handleViewUserClick = (user) => {
@@ -84,6 +97,41 @@ function AdminDashboard() {
     setEditingSong(null);
   };
 
+  //Logic cho artist
+  const handleAddArtistClick = () => {
+    setEditingArtist(null);
+    setShowArtistForm(true);
+  };
+
+  const handleEditArtistClick = (artist) => {
+    setEditingArtist(artist);
+    setShowArtistForm(true);
+  };
+
+  const deleteArtist = (artistId) => {
+    if (
+      window.confirm(
+        "Bạn có chắc chắn muốn xoá nghệ sĩ này? Thao tác này có thể ảnh hưởng đến bài hát liên quan."
+      )
+    ) {
+      api
+        .delete(`/api/artists/${artistId}`)
+        .then(fetchArtists)
+        .catch(console.error);
+    }
+  };
+
+  const handleArtistFormSubmit = () => {
+    setShowArtistForm(false);
+    setEditingArtist(null);
+    fetchArtists();
+  };
+
+  const handleArtistFormCancel = () => {
+    setShowArtistForm(false);
+    setEditingArtist(null);
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 p-4 md:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
@@ -106,11 +154,20 @@ function AdminDashboard() {
             onUpdate={handleUserUpdate} // Pass hàm refresh
           />
         )}
+        {showArtistForm && (
+          <ArtistForm
+            artistToEdit={editingArtist}
+            onFormSubmit={handleArtistFormSubmit}
+            onCancel={handleArtistFormCancel}
+          />
+        )}
 
         {/* --- BẢNG QUẢN LÝ USER --- */}
         <section className="bg-white rounded-lg shadow-md mb-8 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-            <h2 className="text-xl font-semibold text-gray-800">User Management</h2>
+            <h2 className="text-xl font-semibold text-gray-800">
+              User Management
+            </h2>
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
@@ -146,11 +203,13 @@ function AdminDashboard() {
                       {user.email}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        user.role === 'admin' 
-                          ? 'bg-purple-100 text-purple-800' 
-                          : 'bg-green-100 text-green-800'
-                      }`}>
+                      <span
+                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                          user.role === "admin"
+                            ? "bg-purple-100 text-purple-800"
+                            : "bg-green-100 text-green-800"
+                        }`}
+                      >
                         {user.role}
                       </span>
                     </td>
@@ -176,10 +235,12 @@ function AdminDashboard() {
         </section>
 
         {/* --- BẢNG QUẢN LÝ BÀI HÁT (giữ nguyên) --- */}
-        <section className="bg-white rounded-lg shadow-md overflow-hidden">
+        <section className="bg-white rounded-lg shadow-md mb-8 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-            <h2 className="text-xl font-semibold text-gray-800">Songs Management</h2>
-            <button 
+            <h2 className="text-xl font-semibold text-gray-800">
+              Songs Management
+            </h2>
+            <button
               className="px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
               onClick={handleAddSongClick}
             >
@@ -226,6 +287,78 @@ function AdminDashboard() {
                       <button
                         className="text-red-600 hover:text-red-900"
                         onClick={() => deleteSong(song.id)}
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        {/* --- BẢNG QUẢN LÝ NGHỆ SĨ (MỚI) --- */}
+        <section className="bg-white rounded-lg shadow-md mb-8 overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+            <h2 className="text-xl font-semibold text-gray-800">
+              Artist Management
+            </h2>
+            <button
+              className="px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+              onClick={handleAddArtistClick}
+            >
+              + Add new artist
+            </button>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Image
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Name
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Birth Year
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {artists.map((artist) => (
+                  <tr key={artist.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4">
+                      <img
+                        src={
+                          artist.image_url
+                            ? `${api.defaults.baseURL}${artist.image_url}`
+                            : "https://via.placeholder.com/40"
+                        }
+                        alt={artist.name}
+                        className="w-10 h-10 object-cover rounded-full"
+                      />
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {artist.name}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {artist.birth_year || "N/A"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <button
+                        className="text-gray-600 hover:text-gray-900 mr-3"
+                        onClick={() => handleEditArtistClick(artist)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="text-red-600 hover:text-red-900"
+                        onClick={() => deleteArtist(artist.id)}
                       >
                         Delete
                       </button>

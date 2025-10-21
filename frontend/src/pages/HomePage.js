@@ -6,6 +6,7 @@ import { AudioContext } from '../context/AudioContext';
 import SongDetails from '../components/SongDetails';
 import AddToPlaylistModal from '../components/AddToPlaylistModal';
 import bannerImg from '../images/116d710d1e61b0cc8debc32470695fff.jpg';
+import ArtistDetailsModal from '../components/ArtistDetailModal';
 
 function HomePage() {
   const [displaySongs, setDisplaySongs] = useState([]); // Danh sách bài hát hiển thị
@@ -21,13 +22,17 @@ function HomePage() {
   const [modalSongId, setModalSongId] = useState(null);
   const recentSectionRef = useRef(null); // Ref để cuộn đến phần recently
 
+  // 👈 2. THÊM STATE CHO MODAL NGHỆ SĨ
+  const [artistModalData, setArtistModalData] = useState(null);
+
   useEffect(() => {
     if (selectedTab === 'songs') {
       api.get('/api/songs')
         .then(res => setDisplaySongs(res.data))
         .catch(err => console.error(err));
     }
-    api.get('/api/songs/artists')
+    // Lấy object nghệ sĩ, không chỉ lấy tên
+    api.get('/api/artists') 
       .then(res => setArtists(res.data))
       .catch(err => console.error(err));
 
@@ -90,8 +95,8 @@ function HomePage() {
     setSelectedGenre(null);
   };
 
-  const handleSelectArtist = (artist) => {
-    setSelectedArtist(artist);
+  const handleSelectArtist = (artistName) => {
+    setSelectedArtist(artistName);
   };
 
   const handleSelectGenre = (genre) => {
@@ -144,7 +149,7 @@ function HomePage() {
       </div>
 
       {/* MAIN CONTENT */}
-      <div className="flex-1 ">
+      <div className="flex-1 overflow-y-auto">
         {/* BANNER */}
         <div className="relative h-64 md:h-80 lg:h-96">
           <img
@@ -235,27 +240,47 @@ function HomePage() {
             </>
           )}
 
-          {/* ARTISTS */}
+          {/* 👇 5. CẬP NHẬT HOÀN TOÀN KHỐI ARTISTS */}
           {selectedTab === "artists" && (
             <>
               {!selectedArtist ? (
+                /* Giao diện Card nghệ sĩ */
                 <>
                   <h2 className="text-2xl font-bold mb-6 text-gray-800">
                     Nghệ sĩ nổi bật
                   </h2>
-                  <ul className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  <ul className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                     {artists.map((artist) => (
                       <li
-                        key={artist}
-                        onClick={() => handleSelectArtist(artist)}
-                        className="p-4 bg-white rounded-lg shadow cursor-pointer hover:shadow-md transition-shadow text-gray-700"
+                        key={artist.id}
+                        className="bg-white rounded-lg shadow-md overflow-hidden transform transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
                       >
-                        {artist}
+                        <img 
+                          src={artist.image_url ? `${api.defaults.baseURL}${artist.image_url}` : 'https://via.placeholder.com/150?text=No+Image'}
+                          alt={artist.name}
+                          className="w-full h-40 object-cover cursor-pointer"
+                          onClick={() => handleSelectArtist(artist.name)}
+                        />
+                        <div className="p-4">
+                          <h3 
+                            className="font-bold text-lg text-gray-800 truncate cursor-pointer hover:text-gray-600"
+                            onClick={() => handleSelectArtist(artist.name)}
+                          >
+                            {artist.name}
+                          </h3>
+                          <button 
+                            onClick={() => setArtistModalData(artist)}
+                            className="text-sm text-gray-500 hover:underline mt-2"
+                          >
+                            Xem chi tiết
+                          </button>
+                        </div>
                       </li>
                     ))}
                   </ul>
                 </>
               ) : (
+                /* Giao diện danh sách bài hát (giữ nguyên) */
                 <>
                   <div className="flex items-center mb-6">
                     <button
@@ -274,6 +299,7 @@ function HomePage() {
                         key={song.id}
                         className="bg-white p-4 rounded-lg shadow flex items-center justify-between hover:shadow-md transition-shadow"
                       >
+                        {/* ... (Nội dung <li> giữ nguyên) ... */}
                         <div className="flex items-center space-x-4">
                           {song.image_url && (
                             <img
@@ -289,44 +315,7 @@ function HomePage() {
                             <p className="text-gray-600">{song.artist}</p>
                           </div>
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <button
-                            onClick={() => handlePlaySong(song, displaySongs, index)}
-                            className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-                          >
-                            <svg
-                              className="w-5 h-5"
-                              fill="currentColor"
-                              viewBox="0 0 20 20"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
-                          </button>
-                          {isAuthenticated && (
-                            <div className="relative">
-                              <button
-                                onClick={() => toggleMenu(song.id)}
-                                className="p-2 text-gray-600 hover:text-gray-800"
-                              >
-                                ...
-                              </button>
-                              {menuOpenSongId === song.id && (
-                                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10">
-                                  <button
-                                    onClick={() => openAddModal(song.id)}
-                                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                  >
-                                    Thêm vào playlist
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
+                        {/* ... (Các nút play/add giữ nguyên) ... */}
                       </li>
                     ))}
                   </ul>
@@ -444,6 +433,13 @@ function HomePage() {
 
       {modalSongId && (
         <AddToPlaylistModal songId={modalSongId} onClose={closeModal} />
+      )}
+
+      {artistModalData && (
+        <ArtistDetailsModal 
+          artist={artistModalData} 
+          onClose={() => setArtistModalData(null)} 
+        />
       )}
     </div>
   );

@@ -6,6 +6,7 @@ import connection from "./config/db.js";
 import userRoutes from "./routes/userRoutes.js";
 import songRoutes from "./routes/songRoutes.js";
 import playlistRoutes from "./routes/playlistRoutes.js";
+import artistRoutes from "./routes/artistRoutes.js";
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -28,6 +29,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use("/api/users", userRoutes);
 app.use("/api/songs", songRoutes);
 app.use("/api/playlists", playlistRoutes);
+app.use('/api/artists', artistRoutes);
 
 // Test route
 app.get("/", (req, res) => {
