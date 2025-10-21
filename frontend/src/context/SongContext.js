@@ -27,8 +27,6 @@ export const SongProvider = ({ children }) => {
     setIsLoading(false);
   }, []);
 
-  // Removed the old useEffect that fetched /api/songs or /api/songs/search
-
   return (
     <SongContext.Provider
       value={{

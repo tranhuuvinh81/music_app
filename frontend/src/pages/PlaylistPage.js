@@ -182,7 +182,7 @@ function PlaylistPage() {
             <div className="flex flex-col space-y-2">
               <button
                 onClick={() => handleOpenEditModal(pl)}
-                className="px-3 py-1 text-sm bg-blue-100 text-blue-600 rounded hover:bg-blue-200 transition-colors"
+                className="px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition-colors"
               >
                 Sửa
               </button>

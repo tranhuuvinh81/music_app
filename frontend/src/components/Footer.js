@@ -14,7 +14,6 @@ const Footer = () => {
             </p>
           </div>
 
-          {/* Quick Links Section */}
           <div>
             <h3 className="text-lg font-semibold mb-4">Liên kết</h3>
             <ul className="text-gray-400 text-sm space-y-2">

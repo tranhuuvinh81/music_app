@@ -66,6 +66,7 @@ function SearchPage() {
       {noResultsFound ? (
         <div className="bg-white rounded-lg shadow-md p-8 text-center">
             {/* ... (SVG và text "Không tìm thấy kết quả") ... */}
+            <span>Không tìm thấy kết quả</span>
         </div>
       ) : (
         <div className="space-y-12">
@@ -164,7 +165,6 @@ function SearchPage() {
         <AddToPlaylistModal songId={modalSongId} onClose={closeModal} />
       )}
 
-      {/* 👇 4. RENDER MODAL NGHỆ SĨ KHI CÓ DỮ LIỆU */}
       {artistModalData && (
         <ArtistDetailsModal 
           artist={artistModalData} 

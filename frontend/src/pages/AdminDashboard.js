@@ -10,10 +10,9 @@ function AdminDashboard() {
   const [songs, setSongs] = useState([]);
   const [artists, setArtists] = useState([]);
 
-    const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
   const [songsPerPage] = useState(10); // Hiển thị 10 bài hát mỗi trang
   const [searchQuery, setSearchQuery] = useState("");
-
 
   // State cho Song Form
   const [showSongForm, setShowSongForm] = useState(false);
@@ -54,22 +53,20 @@ function AdminDashboard() {
     fetchArtists();
   }, [fetchUsers, fetchSongs, fetchArtists]);
 
-  
-
- // 👈 2. TẠO DANH SÁCH BÀI HÁT ĐÃ LỌC
   // Dùng useMemo để chỉ lọc lại khi `songs` hoặc `searchQuery` thay đổi
   const filteredSongs = useMemo(() => {
     if (!searchQuery) {
       return songs; // Trả về tất cả nếu không có query
     }
     const lowercasedQuery = searchQuery.toLowerCase();
-    return songs.filter(song =>
-      song.title.toLowerCase().includes(lowercasedQuery) ||
-      song.artist.toLowerCase().includes(lowercasedQuery)
+    return songs.filter(
+      (song) =>
+        song.title.toLowerCase().includes(lowercasedQuery) ||
+        song.artist.toLowerCase().includes(lowercasedQuery)
     );
   }, [songs, searchQuery]);
 
-  // 👈 3. CẬP NHẬT LOGIC PHÂN TRANG ĐỂ DÙNG DANH SÁCH ĐÃ LỌC
+  // CẬP NHẬT LOGIC PHÂN TRANG ĐỂ DÙNG DANH SÁCH ĐÃ LỌC
   const currentSongs = useMemo(() => {
     const indexOfLastSong = currentPage * songsPerPage;
     const indexOfFirstSong = indexOfLastSong - songsPerPage;
@@ -81,12 +78,11 @@ function AdminDashboard() {
   // Tự động quay về trang 1 mỗi khi tìm kiếm
   useEffect(() => {
     if (currentPage > totalPages && totalPages > 0) {
-        setCurrentPage(totalPages);
+      setCurrentPage(totalPages);
     } else if (totalPages === 0) {
-        setCurrentPage(1);
+      setCurrentPage(1);
     }
   }, [filteredSongs, totalPages, currentPage]);
-
 
   const paginate = (pageNumber) => {
     if (pageNumber > 0 && pageNumber <= totalPages) {
@@ -128,13 +124,16 @@ function AdminDashboard() {
 
   const deleteSong = (songId) => {
     if (window.confirm("Bạn có chắc muốn xóa bài hát này?")) {
-      api.delete(`/api/songs/${songId}`).then(() => {
-        fetchSongs();
-        // Nếu xóa hết bài hát ở trang cuối, tự động quay về trang trước
-        if (currentSongs.length === 1 && currentPage > 1) {
+      api
+        .delete(`/api/songs/${songId}`)
+        .then(() => {
+          fetchSongs();
+          // Nếu xóa hết bài hát ở trang cuối, tự động quay về trang trước
+          if (currentSongs.length === 1 && currentPage > 1) {
             setCurrentPage(currentPage - 1);
-        }
-      }).catch(console.error);
+          }
+        })
+        .catch(console.error);
     }
   };
 
@@ -203,7 +202,7 @@ function AdminDashboard() {
           <UserDetailsModal
             user={selectedUser}
             onClose={handleUserDetailsClose}
-            onUpdate={handleUserUpdate} 
+            onUpdate={handleUserUpdate}
           />
         )}
         {showArtistForm && (
@@ -288,10 +287,12 @@ function AdminDashboard() {
 
         {/* --- BẢNG QUẢN LÝ BÀI HÁT (ĐÃ CẬP NHẬT) --- */}
         <section className="bg-white rounded-lg shadow-md overflow-hidden">
-          {/* 👇 4. THÊM THANH TÌM KIẾM VÀO HEADER */}
+          {/* THANH TÌM KIẾM HEADER */}
           <div className="px-6 py-4 border-b border-gray-200 flex flex-wrap justify-between items-center gap-4">
             <div className="flex items-center gap-4">
-              <h2 className="text-xl font-semibold text-gray-800">Songs Management</h2>
+              <h2 className="text-xl font-semibold text-gray-800">
+                Songs Management
+              </h2>
               <input
                 type="text"
                 placeholder="Tìm theo tên, nghệ sĩ..."
@@ -310,31 +311,55 @@ function AdminDashboard() {
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
-                  <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Artist</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
-                  </tr>
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    ID
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Title
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Artist
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Action
+                  </th>
+                </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {/* 👇 5. BẢNG GIỜ SẼ RENDER 'currentSongs' (đã được lọc và phân trang) */}
+                {/* BẢNG GIỜ SẼ RENDER 'currentSongs' (đã được lọc và phân trang) */}
                 {currentSongs.map((song) => (
                   <tr key={song.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{song.id}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{song.title}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{song.artist}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {song.id}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {song.title}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {song.artist}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <button className="text-gray-600 hover:text-gray-900 mr-3" onClick={() => handleEditSongClick(song)}>Edit</button>
-                      <button className="text-red-600 hover:text-red-900" onClick={() => deleteSong(song.id)}>Delete</button>
+                      <button
+                        className="text-gray-600 hover:text-gray-900 mr-3"
+                        onClick={() => handleEditSongClick(song)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="text-red-600 hover:text-red-900"
+                        onClick={() => deleteSong(song.id)}
+                      >
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-          
-          {/* 👇 6. BỘ ĐIỀU KHIỂN PHÂN TRANG (giờ sẽ hoạt động với kết quả đã lọc) */}
+
+          {/* BỘ ĐIỀU KHIỂN PHÂN TRANG (giờ sẽ hoạt động với kết quả đã lọc) */}
           {totalPages > 1 && (
             <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-center space-x-2">
               <button
@@ -344,20 +369,22 @@ function AdminDashboard() {
               >
                 Trước
               </button>
-              
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => (
-                <button
-                  key={number}
-                  onClick={() => paginate(number)}
-                  className={`px-3 py-1 text-sm font-medium rounded-md border ${
-                    currentPage === number
-                      ? 'bg-gray-600 text-white border-gray-600'
-                      : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  {number}
-                </button>
-              ))}
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                (number) => (
+                  <button
+                    key={number}
+                    onClick={() => paginate(number)}
+                    className={`px-3 py-1 text-sm font-medium rounded-md border ${
+                      currentPage === number
+                        ? "bg-gray-600 text-white border-gray-600"
+                        : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"
+                    }`}
+                  >
+                    {number}
+                  </button>
+                )
+              )}
 
               <button
                 onClick={() => paginate(currentPage + 1)}
@@ -368,7 +395,6 @@ function AdminDashboard() {
               </button>
             </div>
           )}
-
         </section>
         {/*  BẢNG QUẢN LÝ NGHỆ SĨ  */}
         <section className="bg-white rounded-lg shadow-md mb-8 overflow-hidden">

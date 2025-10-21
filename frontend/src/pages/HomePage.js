@@ -182,7 +182,6 @@ function HomePage() {
                 {selectedTab === "songs" ? " Bài hát nổi bật" :"Nhạc nghe gần đây"}
               </h2>
               <ul className="space-y-4">
-                {/* 👇 THAY ĐỔI: Map qua mảng đã được xử lý */}
                 {(isListExpanded ? displaySongs : displaySongs.slice(0, 10)).map((song, index) => (
                   <li
                     key={song.id}
@@ -249,7 +248,7 @@ function HomePage() {
               {displaySongs.length > 10 && (
                 <button
                   onClick={toggleListExpansion}
-                  className="mt-4 w-full py-2 text-center text-blue-500 hover:text-blue-600 font-medium transition-colors"
+                  className="mt-4 w-full py-2 text-center text-gray-500 hover:text-gray-600 font-medium transition-colors"
                 >
                   {isListExpanded ? 'Thu gọn' : 'Xem thêm...'}
                 </button>
