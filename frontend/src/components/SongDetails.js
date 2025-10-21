@@ -84,8 +84,14 @@ function SongDetails() {
               {currentSong.title}
             </h3>
             <p className="text-gray-600">{currentSong.artist}</p>
+            
           </div>
+          
         </div>
+        <div className="text-right text-xs text-gray-500 mb-5">
+              <p>{currentSong.genre}</p>
+            <span>Phát hành: {currentSong.release_year}</span>
+            </div>
 
         {/* ... (Phần audio-controls) ... */}
         <div className="audio-controls">
@@ -190,6 +196,8 @@ function SongDetails() {
           </div>
         </div>
       </div>
+      
+
 
       {/* NÚT BẤM HIỂN THỊ LYRICS */}
       <div className="flex justify-center items-center py-2 border-t border-gray-200 flex-shrink-0">
