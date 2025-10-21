@@ -229,7 +229,7 @@ function SongDetails() {
 
       {/* PHẦN HIỂN THỊ LYRICS (Conditional) */}
       {showLyrics && (
-        <div className="flex-1 overflow-hidden rounded-xl bg-gray-900">
+        <div className="overflow-hidden rounded-xl bg-gray-900">
           {/* LyricsViewer đã có overflow-y-auto bên trong nó */}
           <LyricsViewer />
         </div>

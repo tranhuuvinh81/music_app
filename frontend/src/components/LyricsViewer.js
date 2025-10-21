@@ -104,7 +104,7 @@ function LyricsViewer() {
 
   if (isLoading) {
     return (
-      <div className="h-full flex items-center justify-center text-gray-400">
+      <div className="h-[300px] flex items-center justify-center text-gray-400">
         Đang tải lời bài hát...
       </div>
     );
@@ -112,7 +112,7 @@ function LyricsViewer() {
 
   if (!lrcContent || parsedLyrics.length === 0) {
     return (
-      <div className="h-full flex items-center justify-center text-gray-500">
+      <div className="h-[300px] flex items-center justify-center text-gray-500">
         Không có lời bài hát cho bài này.
       </div>
     );
@@ -121,7 +121,7 @@ function LyricsViewer() {
   return (
     <div
       ref={containerRef}
-      className="h-full w-full p-4 text-center scrollbar-hide relative overflow-hidden"
+      className="h-[300px] w-full p-4 text-center scrollbar-hide relative overflow-hidden"
     >
       {/* Danh sách lời bài hát, được dịch chuyển bằng transform */}
       <ul

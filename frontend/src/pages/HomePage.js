@@ -1,73 +1,70 @@
 // frontend/src/pages/HomePage.js
-import React, { useState, useContext, useEffect, useRef } from "react";
-import api from "../api/api";
-import { AuthContext } from "../context/AuthContext";
-import { AudioContext } from "../context/AudioContext";
-import SongDetails from "../components/SongDetails";
-import AddToPlaylistModal from "../components/AddToPlaylistModal";
-import bannerImg from "../images/116d710d1e61b0cc8debc32470695fff.jpg";
-import ArtistDetailsModal from "../components/ArtistDetailModal";
+import React, { useState, useContext, useEffect, useRef } from 'react';
+import api from '../api/api';
+import { AuthContext } from '../context/AuthContext';
+import { AudioContext } from '../context/AudioContext';
+import SongDetails from '../components/SongDetails';
+import AddToPlaylistModal from '../components/AddToPlaylistModal';
+import ArtistDetailsModal from '../components/ArtistDetailModal';
+import Footer from '../components/Footer'; // Đảm bảo import Footer
+import bannerImg from '../images/116d710d1e61b0cc8debc32470695fff.jpg';
 
 function HomePage() {
-  const [displaySongs, setDisplaySongs] = useState([]); // Danh sách bài hát hiển thị
+  const [displaySongs, setDisplaySongs] = useState([]);
   const [artists, setArtists] = useState([]);
   const [genres, setGenres] = useState([]);
-  const [recentSongs, setRecentSongs] = useState([]); // Danh sách nghe gần đây
-  const [selectedTab, setSelectedTab] = useState("songs"); // Các tab side bar
+  const [recentSongs, setRecentSongs] = useState([]);
+  const [selectedTab, setSelectedTab] = useState('songs');
   const [selectedArtist, setSelectedArtist] = useState(null);
   const [selectedGenre, setSelectedGenre] = useState(null);
   const { user, isAuthenticated } = useContext(AuthContext);
   const { playSong } = useContext(AudioContext);
   const [menuOpenSongId, setMenuOpenSongId] = useState(null);
   const [modalSongId, setModalSongId] = useState(null);
-  const recentSectionRef = useRef(null); // Ref để cuộn đến phần recently
+  const recentSectionRef = useRef(null);
   const [artistModalData, setArtistModalData] = useState(null);
 
-  useEffect(() => {
-    if (selectedTab === "songs") {
-      api
-        .get("/api/songs")
-        .then((res) => setDisplaySongs(res.data))
-        .catch((err) => console.error(err));
-    }
-    api
-      .get("/api/artists")
-      .then((res) => setArtists(res.data))
-      .catch((err) => console.error(err));
+  // 👉 THÊM MỚI: State để kiểm soát việc mở rộng danh sách
+  const [isListExpanded, setIsListExpanded] = useState(false);
 
-    api
-      .get("/api/songs/genres")
-      .then((res) => setGenres(res.data))
-      .catch((err) => console.error(err));
+  useEffect(() => {
+    if (selectedTab === 'songs') {
+      api.get('/api/songs')
+        .then(res => setDisplaySongs(res.data))
+        .catch(err => console.error(err));
+    }
+    api.get('/api/artists') 
+      .then(res => setArtists(res.data))
+      .catch(err => console.error(err));
+
+    api.get('/api/songs/genres')
+      .then(res => setGenres(res.data))
+      .catch(err => console.error(err));
 
     if (isAuthenticated) {
-      api
-        .get("/api/users/history")
-        .then((res) => setRecentSongs(res.data))
-        .catch((err) => console.error(err));
+      api.get('/api/users/history')
+        .then(res => setRecentSongs(res.data))
+        .catch(err => console.error(err));
     }
   }, [selectedTab, isAuthenticated]);
 
   useEffect(() => {
-    if (selectedTab === "artists" && selectedArtist) {
-      api
-        .get(`/api/songs/artist/${encodeURIComponent(selectedArtist)}`)
-        .then((res) => setDisplaySongs(res.data))
-        .catch((err) => console.error(err));
-    } else if (selectedTab === "genres" && selectedGenre) {
-      api
-        .get(`/api/songs/genre/${encodeURIComponent(selectedGenre)}`)
-        .then((res) => setDisplaySongs(res.data))
-        .catch((err) => console.error(err));
-    } else if (selectedTab === "songs") {
-      api
-        .get("/api/songs")
-        .then((res) => setDisplaySongs(res.data))
-        .catch((err) => console.error(err));
-    } else if (selectedTab === "recently") {
+    if (selectedTab === 'artists' && selectedArtist) {
+      api.get(`/api/songs/artist/${encodeURIComponent(selectedArtist)}`)
+        .then(res => setDisplaySongs(res.data))
+        .catch(err => console.error(err));
+    } else if (selectedTab === 'genres' && selectedGenre) {
+      api.get(`/api/songs/genre/${encodeURIComponent(selectedGenre)}`)
+        .then(res => setDisplaySongs(res.data))
+        .catch(err => console.error(err));
+    } else if (selectedTab === 'songs') {
+      api.get('/api/songs')
+        .then(res => setDisplaySongs(res.data))
+        .catch(err => console.error(err));
+    } else if (selectedTab === 'recently') {
       setDisplaySongs(recentSongs);
       if (recentSectionRef.current) {
-        recentSectionRef.current.scrollIntoView({ behavior: "smooth" });
+        recentSectionRef.current.scrollIntoView({ behavior: 'smooth' });
       }
     } else {
       setDisplaySongs([]);
@@ -95,6 +92,7 @@ function HomePage() {
     setSelectedTab(tab);
     setSelectedArtist(null);
     setSelectedGenre(null);
+    setIsListExpanded(false); // 👉 THÊM MỚI: Reset state khi đổi tab
   };
 
   const handleSelectArtist = (artistName) => {
@@ -105,10 +103,15 @@ function HomePage() {
     setSelectedGenre(genre);
   };
 
+  // 👉 THÊM MỚI: Hàm để đảo ngược state mở rộng/thu gọn
+  const toggleListExpansion = () => {
+    setIsListExpanded(!isListExpanded);
+  };
+
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-gray-50">
       {/* SIDEBAR */}
-      <div className="flex flex-col w-60 h-[750px] bg-white shadow-md">
+      <div className="flex flex-col w-80 bg-white shadow-md">
         <div className="flex-1">
           <div className="p-4">
             <ul className="space-y-2">
@@ -151,11 +154,11 @@ function HomePage() {
       </div>
 
       {/* MAIN CONTENT */}
-      <div className="flex-1 ">
+      <div className="flex-1 overflow-y-auto flex flex-col">
         {/* BANNER */}
-        <div className="relative h-64 md:h-80 lg:h-96">
+        <div className="relative h-64 md:h-80 lg:h-96 flex-shrink-0">
           <img
-            src={bannerImg}
+          src={bannerImg}
             alt="Music Banner"
             className="w-full h-full object-cover"
           />
@@ -171,16 +174,16 @@ function HomePage() {
         </div>
 
         {/* CONTENT AREA */}
-        <div className="p-6">
+        <div className="p-6 flex-grow">
+          {/* 👇 THAY ĐỔI: Cập nhật block "songs" và "recently" */}
           {(selectedTab === "songs" || selectedTab === "recently") && (
             <>
               <h2 className="text-2xl font-bold mb-6 text-gray-800">
-                {selectedTab === "songs"
-                  ? " Bài hát nổi bật"
-                  : "Nhạc nghe gần đây"}
+                {selectedTab === "songs" ? " Bài hát nổi bật" :"Nhạc nghe gần đây"}
               </h2>
               <ul className="space-y-4">
-                {displaySongs.map((song, index) => (
+                {/* 👇 THAY ĐỔI: Map qua mảng đã được xử lý */}
+                {(isListExpanded ? displaySongs : displaySongs.slice(0, 10)).map((song, index) => (
                   <li
                     key={song.id}
                     className="bg-white p-4 rounded-lg shadow flex items-center justify-between hover:shadow-md transition-shadow"
@@ -202,9 +205,7 @@ function HomePage() {
                     </div>
                     <div className="flex items-center space-x-2">
                       <button
-                        onClick={() =>
-                          handlePlaySong(song, displaySongs, index)
-                        }
+                        onClick={() => handlePlaySong(song, displaySongs, index)}
                         className="p-2 rounded-full hover:bg-gray-100 transition-colors"
                       >
                         <svg
@@ -243,14 +244,24 @@ function HomePage() {
                   </li>
                 ))}
               </ul>
+              
+              {/* 👉 THÊM MỚI: Nút "Xem thêm" / "Thu gọn" */}
+              {displaySongs.length > 10 && (
+                <button
+                  onClick={toggleListExpansion}
+                  className="mt-4 w-full py-2 text-center text-blue-500 hover:text-blue-600 font-medium transition-colors"
+                >
+                  {isListExpanded ? 'Thu gọn' : 'Xem thêm...'}
+                </button>
+              )}
             </>
           )}
 
-          {/* KHỐI ARTISTS */}
+          {/* ARTISTS */}
           {selectedTab === "artists" && (
-            <>
+            // ... (Giữ nguyên phần Artists)
+             <>
               {!selectedArtist ? (
-                /* Giao diện Card nghệ sĩ */
                 <>
                   <h2 className="text-2xl font-bold mb-6 text-gray-800">
                     Nghệ sĩ nổi bật
@@ -261,24 +272,20 @@ function HomePage() {
                         key={artist.id}
                         className="bg-white rounded-lg shadow-md overflow-hidden transform transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
                       >
-                        <img
-                          src={
-                            artist.image_url
-                              ? `${api.defaults.baseURL}${artist.image_url}`
-                              : "https://via.placeholder.com/150?text=No+Image"
-                          }
+                        <img 
+                          src={artist.image_url ? `${api.defaults.baseURL}${artist.image_url}` : 'https://via.placeholder.com/150?text=No+Image'}
                           alt={artist.name}
                           className="w-full h-40 object-cover cursor-pointer"
                           onClick={() => handleSelectArtist(artist.name)}
                         />
                         <div className="p-4">
-                          <h3
+                          <h3 
                             className="font-bold text-lg text-gray-800 truncate cursor-pointer hover:text-gray-600"
                             onClick={() => handleSelectArtist(artist.name)}
                           >
                             {artist.name}
                           </h3>
-                          <button
+                          <button 
                             onClick={() => setArtistModalData(artist)}
                             className="text-sm text-gray-500 hover:underline mt-2"
                           >
@@ -290,7 +297,6 @@ function HomePage() {
                   </ul>
                 </>
               ) : (
-                /* Giao diện danh sách bài hát */
                 <>
                   <div className="flex items-center mb-6">
                     <button
@@ -326,9 +332,7 @@ function HomePage() {
                         </div>
                         <div className="flex items-center space-x-2">
                           <button
-                            onClick={() =>
-                              handlePlaySong(song, displaySongs, index)
-                            }
+                            onClick={() => handlePlaySong(song, displaySongs, index)}
                             className="p-2 rounded-full hover:bg-gray-100 transition-colors"
                           >
                             <svg
@@ -374,7 +378,8 @@ function HomePage() {
 
           {/* GENRES */}
           {selectedTab === "genres" && (
-            <>
+            // ... (Giữ nguyên phần Genres)
+             <>
               {!selectedGenre ? (
                 <>
                   <h2 className="text-2xl font-bold mb-6 text-gray-800">
@@ -428,9 +433,7 @@ function HomePage() {
                         </div>
                         <div className="flex items-center space-x-2">
                           <button
-                            onClick={() =>
-                              handlePlaySong(song, displaySongs, index)
-                            }
+                            onClick={() => handlePlaySong(song, displaySongs, index)}
                             className="p-2 rounded-full hover:bg-gray-100 transition-colors"
                           >
                             <svg
@@ -474,10 +477,12 @@ function HomePage() {
             </>
           )}
         </div>
+        
+        <Footer />
       </div>
 
       {/* RIGHT SIDEBAR */}
-      <div className="w-80 h-[750px] bg-white shadow-md p-1 ">
+      <div className="w-80 bg-white shadow-md p-4 overflow-y-auto flex-shrink-0">
         <SongDetails />
       </div>
 
@@ -486,9 +491,9 @@ function HomePage() {
       )}
 
       {artistModalData && (
-        <ArtistDetailsModal
-          artist={artistModalData}
-          onClose={() => setArtistModalData(null)}
+        <ArtistDetailsModal 
+          artist={artistModalData} 
+          onClose={() => setArtistModalData(null)} 
         />
       )}
     </div>
