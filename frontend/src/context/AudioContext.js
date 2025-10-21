@@ -1,11 +1,11 @@
-// frontend/src/context/AudioContext.js (Đã sửa lỗi)
+// frontend/src/context/AudioContext.js
 import React, {
   createContext,
   useState,
   useRef,
   useEffect,
   useCallback,
-} from "react"; // 👈 1. Thêm useCallback
+} from "react";
 import api from "../api/api";
 
 export const AudioContext = createContext();
@@ -20,7 +20,6 @@ export const AudioProvider = ({ children }) => {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
 
-  // 👇 1. THÊM STATE MỚI CHO LYRICS URL
   const [currentLyricsUrl, setCurrentLyricsUrl] = useState(null);
 
   const audioRef = useRef(null);
@@ -31,7 +30,6 @@ export const AudioProvider = ({ children }) => {
     }
   }, [volume]);
 
-  // Cập nhật progress và currentTime
   useEffect(() => {
     const audio = audioRef.current;
     if (audio) {
@@ -78,13 +76,12 @@ export const AudioProvider = ({ children }) => {
         audio.removeEventListener("loadedmetadata", setAudioDuration);
       };
     }
-  }, [currentSong]); // Giữ isPlaying ở đây để đảm bảo tự động phát khi chọn bài mới
+  }, [currentSong]);
 
-  // --- 2. BỌC CÁC HÀM TRONG useCallback ---
+  // --- BỌC CÁC HÀM TRONG useCallback ---
 
   const playSong = useCallback(async (song, playlist = [], index = 0) => {
     console.log("Đang phát:", song);
-// 👇 THÊM DÒNG NÀY VÀO
     setCurrentLyricsUrl(song.lyrics_url || null);
 
     const songUrl = `${api.defaults.baseURL}${song.file_url}`;
@@ -98,13 +95,13 @@ export const AudioProvider = ({ children }) => {
     } catch (err) {
       console.error("Error saving history:", err);
     }
-  }, []); // api.defaults.baseURL là hằng số, không cần đưa vào dependency
+  }, []);
 
   const togglePlay = useCallback(() => {
     setIsPlaying((prevIsPlaying) => !prevIsPlaying);
   }, []);
 
-  // 👇 3. KHÔI PHỤC LOGIC VÀ BỌC useCallback
+  // KHÔI PHỤC LOGIC VÀ BỌC useCallback
   const nextSong = useCallback(() => {
     if (
       currentPlaylist.length > 0 &&
@@ -118,7 +115,7 @@ export const AudioProvider = ({ children }) => {
     }
   }, [currentPlaylist, currentIndex, playSong]);
 
-  // 👇 4. KHÔI PHỤC LOGIC VÀ BỌC useCallback
+  // KHÔI PHỤC LOGIC VÀ BỌC useCallback
   const prevSong = useCallback(() => {
     if (currentPlaylist.length > 0 && currentIndex > 0) {
       playSong(
@@ -136,7 +133,7 @@ export const AudioProvider = ({ children }) => {
       setProgress(e.target.value);
       setCurrentTime(seekTo);
     }
-  }, []); // audioRef là stable ref
+  }, []);
 
   const handleVolumeChange = useCallback((e) => {
     setVolume(e.target.value);
@@ -145,7 +142,7 @@ export const AudioProvider = ({ children }) => {
     }
   }, []);
 
-  // 👇 5. Cập nhật useEffect 'onended'
+  // Cập nhật useEffect 'onended'
   useEffect(() => {
     const audio = audioRef.current;
     if (audio) {

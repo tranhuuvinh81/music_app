@@ -12,24 +12,23 @@ function AddPlaylist() {
 
   const closeModal = () => {
     setModalSongId(null);
-    
   };
 
   const [showSetPlaylistModal, setShowSetPlaylistModal] = useState(false);
-    const [editingPlaylist, setEditingPlaylist] = useState(null);
-    const handleAddPlaylist = () => {
-      setEditingPlaylist(null);
-      setShowSetPlaylistModal(true);
-    }
-    return (
-      <div className="modal-overlay">
-        <button onClick={handleAddPlaylist}>Thêm Playlist</button>
-        {showSetPlaylistModal && (
-          <SetPlaylistModal
-            onClose={() => setShowSetPlaylistModal(false)}
-            playlist={editingPlaylist}
-          />
-        )}
-      </div>
-    );
+  const [editingPlaylist, setEditingPlaylist] = useState(null);
+  const handleAddPlaylist = () => {
+    setEditingPlaylist(null);
+    setShowSetPlaylistModal(true);
+  };
+  return (
+    <div className="modal-overlay">
+      <button onClick={handleAddPlaylist}>Thêm Playlist</button>
+      {showSetPlaylistModal && (
+        <SetPlaylistModal
+          onClose={() => setShowSetPlaylistModal(false)}
+          playlist={editingPlaylist}
+        />
+      )}
+    </div>
+  );
 }

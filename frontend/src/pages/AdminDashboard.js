@@ -1,4 +1,4 @@
-// frontend/src/pages/AdminDashboard.js (updated - pass onUpdate to modal)
+// frontend/src/pages/AdminDashboard.js
 import React, { useState, useEffect, useCallback } from "react";
 import api from "../api/api";
 import SongForm from "../components/SongForm";
@@ -18,6 +18,7 @@ function AdminDashboard() {
   const [showUserDetails, setShowUserDetails] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
 
+  // state cho Playlist Form
   const [showArtistForm, setShowArtistForm] = useState(false);
   const [editingArtist, setEditingArtist] = useState(null);
 
@@ -69,7 +70,7 @@ function AdminDashboard() {
     }
   };
 
-  // Logic cho Song (giữ nguyên)
+  // Logic cho Song
   const handleAddSongClick = () => {
     setEditingSong(null);
     setShowSongForm(true);
@@ -151,7 +152,7 @@ function AdminDashboard() {
           <UserDetailsModal
             user={selectedUser}
             onClose={handleUserDetailsClose}
-            onUpdate={handleUserUpdate} // Pass hàm refresh
+            onUpdate={handleUserUpdate} 
           />
         )}
         {showArtistForm && (
@@ -162,7 +163,7 @@ function AdminDashboard() {
           />
         )}
 
-        {/* --- BẢNG QUẢN LÝ USER --- */}
+        {/*  BẢNG QUẢN LÝ USER  */}
         <section className="bg-white rounded-lg shadow-md mb-8 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
             <h2 className="text-xl font-semibold text-gray-800">
@@ -234,7 +235,7 @@ function AdminDashboard() {
           </div>
         </section>
 
-        {/* --- BẢNG QUẢN LÝ BÀI HÁT (giữ nguyên) --- */}
+        {/*  BẢNG QUẢN LÝ BÀI HÁT   */}
         <section className="bg-white rounded-lg shadow-md mb-8 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
             <h2 className="text-xl font-semibold text-gray-800">
@@ -298,7 +299,7 @@ function AdminDashboard() {
           </div>
         </section>
 
-        {/* --- BẢNG QUẢN LÝ NGHỆ SĨ (MỚI) --- */}
+        {/*  BẢNG QUẢN LÝ NGHỆ SĨ  */}
         <section className="bg-white rounded-lg shadow-md mb-8 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
             <h2 className="text-xl font-semibold text-gray-800">

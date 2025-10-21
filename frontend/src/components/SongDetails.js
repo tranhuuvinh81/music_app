@@ -1,8 +1,8 @@
 // frontend/src/components/SongDetails.js
-import React, { useContext, useState } from "react"; // 👈 1. Thêm useState
+import React, { useContext, useState } from "react";
 import { AudioContext } from "../context/AudioContext";
 import api from "../api/api";
-import LyricsViewer from "./LyricsViewer"; // 👈 2. Import LyricsViewer
+import LyricsViewer from "./LyricsViewer";
 
 const formatTime = (seconds) => {
   const minutes = Math.floor(seconds / 60);
@@ -13,8 +13,7 @@ const formatTime = (seconds) => {
 function SongDetails() {
   const { currentPlaylist, currentIndex } = useContext(AudioContext);
   const currentSong = currentPlaylist[currentIndex];
-  
-  // 👈 3. Lấy các hàm điều khiển từ Context
+
   const {
     isPlaying,
     togglePlay,
@@ -28,7 +27,6 @@ function SongDetails() {
     duration,
   } = useContext(AudioContext);
 
-  // 👈 4. Thêm state để quản lý việc hiển thị lyrics
   const [showLyrics, setShowLyrics] = useState(false);
 
   const toggleLyrics = () => {
@@ -38,8 +36,7 @@ function SongDetails() {
   if (!currentSong) {
     return (
       <div className="flex flex-col items-center justify-center h-full p-6 bg-white rounded-lg shadow-md">
-        {/* ... (phần "Chưa có bài hát" giữ nguyên) ... */}
-         <div className="text-gray-500 text-center">
+        <div className="text-gray-500 text-center">
           <svg
             className="w-16 h-16 mx-auto mb-4 text-gray-300"
             fill="currentColor"
@@ -53,18 +50,12 @@ function SongDetails() {
     );
   }
 
-  // const currentSongObj = currentPlaylist[currentIndex] || {}; // Không cần dòng này
-  // const songTitle = currentSongObj.title || currentSong.split("/").pop(); // Sửa lại
-  // const songArtist = currentSongObj.artist || "Unknown"; // Sửa lại
-
   const imageSrc = currentSong.image_url
     ? `${api.defaults.baseURL}${currentSong.image_url}`
     : null;
 
   return (
-    // 👇 5. Cập nhật layout flex-col
     <div className="flex flex-col h-full bg-white rounded-lg overflow-hidden">
-      
       {/* PHẦN THÔNG TIN BÀI HÁT & ĐIỀU KHIỂN */}
       <div className="p-6 flex-shrink-0">
         {/* ... (Phần ảnh) ... */}
@@ -96,10 +87,10 @@ function SongDetails() {
           </div>
         </div>
 
-        {/* ... (Phần audio-controls giữ nguyên) ... */}
+        {/* ... (Phần audio-controls) ... */}
         <div className="audio-controls">
-           {/* ... (Nút prev, play, next) ... */}
-           <div className="flex justify-center items-center mb-4">
+          {/* ... (Nút prev, play, next) ... */}
+          <div className="flex justify-center items-center mb-4">
             <button
               onClick={prevSong}
               disabled={currentIndex <= 0}
@@ -159,8 +150,8 @@ function SongDetails() {
               </svg>
             </button>
           </div>
-           {/* ... (Thanh progress bar) ... */}
-           <div className="flex justify-between text-sm text-gray-600 mb-2">
+          {/* ... (Thanh progress bar) ... */}
+          <div className="flex justify-between text-sm text-gray-600 mb-2">
             <span>{formatTime(currentTime)}</span>
             <span>{formatTime(duration)}</span>
           </div>
@@ -174,8 +165,8 @@ function SongDetails() {
               className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
             />
           </div>
-           {/* ... (Phần volume) ... */}
-           <div className="flex items-center">
+          {/* ... (Phần volume) ... */}
+          <div className="flex items-center">
             <svg
               className="w-5 h-5 text-gray-600 mr-2"
               fill="currentColor"
@@ -200,7 +191,7 @@ function SongDetails() {
         </div>
       </div>
 
-      {/* 👇 6. NÚT BẤM HIỂN THỊ LYRICS */}
+      {/* NÚT BẤM HIỂN THỊ LYRICS */}
       <div className="flex justify-center items-center py-2 border-t border-gray-200 flex-shrink-0">
         <button
           onClick={toggleLyrics}
@@ -228,7 +219,7 @@ function SongDetails() {
         </button>
       </div>
 
-      {/* 👇 7. PHẦN HIỂN THỊ LYRICS (Conditional) */}
+      {/* PHẦN HIỂN THỊ LYRICS (Conditional) */}
       {showLyrics && (
         <div className="flex-1 overflow-hidden bg-gray-900">
           {/* LyricsViewer đã có overflow-y-auto bên trong nó */}
@@ -236,7 +227,6 @@ function SongDetails() {
         </div>
       )}
 
-      {/* ... (phần style jsx giữ nguyên) ... */}
       <style jsx>{`
         .slider::-webkit-slider-thumb {
           appearance: none;

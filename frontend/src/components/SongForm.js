@@ -1,4 +1,4 @@
-// frontend/src/components/SongForm.js (updated - add image input)
+// frontend/src/components/SongForm.js
 import React from "react";
 import { useState, useEffect } from "react";
 import api from "../api/api";
@@ -13,7 +13,7 @@ function SongForm({ songToEdit, onFormSubmit, onCancel }) {
   });
   const [songFile, setSongFile] = useState(null);
   const [imageFile, setImageFile] = useState(null);
-  const [lyricFile, setLyricFile] = useState(null); // 👈 1. THÊM STATE MỚI CHO LYRIC
+  const [lyricFile, setLyricFile] = useState(null);
   const [error, setError] = useState("");
   const isEditing = !!songToEdit; // Kiểm tra xem đây là form sửa hay thêm mới
 
@@ -42,7 +42,6 @@ function SongForm({ songToEdit, onFormSubmit, onCancel }) {
     setImageFile(e.target.files[0]);
   };
 
-  // 👈 2. THÊM HÀM HANDLER CHO LYRIC FILE
   const handleLyricFileChange = (e) => {
     setLyricFile(e.target.files[0]);
   };
@@ -59,7 +58,6 @@ function SongForm({ songToEdit, onFormSubmit, onCancel }) {
       data.append("imageFile", imageFile);
     }
 
-    // 👈 3. THÊM LYRIC FILE VÀO FORMDATA
     if (lyricFile) {
       data.append("lyricFile", lyricFile);
     }

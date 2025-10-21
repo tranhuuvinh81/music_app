@@ -1,37 +1,37 @@
 // frontend/src/components/EditPlaylistModal.js
-import React, { useState } from 'react';
-import api from '../api/api';
+import React, { useState } from "react";
+import api from "../api/api";
 
 function EditPlaylistModal({ playlist, onClose, onSuccess }) {
   const [name, setName] = useState(playlist.name);
-  const [description, setDescription] = useState(playlist.description || '');
+  const [description, setDescription] = useState(playlist.description || "");
   const [thumbnailFile, setThumbnailFile] = useState(null);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!name) {
-      setError('Tên playlist không được để trống');
+      setError("Tên playlist không được để trống");
       return;
     }
 
     const formData = new FormData();
-    formData.append('name', name);
-    formData.append('description', description);
+    formData.append("name", name);
+    formData.append("description", description);
     if (thumbnailFile) {
-      formData.append('thumbnailFile', thumbnailFile);
+      formData.append("thumbnailFile", thumbnailFile);
     }
 
     try {
       await api.put(`/api/playlists/${playlist.id}`, formData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          "Content-Type": "multipart/form-data",
         },
       });
       onSuccess(); // Gọi callback để tải lại danh sách
     } catch (err) {
       console.error(err);
-      setError(err.response?.data?.message || 'Có lỗi xảy ra');
+      setError(err.response?.data?.message || "Có lỗi xảy ra");
     }
   };
 

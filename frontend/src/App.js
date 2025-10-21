@@ -12,7 +12,7 @@ import { AudioProvider } from "./context/AudioContext";
 import { SongProvider } from "./context/SongContext";
 
 // Components & Pages
-import Navigation from "./components/Navigation"; // 👈 ĐÃ THAY BẰNG IMPORT
+import Navigation from "./components/Navigation";
 import AudioPlayer from "./components/AudioPlayer";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
@@ -24,7 +24,7 @@ import SearchPage from "./pages/SearchPage";
 
 import "./App.css";
 
-// --- CÁC COMPONENT BẢO VỆ ROUTE (giữ nguyên) ---
+// --- CÁC COMPONENT BẢO VỆ ROUTE ---
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, isLoading } = useContext(AuthContext);
   if (isLoading) {
@@ -41,15 +41,15 @@ const AdminRoute = ({ children }) => {
   return user && user.role === "admin" ? children : <Navigate to="/" />;
 };
 
-// MAIN LAYOUT CHO USER (giữ nguyên)
+// MAIN LAYOUT CHO USER
 const MainLayout = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Navigation /> {/* Navbar luôn hiển thị */}
+      <Navigation />
       <main className="flex-grow">
-        <Outlet /> {/* Đây là nơi các trang con (HomePage, PlaylistPage...) sẽ được render */}
+        <Outlet /> {/* Nơi các trang con (HomePage, PlaylistPage...) sẽ được render */}
       </main>
-      <AudioPlayer /> {/* Audio Player luôn hiển thị */}
+      <AudioPlayer />
     </div>
   );
 };
@@ -60,7 +60,6 @@ function App() {
       <AudioProvider>
         <SongProvider>
           <Router>
-            {/* 👇 CẤU TRÚC ROUTES (giữ nguyên) */}
             <Routes>
               {/* Route cho Layout chính của người dùng */}
               <Route path="/" element={<MainLayout />}>
@@ -92,7 +91,6 @@ function App() {
                 path="/admin"
                 element={
                   <AdminRoute>
-                    {/* Trang Admin sẽ chiếm toàn bộ màn hình, không có Navbar hay Player */}
                     <AdminDashboard />
                   </AdminRoute>
                 }

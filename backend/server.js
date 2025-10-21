@@ -1,4 +1,4 @@
-// backend/server.js (updated - serve static for images)
+// backend/server.js
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -7,9 +7,8 @@ import userRoutes from "./routes/userRoutes.js";
 import songRoutes from "./routes/songRoutes.js";
 import playlistRoutes from "./routes/playlistRoutes.js";
 import artistRoutes from "./routes/artistRoutes.js";
-import path from 'path';
-import { fileURLToPath } from 'url';
-
+import path from "path";
+import { fileURLToPath } from "url";
 
 // Cần thiết cho __dirname trong ES Modules
 const __filename = fileURLToPath(import.meta.url);
@@ -23,13 +22,13 @@ app.use(cors());
 app.use(express.json());
 
 // Phục vụ file tĩnh từ thư mục uploads
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Routes
 app.use("/api/users", userRoutes);
 app.use("/api/songs", songRoutes);
 app.use("/api/playlists", playlistRoutes);
-app.use('/api/artists', artistRoutes);
+app.use("/api/artists", artistRoutes);
 
 // Test route
 app.get("/", (req, res) => {

@@ -69,7 +69,7 @@ export const updateUser = async (req, res) => {
   const { id } = req.params; // ID của user cần cập nhật
   const loggedInUser = req.user; // User đang đăng nhập (lấy từ token)
 
-  // 👇 1. Lấy thêm "role" từ request body
+  // Lấy thêm "role" từ request body
   const { username, password, full_name, age, email, phone, role } = req.body;
   
   // Kiểm tra quyền: Hoặc là admin, hoặc là user tự cập nhật thông tin của chính mình
@@ -161,7 +161,7 @@ export const loginUser = (req, res) => {
     if (!isMatch)
       return res.status(401).json({ message: "Sai tên đăng nhập hoặc mật khẩu" });
 
-    // ✅ Sinh token kèm theo vai trò
+    // Sinh token kèm theo vai trò
     const token = jwt.sign(
       {
         id: user.id,
