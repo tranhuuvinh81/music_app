@@ -7,6 +7,7 @@ import userRoutes from "./routes/userRoutes.js";
 import songRoutes from "./routes/songRoutes.js";
 import playlistRoutes from "./routes/playlistRoutes.js";
 import artistRoutes from "./routes/artistRoutes.js";
+import searchRoutes from "./routes/searchRoutes.js";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -29,6 +30,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/songs", songRoutes);
 app.use("/api/playlists", playlistRoutes);
 app.use("/api/artists", artistRoutes);
+app.use('/api/search', searchRoutes);
 
 // Test route
 app.get("/", (req, res) => {

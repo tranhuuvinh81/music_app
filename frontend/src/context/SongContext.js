@@ -1,37 +1,43 @@
-// frontend/src/context/SongContext.js
-import React, { createContext, useState, useEffect } from "react";
+import React, { createContext, useState, useCallback } from 'react';
 import api from "../api/api";
 
 export const SongContext = createContext();
 
 export const SongProvider = ({ children }) => {
-  const [songs, setSongs] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeQuery, setActiveQuery] = useState("");
+  // State holds both song and artist results
+  const [searchResults, setSearchResults] = useState({ songs: [], artists: [] });
+  const [isLoading, setIsLoading] = useState(false);
 
-  const performSearch = (query) => {
-    setActiveQuery(query); // Cập nhật activeQuery với query được truyền vào
-  };
+  // Function to call the combined search API
+  const performSearch = useCallback(async (query) => {
+    if (!query) {
+      setSearchResults({ songs: [], artists: [] }); // Clear results if query is empty
+      return;
+    }
+    setIsLoading(true);
+    try {
+      // Calls the backend endpoint /api/search?q=...
+      const res = await api.get(`/api/search?q=${encodeURIComponent(query)}`);
+      setSearchResults(res.data); // Expects { songs: [...], artists: [...] }
+    } catch (err) {
+      console.error("Lỗi khi tìm kiếm:", err); // Log error from API call
+      setSearchResults({ songs: [], artists: [] }); // Clear results on error
+    }
+    setIsLoading(false);
+  }, []);
 
-  useEffect(() => {
-    const fetchSongs = async () => {
-      try {
-        const endpoint = activeQuery
-          ? `/api/songs/search?q=${encodeURIComponent(activeQuery)}`
-          : "/api/songs";
-        const res = await api.get(endpoint);
-        setSongs(res.data);
-      } catch (err) {
-        console.error(err);
-        setSongs([]); // Đặt songs là mảng rỗng nếu có lỗi, hỗ trợ hiển thị "Không tìm thấy kết quả"
-      }
-    };
-    fetchSongs();
-  }, [activeQuery]);
+  // Removed the old useEffect that fetched /api/songs or /api/songs/search
 
   return (
     <SongContext.Provider
-      value={{ songs, searchQuery, setSearchQuery, performSearch }}
+      value={{
+        searchQuery,
+        setSearchQuery,
+        searchResults, // Provide the combined results
+        isLoading,
+        performSearch
+      }}
     >
       {children}
     </SongContext.Provider>
