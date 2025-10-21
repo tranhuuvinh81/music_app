@@ -149,7 +149,7 @@ function HomePage() {
       </div>
 
       {/* MAIN CONTENT */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 ">
         {/* BANNER */}
         <div className="relative h-64 md:h-80 lg:h-96">
           <img
@@ -299,7 +299,6 @@ function HomePage() {
                         key={song.id}
                         className="bg-white p-4 rounded-lg shadow flex items-center justify-between hover:shadow-md transition-shadow"
                       >
-                        {/* ... (Nội dung <li> giữ nguyên) ... */}
                         <div className="flex items-center space-x-4">
                           {song.image_url && (
                             <img
@@ -315,7 +314,44 @@ function HomePage() {
                             <p className="text-gray-600">{song.artist}</p>
                           </div>
                         </div>
-                        {/* ... (Các nút play/add giữ nguyên) ... */}
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() => handlePlaySong(song, displaySongs, index)}
+                            className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                          >
+                            <svg
+                              className="w-5 h-5"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                          </button>
+                          {isAuthenticated && (
+                            <div className="relative">
+                              <button
+                                onClick={() => toggleMenu(song.id)}
+                                className="p-2 text-gray-600 hover:text-gray-800"
+                              >
+                                ...
+                              </button>
+                              {menuOpenSongId === song.id && (
+                                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10">
+                                  <button
+                                    onClick={() => openAddModal(song.id)}
+                                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                  >
+                                    Thêm vào playlist
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </li>
                     ))}
                   </ul>
@@ -427,7 +463,7 @@ function HomePage() {
       </div>
 
       {/* RIGHT SIDEBAR */}
-      <div className="w-80 bg-white shadow-md p-4 overflow-y-auto">
+      <div className="w-80 bg-white shadow-md p-4 ">
         <SongDetails />
       </div>
 

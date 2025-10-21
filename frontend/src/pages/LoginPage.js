@@ -15,16 +15,29 @@ function LoginPage() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    try {
-      const response = await api.post('/api/users/login', formData);
-      login(response.data.token);
-      navigate('/');
-    } catch (err) {
-      setError('Tên đăng nhập hoặc mật khẩu không chính xác.');
-    }
-  };
+    e.preventDefault();
+    setError('');
+    try {
+      // 1. Gọi API và nhận response
+      const response = await api.post('/api/users/login', formData);
+      
+      // 2. Lấy cả 'token' và 'user' từ response.data
+      const { token, user } = response.data;
+
+      // 3. Gọi hàm login của Context để lưu trạng thái
+      login(token);
+
+      // 4. KIỂM TRA VAI TRÒ VÀ ĐIỀU HƯỚNG
+      if (user && user.role === 'admin') {
+        navigate('/admin'); // Admin -> Dashboard
+      } else {
+        navigate('/'); // User -> Trang chủ
+      }
+
+    } catch (err) {
+      setError('Tên đăng nhập hoặc mật khẩu không chính xác.');
+    }
+  };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
