@@ -1,6 +1,5 @@
 import db from "../config/db.js";
 
-// --- Hàm HELPER (Copy từ songController.js) ---
 // Hàm này sẽ lấy danh sách nghệ sĩ đầy đủ cho một danh sách bài hát
 const fetchArtistsForSongs = (songs) => {
   return new Promise((resolve, reject) => {
@@ -8,7 +7,7 @@ const fetchArtistsForSongs = (songs) => {
       return resolve([]); // Trả về mảng rỗng nếu không có bài hát
     }
 
-    const songIds = songs.map(song => song.id);
+    const songIds = songs.map((song) => song.id);
     // Lấy ID và Tên nghệ sĩ
     const query = `
       SELECT sa.song_id, a.id, a.name
@@ -21,21 +20,19 @@ const fetchArtistsForSongs = (songs) => {
       if (err) return reject(err);
 
       // Nhóm nghệ sĩ theo song_id
-      const songsWithArtists = songs.map(song => {
+      const songsWithArtists = songs.map((song) => {
         // Lọc các nghệ sĩ thuộc bài hát hiện tại
         const artists = artistLinks
-          .filter(link => link.song_id === song.id)
-          .map(link => ({ id: link.id, name: link.name })); // Chỉ lấy id và name
+          .filter((link) => link.song_id === song.id)
+          .map((link) => ({ id: link.id, name: link.name })); // Chỉ lấy id và name
 
-        // Xóa cột artist cũ (nếu có) và thêm mảng artists mới
-        const { artist, ...songData } = song; // Loại bỏ cột artist cũ nếu nó vẫn còn trong kết quả query ban đầu
+        const { artist, ...songData } = song;
         return { ...songData, artists: artists };
       });
       resolve(songsWithArtists);
     });
   });
 };
-
 
 // --- Hàm Search chính ---
 export const searchAll = async (req, res) => {
@@ -48,7 +45,7 @@ export const searchAll = async (req, res) => {
   const searchTerm = `%${q}%`;
 
   try {
-    // Promise tìm kiếm bài hát (ĐÃ SỬA QUERY)
+    // Promise tìm kiếm bài hát
     const searchSongsPromise = new Promise((resolve, reject) => {
       // Query này tìm bài hát dựa trên:
       // 1. Tiêu đề bài hát (s.title)
@@ -91,9 +88,10 @@ export const searchAll = async (req, res) => {
       songs: songsWithFullArtists, // Trả về bài hát đã có mảng artists đầy đủ
       artists: artistResults,
     });
-
   } catch (err) {
     console.error("Search Error:", err); // Log lỗi chi tiết ở backend
-    res.status(500).json({ error: "Lỗi khi thực hiện tìm kiếm", details: err.message });
+    res
+      .status(500)
+      .json({ error: "Lỗi khi thực hiện tìm kiếm", details: err.message });
   }
 };

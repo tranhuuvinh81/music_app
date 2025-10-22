@@ -17,7 +17,9 @@ export const registerUser = async (req, res) => {
       async (err, result) => {
         if (err) return res.status(500).json({ error: err.message });
         if (result.length > 0)
-          return res.status(400).json({ message: "Tên đăng nhập hoặc email đã tồn tại!" });
+          return res
+            .status(400)
+            .json({ message: "Tên đăng nhập hoặc email đã tồn tại!" });
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -58,7 +60,8 @@ export const getUserById = (req, res) => {
     [id],
     (err, results) => {
       if (err) return res.status(500).json({ error: err.message });
-      if (results.length === 0) return res.status(404).json({ message: "Không tìm thấy user" });
+      if (results.length === 0)
+        return res.status(404).json({ message: "Không tìm thấy user" });
       res.json(results[0]);
     }
   );
@@ -71,10 +74,12 @@ export const updateUser = async (req, res) => {
 
   // Lấy thêm "role" từ request body
   const { username, password, full_name, age, email, phone, role } = req.body;
-  
+
   // Kiểm tra quyền: Hoặc là admin, hoặc là user tự cập nhật thông tin của chính mình
-  if (loggedInUser.role !== 'admin' && loggedInUser.id.toString() !== id) {
-      return res.status(403).json({ message: "Bạn không có quyền thực hiện hành động này" });
+  if (loggedInUser.role !== "admin" && loggedInUser.id.toString() !== id) {
+    return res
+      .status(403)
+      .json({ message: "Bạn không có quyền thực hiện hành động này" });
   }
 
   try {
@@ -82,11 +87,26 @@ export const updateUser = async (req, res) => {
     let values = [];
 
     // Các trường thông tin cá nhân
-    if (username) { updateFields.push("username = ?"); values.push(username); }
-    if (full_name) { updateFields.push("full_name = ?"); values.push(full_name); }
-    if (age) { updateFields.push("age = ?"); values.push(age); }
-    if (email) { updateFields.push("email = ?"); values.push(email); }
-    if (phone) { updateFields.push("phone = ?"); values.push(phone); }
+    if (username) {
+      updateFields.push("username = ?");
+      values.push(username);
+    }
+    if (full_name) {
+      updateFields.push("full_name = ?");
+      values.push(full_name);
+    }
+    if (age) {
+      updateFields.push("age = ?");
+      values.push(age);
+    }
+    if (email) {
+      updateFields.push("email = ?");
+      values.push(email);
+    }
+    if (phone) {
+      updateFields.push("phone = ?");
+      values.push(phone);
+    }
 
     // Cập nhật mật khẩu nếu có
     if (password) {
@@ -94,11 +114,11 @@ export const updateUser = async (req, res) => {
       updateFields.push("password = ?");
       values.push(hashedPassword);
     }
-    
+
     // 👇 2. Thêm logic cập nhật role (CHỈ DÀNH CHO ADMIN)
-    if (role && loggedInUser.role === 'admin') {
-        updateFields.push("role = ?");
-        values.push(role);
+    if (role && loggedInUser.role === "admin") {
+      updateFields.push("role = ?");
+      values.push(role);
     }
 
     // Xử lý avatar nếu có upload
@@ -109,13 +129,13 @@ export const updateUser = async (req, res) => {
     }
 
     if (updateFields.length === 0) {
-        return res.status(400).json({ message: "Không có dữ liệu để cập nhật!" });
+      return res.status(400).json({ message: "Không có dữ liệu để cập nhật!" });
     }
 
     values.push(id); // Thêm id vào cuối mảng values cho điều kiện WHERE
 
     const sql = `UPDATE users SET ${updateFields.join(", ")} WHERE id = ?`;
-    
+
     db.query(sql, values, (err, result) => {
       if (err) return res.status(500).json({ error: err.message });
       if (result.affectedRows === 0)
@@ -148,41 +168,51 @@ export const loginUser = (req, res) => {
   const { username, password } = req.body;
 
   if (!username || !password)
-    return res.status(400).json({ message: "Vui lòng nhập tên đăng nhập và mật khẩu" });
+    return res
+      .status(400)
+      .json({ message: "Vui lòng nhập tên đăng nhập và mật khẩu" });
 
-  db.query("SELECT * FROM users WHERE username = ?", [username], async (err, results) => {
-    if (err) return res.status(500).json({ error: err.message });
-    if (results.length === 0)
-      return res.status(401).json({ message: "Sai tên đăng nhập hoặc mật khẩu" });
+  db.query(
+    "SELECT * FROM users WHERE username = ?",
+    [username],
+    async (err, results) => {
+      if (err) return res.status(500).json({ error: err.message });
+      if (results.length === 0)
+        return res
+          .status(401)
+          .json({ message: "Sai tên đăng nhập hoặc mật khẩu" });
 
-    const user = results[0];
-    const isMatch = await bcrypt.compare(password, user.password);
+      const user = results[0];
+      const isMatch = await bcrypt.compare(password, user.password);
 
-    if (!isMatch)
-      return res.status(401).json({ message: "Sai tên đăng nhập hoặc mật khẩu" });
+      if (!isMatch)
+        return res
+          .status(401)
+          .json({ message: "Sai tên đăng nhập hoặc mật khẩu" });
 
-    // Sinh token kèm theo vai trò
-    const token = jwt.sign(
-      {
-        id: user.id,
-        username: user.username,
-        role: user.role || "user", // mặc định user
-      },
-      JWT_SECRET,
-      { expiresIn: "1d" }
-    );
+      // Sinh token kèm theo vai trò
+      const token = jwt.sign(
+        {
+          id: user.id,
+          username: user.username,
+          role: user.role || "user", // mặc định user
+        },
+        JWT_SECRET,
+        { expiresIn: "1d" }
+      );
 
-    res.json({
-      message: "Đăng nhập thành công!",
-      token,
-      user: {
-        id: user.id,
-        username: user.username,
-        full_name: user.full_name,
-        role: user.role,
-      },
-    });
-  });
+      res.json({
+        message: "Đăng nhập thành công!",
+        token,
+        user: {
+          id: user.id,
+          username: user.username,
+          full_name: user.full_name,
+          role: user.role,
+        },
+      });
+    }
+  );
 };
 
 // Thêm lịch sử nghe nhạc
@@ -227,47 +257,59 @@ export const getListenHistory = (req, res) => {
   `;
 
   db.query(sql, [user_id], (err, results) => {
-    if (err) return res.status(500).json({ error: "Lỗi khi lấy lịch sử nghe", details: err.message });
+    if (err)
+      return res
+        .status(500)
+        .json({ error: "Lỗi khi lấy lịch sử nghe", details: err.message });
 
     // 👇 SỬA LẠI LOGIC PARSE Ở ĐÂY
-    const historyWithParsedArtists = results.map(song => {
+    const historyWithParsedArtists = results.map((song) => {
       let parsedArtists = []; // Mặc định là mảng rỗng
       if (song.artists) {
         // Kiểm tra xem có phải là chuỗi không trước khi parse
-        if (typeof song.artists === 'string') {
+        if (typeof song.artists === "string") {
           try {
             parsedArtists = JSON.parse(song.artists);
             // Đảm bảo kết quả parse là mảng (phòng trường hợp JSON_OBJECT trả về null nếu không có artist)
             if (!Array.isArray(parsedArtists)) {
-                // Nếu kết quả trả về từ JSON_ARRAYAGG là object null duy nhất, vd "[null]"
-                if (parsedArtists && typeof parsedArtists === 'object' && parsedArtists.id === null) {
-                    parsedArtists = [];
-                } else {
-                     console.warn(`Expected array after parsing artists JSON for song ID ${song.id}, but got:`, parsedArtists);
-                     parsedArtists = []; // fallback to empty array if parse result is unexpected
-                }
+              // Nếu kết quả trả về từ JSON_ARRAYAGG là object null duy nhất, vd "[null]"
+              if (
+                parsedArtists &&
+                typeof parsedArtists === "object" &&
+                parsedArtists.id === null
+              ) {
+                parsedArtists = [];
+              } else {
+                console.warn(
+                  `Expected array after parsing artists JSON for song ID ${song.id}, but got:`,
+                  parsedArtists
+                );
+                parsedArtists = []; // fallback to empty array if parse result is unexpected
+              }
             }
           } catch (e) {
             console.error(`Lỗi parse JSON artists cho song ID ${song.id}:`, e);
             parsedArtists = []; // Trả về mảng rỗng nếu parse lỗi
           }
         } else if (Array.isArray(song.artists)) {
-            // Nếu nó đã là một mảng (driver tự động parse)
-             // Kiểm tra xem có phải là mảng chứa object null không (trường hợp bài hát không có nghệ sĩ)
-            if (song.artists.length === 1 && song.artists[0] && song.artists[0].id === null) {
-                parsedArtists = [];
-            } else {
-                parsedArtists = song.artists;
-            }
+          // Nếu nó đã là một mảng (driver tự động parse)
+          // Kiểm tra xem có phải là mảng chứa object null không (trường hợp bài hát không có nghệ sĩ)
+          if (
+            song.artists.length === 1 &&
+            song.artists[0] &&
+            song.artists[0].id === null
+          ) {
+            parsedArtists = [];
+          } else {
+            parsedArtists = song.artists;
+          }
         }
       }
       return {
         ...song,
-        artists: parsedArtists // Gán kết quả đã xử lý
+        artists: parsedArtists, // Gán kết quả đã xử lý
       };
     });
-    // --- KẾT THÚC PHẦN SỬA ---
-
     res.json(historyWithParsedArtists);
   });
 };

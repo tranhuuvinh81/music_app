@@ -53,11 +53,11 @@ function SongDetails() {
   const imageSrc = currentSong.image_url
     ? `${api.defaults.baseURL}${currentSong.image_url}`
     : null;
-const displayArtistNames = (artistsArray) => {
+  const displayArtistNames = (artistsArray) => {
     if (!artistsArray || artistsArray.length === 0) {
-      return 'Nghệ sĩ không xác định';
+      return "Nghệ sĩ không xác định";
     }
-    return artistsArray.map(artist => artist.name).join(', '); // Nối tên bằng dấu phẩy
+    return artistsArray.map((artist) => artist.name).join(", ");
   };
   return (
     <div className="flex flex-col h-full bg-white rounded-lg p-2 overflow-hidden">
@@ -88,15 +88,15 @@ const displayArtistNames = (artistsArray) => {
             <h3 className="text-lg font-semibold text-gray-800 truncate w-full">
               {currentSong.title}
             </h3>
-            <p className="text-gray-600">{displayArtistNames(currentSong.artists)}</p>
-            
+            <p className="text-gray-600">
+              {displayArtistNames(currentSong.artists)}
+            </p>
           </div>
-          
         </div>
         <div className="text-right text-xs text-gray-500 mb-2">
-              <p>{currentSong.genre}</p>
-            <span>Phát hành: {currentSong.release_year}</span>
-            </div>
+          <p>{currentSong.genre}</p>
+          <span>Phát hành: {currentSong.release_year}</span>
+        </div>
 
         {/* ... (Phần audio-controls) ... */}
         <div className="audio-controls">
@@ -201,8 +201,6 @@ const displayArtistNames = (artistsArray) => {
           </div>
         </div>
       </div>
-      
-
 
       {/* NÚT BẤM HIỂN THỊ LYRICS */}
       <div className="flex justify-center items-center py-2 border-t border-gray-200 flex-shrink-0">

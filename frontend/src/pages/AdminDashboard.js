@@ -58,15 +58,17 @@ function AdminDashboard() {
       return songs; // Trả về tất cả nếu không có query
     }
     const lowercasedQuery = searchQuery.toLowerCase();
-    return songs.filter(song => {
+    return songs.filter((song) => {
       // 1. Kiểm tra tiêu đề bài hát (Giữ nguyên)
       const titleMatch = song.title.toLowerCase().includes(lowercasedQuery);
 
       // 2. Kiểm tra tên nghệ sĩ trong mảng 'artists'
       // Dùng `some()` để kiểm tra xem có *ít nhất một* nghệ sĩ khớp hay không
-      const artistMatch = song.artists && song.artists.some(artist => 
-        artist.name.toLowerCase().includes(lowercasedQuery)
-      );
+      const artistMatch =
+        song.artists &&
+        song.artists.some((artist) =>
+          artist.name.toLowerCase().includes(lowercasedQuery)
+        );
 
       // Trả về true nếu tiêu đề HOẶC ít nhất một nghệ sĩ khớp
       return titleMatch || artistMatch;
@@ -292,7 +294,7 @@ function AdminDashboard() {
           </div>
         </section>
 
-        {/* --- BẢNG QUẢN LÝ BÀI HÁT (ĐÃ CẬP NHẬT) --- */}
+        {/* --- BẢNG QUẢN LÝ BÀI HÁT --- */}
         <section className="bg-white rounded-lg shadow-md overflow-hidden">
           {/* THANH TÌM KIẾM HEADER */}
           <div className="px-6 py-4 border-b border-gray-200 flex flex-wrap justify-between items-center gap-4">
@@ -366,7 +368,7 @@ function AdminDashboard() {
             </table>
           </div>
 
-          {/* BỘ ĐIỀU KHIỂN PHÂN TRANG (giờ sẽ hoạt động với kết quả đã lọc) */}
+          {/* BỘ ĐIỀU KHIỂN PHÂN TRANG */}
           {totalPages > 1 && (
             <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-center space-x-2">
               <button
