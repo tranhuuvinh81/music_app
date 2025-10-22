@@ -99,6 +99,14 @@ function HomePage() {
     setSelectedArtist(artistName);
   };
 
+// 👇 HÀM HIỂN THỊ TÊN NGHỆ SĨ TỪ MẢNG (Mới)
+  const displayArtistNames = (artistsArray) => {
+    if (!artistsArray || artistsArray.length === 0) {
+      return 'Nghệ sĩ không xác định';
+    }
+    return artistsArray.map(artist => artist.name).join(', '); // Nối tên bằng dấu phẩy
+  };
+
   const handleSelectGenre = (genre) => {
     setSelectedGenre(genre);
   };
@@ -199,7 +207,7 @@ function HomePage() {
                         <strong className="block text-gray-900">
                           {song.title}
                         </strong>
-                        <p className="text-gray-600">{song.artist}</p>
+                        <p className="text-gray-600">{displayArtistNames(song.artists)}</p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -326,7 +334,7 @@ function HomePage() {
                             <strong className="block text-gray-900">
                               {song.title}
                             </strong>
-                            <p className="text-gray-600">{song.artist}</p>
+                            <p className="text-gray-600">{displayArtistNames(song.artists)}</p>
                           </div>
                         </div>
                         <div className="flex items-center space-x-2">
@@ -427,7 +435,7 @@ function HomePage() {
                             <strong className="block text-gray-900">
                               {song.title}
                             </strong>
-                            <p className="text-gray-600">{song.artist}</p>
+                            <p className="text-gray-600">{displayArtistNames(song.artists)}</p>
                           </div>
                         </div>
                         <div className="flex items-center space-x-2">

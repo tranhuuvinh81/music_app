@@ -201,12 +201,16 @@ export const addListenHistory = (req, res) => {
   });
 };
 
-// Lấy lịch sử nghe nhạc (gần nhất trước, unique songs)
 export const getListenHistory = (req, res) => {
   const user_id = req.user.id;
 
   const sql = `
-    SELECT s.*
+    SELECT
+      s.id, s.title, s.album, s.genre, s.release_year, s.file_url, s.image_url, s.lyrics_url, s.created_at,
+      uh.last_listened,
+      JSON_ARRAYAGG(
+        JSON_OBJECT('id', a.id, 'name', a.name)
+      ) AS artists
     FROM (
       SELECT song_id, MAX(listened_at) as last_listened
       FROM user_history
@@ -216,9 +220,54 @@ export const getListenHistory = (req, res) => {
       LIMIT 20
     ) uh
     JOIN songs s ON uh.song_id = s.id
+    LEFT JOIN song_artists sa ON s.id = sa.song_id
+    LEFT JOIN artists a ON sa.artist_id = a.id
+    GROUP BY s.id
+    ORDER BY uh.last_listened DESC;
   `;
+
   db.query(sql, [user_id], (err, results) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(results);
+    if (err) return res.status(500).json({ error: "Lỗi khi lấy lịch sử nghe", details: err.message });
+
+    // 👇 SỬA LẠI LOGIC PARSE Ở ĐÂY
+    const historyWithParsedArtists = results.map(song => {
+      let parsedArtists = []; // Mặc định là mảng rỗng
+      if (song.artists) {
+        // Kiểm tra xem có phải là chuỗi không trước khi parse
+        if (typeof song.artists === 'string') {
+          try {
+            parsedArtists = JSON.parse(song.artists);
+            // Đảm bảo kết quả parse là mảng (phòng trường hợp JSON_OBJECT trả về null nếu không có artist)
+            if (!Array.isArray(parsedArtists)) {
+                // Nếu kết quả trả về từ JSON_ARRAYAGG là object null duy nhất, vd "[null]"
+                if (parsedArtists && typeof parsedArtists === 'object' && parsedArtists.id === null) {
+                    parsedArtists = [];
+                } else {
+                     console.warn(`Expected array after parsing artists JSON for song ID ${song.id}, but got:`, parsedArtists);
+                     parsedArtists = []; // fallback to empty array if parse result is unexpected
+                }
+            }
+          } catch (e) {
+            console.error(`Lỗi parse JSON artists cho song ID ${song.id}:`, e);
+            parsedArtists = []; // Trả về mảng rỗng nếu parse lỗi
+          }
+        } else if (Array.isArray(song.artists)) {
+            // Nếu nó đã là một mảng (driver tự động parse)
+             // Kiểm tra xem có phải là mảng chứa object null không (trường hợp bài hát không có nghệ sĩ)
+            if (song.artists.length === 1 && song.artists[0] && song.artists[0].id === null) {
+                parsedArtists = [];
+            } else {
+                parsedArtists = song.artists;
+            }
+        }
+      }
+      return {
+        ...song,
+        artists: parsedArtists // Gán kết quả đã xử lý
+      };
+    });
+    // --- KẾT THÚC PHẦN SỬA ---
+
+    res.json(historyWithParsedArtists);
   });
 };

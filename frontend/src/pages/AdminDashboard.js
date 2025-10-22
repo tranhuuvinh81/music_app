@@ -53,17 +53,24 @@ function AdminDashboard() {
     fetchArtists();
   }, [fetchUsers, fetchSongs, fetchArtists]);
 
-  // Dùng useMemo để chỉ lọc lại khi `songs` hoặc `searchQuery` thay đổi
   const filteredSongs = useMemo(() => {
     if (!searchQuery) {
       return songs; // Trả về tất cả nếu không có query
     }
     const lowercasedQuery = searchQuery.toLowerCase();
-    return songs.filter(
-      (song) =>
-        song.title.toLowerCase().includes(lowercasedQuery) ||
-        song.artist.toLowerCase().includes(lowercasedQuery)
-    );
+    return songs.filter(song => {
+      // 1. Kiểm tra tiêu đề bài hát (Giữ nguyên)
+      const titleMatch = song.title.toLowerCase().includes(lowercasedQuery);
+
+      // 2. Kiểm tra tên nghệ sĩ trong mảng 'artists'
+      // Dùng `some()` để kiểm tra xem có *ít nhất một* nghệ sĩ khớp hay không
+      const artistMatch = song.artists && song.artists.some(artist => 
+        artist.name.toLowerCase().includes(lowercasedQuery)
+      );
+
+      // Trả về true nếu tiêu đề HOẶC ít nhất một nghệ sĩ khớp
+      return titleMatch || artistMatch;
+    });
   }, [songs, searchQuery]);
 
   // CẬP NHẬT LOGIC PHÂN TRANG ĐỂ DÙNG DANH SÁCH ĐÃ LỌC
