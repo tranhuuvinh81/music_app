@@ -9,6 +9,13 @@ const formatTime = (seconds) => {
   // Thêm '0' vào trước nếu số giây < 10 (ví dụ: 3:05 thay vì 3:5)
   return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
 };
+// 👇 1. THÊM HÀM HELPER VÀO ĐÂY
+const displayArtistNames = (artistsArray) => {
+  if (!artistsArray || artistsArray.length === 0) {
+    return 'Unknown Artist'; // Trả về tiếng Anh hoặc Việt tùy bạn
+  }
+  return artistsArray.map(artist => artist.name).join(', ');
+};
 
 function AudioPlayer() {
   const {
@@ -30,8 +37,10 @@ function AudioPlayer() {
   if (!currentSong) return null;
 
   const currentSongObj = currentPlaylist[currentIndex] || {};
-  const songTitle = currentSongObj.title || currentSong.split("/").pop();
-  const songArtist = currentSongObj.artist || "Unknown";
+  // 👇 2. CẬP NHẬT LOGIC LẤY TÊN BÀI HÁT VÀ NGHỆ SĨ
+  const songTitle = currentSongObj.title || "Loading..."; // Lấy title từ object
+  // Sử dụng hàm helper để lấy tên nghệ sĩ
+  const songArtist = displayArtistNames(currentSongObj.artists);
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-gray-900 text-white p-1 shadow-lg z-50">

@@ -53,7 +53,12 @@ function SongDetails() {
   const imageSrc = currentSong.image_url
     ? `${api.defaults.baseURL}${currentSong.image_url}`
     : null;
-
+const displayArtistNames = (artistsArray) => {
+    if (!artistsArray || artistsArray.length === 0) {
+      return 'Nghệ sĩ không xác định';
+    }
+    return artistsArray.map(artist => artist.name).join(', '); // Nối tên bằng dấu phẩy
+  };
   return (
     <div className="flex flex-col h-full bg-white rounded-lg p-2 overflow-hidden">
       {/* PHẦN THÔNG TIN BÀI HÁT & ĐIỀU KHIỂN */}
@@ -83,7 +88,7 @@ function SongDetails() {
             <h3 className="text-lg font-semibold text-gray-800 truncate w-full">
               {currentSong.title}
             </h3>
-            <p className="text-gray-600">{currentSong.artist}</p>
+            <p className="text-gray-600">{displayArtistNames(currentSong.artists)}</p>
             
           </div>
           
