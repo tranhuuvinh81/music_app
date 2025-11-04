@@ -12,15 +12,15 @@ import { AudioProvider } from "./context/AudioContext";
 import { SongProvider } from "./context/SongContext";
 
 // Components & Pages
-import Navigation from "./components/Navigation";
-import AudioPlayer from "./components/AudioPlayer";
-import HomePage from "./pages/HomePage";
-import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
-import AdminDashboard from "./pages/AdminDashboard";
-import PlaylistPage from "./pages/PlaylistPage";
-import ProfilePage from "./pages/ProfilePage";
-import SearchPage from "./pages/SearchPage";
+import Navigation from "./components/layout/Navigation";
+import AudioPlayer from "./components/layout/AudioPlayer";
+import HomePage from "./pages/main/HomePage";
+import LoginPage from "./pages/auth/LoginPage";
+import RegisterPage from "./pages/auth/RegisterPage";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import PlaylistPage from "./pages/main/PlaylistPage";
+import ProfilePage from "./pages/main/ProfilePage";
+import SearchPage from "./pages/main/SearchPage";
 
 import "./App.css";
 
