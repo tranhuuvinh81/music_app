@@ -95,12 +95,12 @@ function LyricsViewer() {
       const activeLineHeight = activeLine.clientHeight;
       const activeLineOffsetTop = activeLine.offsetTop;
 
-      // Tính toán để đưa dòng active vào chính giữa
+      // đưa dòng active vào chính giữa
       const newTranslateY =
         -activeLineOffsetTop + containerHeight / 2 - activeLineHeight / 2;
       setTranslateY(newTranslateY);
     }
-  }, [activeLineIndex, parsedLyrics]); // Vẫn phụ thuộc vào activeLineIndex
+  }, [activeLineIndex, parsedLyrics]);
 
   if (isLoading) {
     return (
@@ -123,7 +123,6 @@ function LyricsViewer() {
       ref={containerRef}
       className="h-[300px] w-full p-4 text-center scrollbar-hide relative overflow-hidden"
     >
-      {/* Danh sách lời bài hát, được dịch chuyển bằng transform */}
       <ul
         className="space-y-4 absolute left-0 right-0"
         style={{

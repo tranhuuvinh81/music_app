@@ -54,7 +54,7 @@ function SearchPage() {
   };
   const openAddModal = (songId) => {
     setModalSongId(songId);
-    setMenuOpenSongId(null); // Đóng menu khi mở modal
+    setMenuOpenSongId(null);
   };
   const closeModal = () => {
     setModalSongId(null);

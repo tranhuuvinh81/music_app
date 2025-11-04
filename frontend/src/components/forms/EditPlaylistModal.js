@@ -28,7 +28,7 @@ function EditPlaylistModal({ playlist, onClose, onSuccess }) {
           "Content-Type": "multipart/form-data",
         },
       });
-      onSuccess(); // Gọi callback để tải lại danh sách
+      onSuccess(); // callback để tải lại danh sách
     } catch (err) {
       console.error(err);
       setError(err.response?.data?.message || "Có lỗi xảy ra");

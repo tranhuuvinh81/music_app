@@ -5,24 +5,22 @@ export const SongContext = createContext();
 
 export const SongProvider = ({ children }) => {
   const [searchQuery, setSearchQuery] = useState("");
-  // State holds both song and artist results
   const [searchResults, setSearchResults] = useState({ songs: [], artists: [] });
   const [isLoading, setIsLoading] = useState(false);
 
-  // Function to call the combined search API
   const performSearch = useCallback(async (query) => {
     if (!query) {
-      setSearchResults({ songs: [], artists: [] }); // Clear results if query is empty
+      setSearchResults({ songs: [], artists: [] });
       return;
     }
     setIsLoading(true);
     try {
-      // Calls the backend endpoint /api/search?q=...
+      // gọi API tìm kiếm
       const res = await api.get(`/api/search?q=${encodeURIComponent(query)}`);
-      setSearchResults(res.data); // Expects { songs: [...], artists: [...] }
+      setSearchResults(res.data); // mong đợi dữ liệu có dạng { songs: [...], artists: [...] }
     } catch (err) {
-      console.error("Lỗi khi tìm kiếm:", err); // Log error from API call
-      setSearchResults({ songs: [], artists: [] }); // Clear results on error
+      console.error("Lỗi khi tìm kiếm:", err);
+      setSearchResults({ songs: [], artists: [] });
     }
     setIsLoading(false);
   }, []);
@@ -32,7 +30,7 @@ export const SongProvider = ({ children }) => {
       value={{
         searchQuery,
         setSearchQuery,
-        searchResults, // Provide the combined results
+        searchResults, // cung cấp kết quả tìm kiếm
         isLoading,
         performSearch
       }}

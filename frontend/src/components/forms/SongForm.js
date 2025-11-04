@@ -1,7 +1,7 @@
 // // frontend/src/components/SongForm.js
 import React, { useState, useEffect } from "react";
 import api from "../../api/api";
-import Select from "react-select"; // 👈 1. IMPORT react-select
+import Select from "react-select";
 
 function SongForm({ songToEdit, onFormSubmit, onCancel }) {
   const [formData, setFormData] = useState({
@@ -16,7 +16,7 @@ function SongForm({ songToEdit, onFormSubmit, onCancel }) {
   const [error, setError] = useState("");
   const isEditing = !!songToEdit;
 
-  const [allArtists, setAllArtists] = useState([]); // Danh sách tất cả nghệ sĩ [{ value: id, label: name }]
+  const [allArtists, setAllArtists] = useState([]); // Danh sách tất cả nghệ sĩ
   const [selectedArtists, setSelectedArtists] = useState([]); // Danh sách nghệ sĩ đã chọn cho bài hát này
 
   useEffect(() => {
@@ -159,7 +159,7 @@ function SongForm({ songToEdit, onFormSubmit, onCancel }) {
               </label>
               <Select
                 id="artists"
-                isMulti // Cho phép chọn nhiều
+                isMulti
                 name="artists"
                 options={allArtists} // Danh sách lựa chọn
                 value={selectedArtists} // Giá trị đang chọn

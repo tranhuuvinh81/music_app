@@ -12,7 +12,6 @@ function ArtistDetailsModal({ artist, onClose }) {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col">
-        {/* Nút đóng modal */}
         <div className="flex justify-end p-2">
           <button
             onClick={onClose}
@@ -35,7 +34,6 @@ function ArtistDetailsModal({ artist, onClose }) {
           </button>
         </div>
 
-        {/* Nội dung Modal */}
         <div className="overflow-y-auto p-6 pt-0">
           <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
             <img

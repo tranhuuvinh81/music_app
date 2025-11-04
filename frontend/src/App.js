@@ -22,13 +22,17 @@ import PlaylistPage from "./pages/main/PlaylistPage";
 import ProfilePage from "./pages/main/ProfilePage";
 import SearchPage from "./pages/main/SearchPage";
 
-import "./App.css";
+import "../src/styles/App.css";
 
 // --- CÁC COMPONENT BẢO VỆ ROUTE ---
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, isLoading } = useContext(AuthContext);
   if (isLoading) {
-    return <div className="flex justify-center items-center h-screen">Đang tải...</div>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        Đang tải...
+      </div>
+    );
   }
   return isAuthenticated ? children : <Navigate to="/login" />;
 };
@@ -36,7 +40,11 @@ const ProtectedRoute = ({ children }) => {
 const AdminRoute = ({ children }) => {
   const { user, isLoading } = useContext(AuthContext);
   if (isLoading) {
-    return <div className="flex justify-center items-center h-screen">Đang tải...</div>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        Đang tải...
+      </div>
+    );
   }
   return user && user.role === "admin" ? children : <Navigate to="/" />;
 };
@@ -47,7 +55,8 @@ const MainLayout = () => {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navigation />
       <main className="flex-grow">
-        <Outlet /> {/* Nơi các trang con (HomePage, PlaylistPage...) sẽ được render */}
+        <Outlet />{" "}
+        {/* Nơi các trang con (HomePage, PlaylistPage...) sẽ được render */}
       </main>
       <AudioPlayer />
     </div>
@@ -104,4 +113,3 @@ function App() {
 }
 
 export default App;
-

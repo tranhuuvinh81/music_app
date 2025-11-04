@@ -6,7 +6,6 @@ const Footer = () => {
     <footer className="bg-gray-800 text-white py-8 mt-12">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* About Section */}
           <div>
             <h3 className="text-lg font-semibold mb-4">Về Nghe và khen</h3>
             <p className="text-gray-400 text-sm">
@@ -35,7 +34,6 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Social Media Section */}
           <div>
             <h3 className="text-lg font-semibold mb-4">Theo dõi chúng tôi</h3>
             <div className="flex space-x-4">

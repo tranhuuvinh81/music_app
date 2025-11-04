@@ -63,7 +63,7 @@ function SongDetails() {
     <div className="flex flex-col h-full bg-white rounded-lg p-2 overflow-hidden">
       {/* PHẦN THÔNG TIN BÀI HÁT & ĐIỀU KHIỂN */}
       <div className="p-6 flex-shrink-0">
-        {/* ... (Phần ảnh) ... */}
+        {/* ... ảnh ... */}
         <div className="flex flex-col items-center mb-6">
           {imageSrc ? (
             <div className="w-56 h-56 overflow-hidden rounded-lg shadow-md mb-4 group">
@@ -202,7 +202,7 @@ function SongDetails() {
         </div>
       </div>
 
-      {/* NÚT BẤM HIỂN THỊ LYRICS */}
+      {/* nút hiển thị lyrics */}
       <div className="flex justify-center items-center py-2 border-t border-gray-200 flex-shrink-0">
         <button
           onClick={toggleLyrics}
@@ -230,10 +230,9 @@ function SongDetails() {
         </button>
       </div>
 
-      {/* PHẦN HIỂN THỊ LYRICS (Conditional) */}
+      {/* hiển thị lyrics (Conditional) */}
       {showLyrics && (
         <div className="overflow-hidden rounded-xl bg-gray-900">
-          {/* LyricsViewer đã có overflow-y-auto bên trong nó */}
           <LyricsViewer />
         </div>
       )}

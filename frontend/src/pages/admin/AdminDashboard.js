@@ -59,11 +59,11 @@ function AdminDashboard() {
     }
     const lowercasedQuery = searchQuery.toLowerCase();
     return songs.filter((song) => {
-      // 1. Kiểm tra tiêu đề bài hát (Giữ nguyên)
+      // 1. Kiểm tra tiêu đề bài hát
       const titleMatch = song.title.toLowerCase().includes(lowercasedQuery);
 
       // 2. Kiểm tra tên nghệ sĩ trong mảng 'artists'
-      // Dùng `some()` để kiểm tra xem có *ít nhất một* nghệ sĩ khớp hay không
+      // dùng `some()` để kiểm tra xem có *ít nhất một* nghệ sĩ khớp hay không
       const artistMatch =
         song.artists &&
         song.artists.some((artist) =>
@@ -300,7 +300,7 @@ const displayArtistNames = (artistsArray) => {
         </section>
 
         {/* --- BẢNG QUẢN LÝ BÀI HÁT --- */}
-        <section className="bg-white rounded-lg shadow-md overflow-hidden">
+        <section className="bg-white rounded-lg mb-8 shadow-md overflow-hidden">
           {/* THANH TÌM KIẾM HEADER */}
           <div className="px-6 py-4 border-b border-gray-200 flex flex-wrap justify-between items-center gap-4">
             <div className="flex items-center gap-4">
@@ -341,7 +341,7 @@ const displayArtistNames = (artistsArray) => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {/* BẢNG GIỜ SẼ RENDER 'currentSongs' (đã được lọc và phân trang) */}
+                {/* BẢNG GIỜ SẼ RENDER 'currentSongs' */}
                 {currentSongs.map((song) => (
                   <tr key={song.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">

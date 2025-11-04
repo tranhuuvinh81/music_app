@@ -44,7 +44,7 @@ export const AudioProvider = ({ children }) => {
     }
   }, []);
 
-  // Xử lý Play/Pause
+  // Play/Pause
   useEffect(() => {
     if (audioRef.current) {
       if (isPlaying) {
@@ -148,7 +148,6 @@ export const AudioProvider = ({ children }) => {
     if (audio) {
       audio.onended = nextSong; // Gán hàm nextSong đã được useCallback
     }
-    // Cần cleanup để tránh gán sự kiện cũ
     return () => {
       if (audio) {
         audio.onended = null;
