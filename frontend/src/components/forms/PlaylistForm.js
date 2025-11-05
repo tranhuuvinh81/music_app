@@ -1,4 +1,4 @@
-// frontend/src/components/PlaylistForm.js
+// frontend/src/components/forms/PlaylistForm.js
 import React, { useState } from "react";
 import api from "../../api/api";
 

@@ -1,4 +1,4 @@
-// frontend/src/pages/AdminDashboard.js
+// frontend/src/pages/admin/AdminDashboard.js
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import api from "../../api/api";
 import SongForm from "../../components/forms/SongForm";

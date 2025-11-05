@@ -1,4 +1,4 @@
-// frontend/src/pages/PlaylistPage.js
+// frontend/src/pages/main/PlaylistPage.js
 import React, { useState, useEffect, useContext } from "react";
 import api from "../../api/api";
 import { AuthContext } from "../../context/AuthContext";

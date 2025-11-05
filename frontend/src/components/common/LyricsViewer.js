@@ -1,4 +1,4 @@
-// frontend/src/components/LyricsViewer.js
+// frontend/src/components/common/LyricsViewer.js
 import React, {
   useContext,
   useMemo,

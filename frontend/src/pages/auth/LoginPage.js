@@ -1,4 +1,4 @@
-// src/pages/LoginPage.jsx
+// src/pages/auth/LoginPage.jsx
 import React, { useState, useContext } from "react";
 import api from "../../api/api";
 import { AuthContext } from "../../context/AuthContext";

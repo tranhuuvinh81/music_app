@@ -39,7 +39,7 @@ const fetchArtistsForSongs = (songs) => {
 export const getAllSongs = async (req, res) => {
   // Bỏ cột 'artist' cũ nếu bạn chưa xóa
   const query =
-    "SELECT id, title, album, genre, release_year, file_url, image_url, lyrics_url, created_at FROM songs ORDER BY created_at DESC";
+    "SELECT id, title, album, genre, release_year, file_url, image_url, lyrics_url, listen_count, created_at FROM songs ORDER BY created_at DESC";
   db.query(query, async (err, songs) => {
     // Thêm async ở đây
     if (err) return res.status(500).json({ error: "Lỗi khi truy vấn bài hát" });
@@ -60,7 +60,7 @@ export const getAllSongs = async (req, res) => {
 export const getSongById = async (req, res) => {
   const { id } = req.params;
   const query =
-    "SELECT id, title, album, genre, release_year, file_url, image_url, lyrics_url, created_at FROM songs WHERE id = ?";
+    "SELECT id, title, album, genre, release_year, file_url, image_url, lyrics_url, listen_count, created_at FROM songs WHERE id = ?";
   db.query(query, [id], async (err, results) => {
     // Thêm async
     if (err) return res.status(500).json({ error: "Lỗi khi truy vấn bài hát" });
@@ -77,6 +77,25 @@ export const getSongById = async (req, res) => {
         details: fetchErr.message,
       });
     }
+  });
+};
+
+// Tăng lượt nghe
+export const incrementListenCount = (req, res) => {
+  const { id } = req.params;
+  const query = "UPDATE songs SET listen_count = listen_count + 1 WHERE id = ?";
+  
+  db.query(query, [id], (err, result) => {
+    if (err) {
+      // Ghi log lỗi nhưng không cần báo về client
+      console.error(`Lỗi khi tăng lượt nghe cho song ${id}:`, err.message);
+      return res.status(500).json({ error: "Lỗi server" });
+    }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Không tìm thấy bài hát" });
+    }
+    // Gửi 204 No Content, client không cần dữ liệu trả về
+    res.sendStatus(204); 
   });
 };
 
@@ -308,7 +327,7 @@ export const getSongsByArtist = (req, res) => {
 
       // 3. Lấy thông tin bài hát từ song_id
       const getSongsQuery =
-        "SELECT id, title, album, genre, release_year, file_url, image_url, lyrics_url, created_at FROM songs WHERE id IN (?) ORDER BY title";
+        "SELECT id, title, album, genre, release_year, file_url, image_url, lyrics_url, listen_count, created_at FROM songs WHERE id IN (?) ORDER BY title";
       db.query(getSongsQuery, [songIds], async (err, songs) => {
         // Thêm async
         if (err)
@@ -332,7 +351,7 @@ export const getSongsByArtist = (req, res) => {
 export const getSongsByGenre = (req, res) => {
   const { genre } = req.params;
   const query =
-    "SELECT id, title, album, genre, release_year, file_url, image_url, lyrics_url, created_at FROM songs WHERE genre = ? ORDER BY title";
+    "SELECT id, title, album, genre, release_year, file_url, image_url, lyrics_url, listen_count, created_at FROM songs WHERE genre = ? ORDER BY title";
   db.query(query, [decodeURIComponent(genre)], async (err, songs) => {
     // Thêm async
     if (err)

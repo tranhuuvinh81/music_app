@@ -1,4 +1,4 @@
-// frontend/src/components/AudioPlayer.js
+// frontend/src/components/layout/AudioPlayer.js
 import React, { useContext } from "react";
 import { AudioContext } from "../../context/AudioContext";
 

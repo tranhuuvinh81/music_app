@@ -91,6 +91,14 @@ export const AudioProvider = ({ children }) => {
     setIsPlaying(true);
 
     try {
+      // Gọi API để tăng lượt nghe, không cần await
+      api.post(`/api/songs/${song.id}/listen`); 
+    } catch (err) {
+      // Không cần làm gì, lỗi này không nên dừng việc phát nhạc
+      console.error("Lỗi khi tăng lượt nghe:", err);
+    }
+
+    try {
       await api.post("/api/users/history", { song_id: song.id });
     } catch (err) {
       console.error("Error saving history:", err);

@@ -1,4 +1,4 @@
-// frontend/src/pages/ProfilePage.js (new file)
+// frontend/src/pages/main/ProfilePage.js
 import React, { useState, useEffect, useContext } from "react";
 import api from "../../api/api";
 import { AuthContext } from "../../context/AuthContext";

@@ -1,4 +1,4 @@
-// frontend/src/components/ArtistForm.js
+// frontend/src/components/forms/ArtistForm.js
 import React, { useState, useEffect } from "react";
 import api from "../../api/api";
 

@@ -9,6 +9,7 @@ import {
   getGenres,
   getSongsByArtist,
   getSongsByGenre,
+  incrementListenCount
 } from "../controllers/songController.js";
 import { verifyToken, isAdmin } from "../middleware/authMiddleware.js";
 import upload from "../middleware/upload.js";
@@ -21,6 +22,7 @@ router.get("/genres", getGenres); // Lấy danh sách thể loại
 router.get("/artist/:artistName", getSongsByArtist); // Lấy bài hát theo TÊN nghệ sĩ
 router.get("/genre/:genre", getSongsByGenre); // Lấy bài hát theo thể loại
 router.get("/:id", getSongById); // Lấy chi tiết bài hát (đã bao gồm nghệ sĩ)
+router.post("/:id/listen", incrementListenCount); // Tăng lượt nghe bài hát
 
 // Admin only Routes
 router.post(

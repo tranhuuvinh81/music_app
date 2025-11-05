@@ -1,4 +1,4 @@
-// frontend/src/components/SongDetails.js
+// frontend/src/components/layout/SongDetails.js
 import React, { useContext, useState } from "react";
 import { AudioContext } from "../../context/AudioContext";
 import api from "../../api/api";

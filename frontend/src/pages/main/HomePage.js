@@ -1,4 +1,4 @@
-// frontend/src/pages/HomePage.js
+// frontend/src/pages/main/HomePage.js
 import React, { useState, useContext, useEffect, useRef } from "react";
 import api from "../../api/api";
 import { AuthContext } from "../../context/AuthContext";
@@ -8,6 +8,7 @@ import AddToPlaylistModal from "../../components/modals/AddToPlaylistModal";
 import ArtistDetailsModal from "../../components/modals/ArtistDetailModal";
 import Footer from "../../components/layout/Footer";
 import bannerImg from "../../assets/images/116d710d1e61b0cc8debc32470695fff.jpg";
+import listenIcon from "../../assets/icon/listen-1.png";
 
 function HomePage() {
   const [displaySongs, setDisplaySongs] = useState([]);
@@ -212,13 +213,15 @@ function HomePage() {
                           className="w-12 h-12 object-cover rounded"
                         />
                       )}
-                      <div>
-                        <strong className="block text-gray-900">
-                          {song.title}
-                        </strong>
-                        <p className="text-gray-600">
-                          {displayArtistNames(song.artists)}
-                        </p>
+                      <div className="min-w-0">
+                        <strong className="block text-gray-900 truncate">{song.title}</strong>
+                        <p className="text-gray-600 truncate">{displayArtistNames(song.artists)}</p>
+                        
+                        {/* 👇 3. THAY THẾ SVG BẰNG IMG TAG */}
+                        <div className="flex items-center text-xs text-gray-500 mt-1">
+                          <img src={listenIcon} alt="Lượt nghe" className="w-4 h-4" />
+                          <span className="ml-1">{song.listen_count ? song.listen_count.toLocaleString() : 0}</span>
+                        </div>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -345,14 +348,16 @@ function HomePage() {
                               className="w-12 h-12 object-cover rounded"
                             />
                           )}
-                          <div>
-                            <strong className="block text-gray-900">
-                              {song.title}
-                            </strong>
-                            <p className="text-gray-600">
-                              {displayArtistNames(song.artists)}
-                            </p>
-                          </div>
+                          <div className="min-w-0">
+                        <strong className="block text-gray-900 truncate">{song.title}</strong>
+                        <p className="text-gray-600 truncate">{displayArtistNames(song.artists)}</p>
+                        
+                        {/* 👇 3. THAY THẾ SVG BẰNG IMG TAG */}
+                        <div className="flex items-center text-xs text-gray-500 mt-1">
+                          <img src={listenIcon} alt="Lượt nghe" className="w-4 h-4" />
+                          <span className="ml-1">{song.listen_count ? song.listen_count.toLocaleString() : 0}</span>
+                        </div>
+                      </div>
                         </div>
                         <div className="flex items-center space-x-2">
                           <button
@@ -449,14 +454,16 @@ function HomePage() {
                               className="w-12 h-12 object-cover rounded"
                             />
                           )}
-                          <div>
-                            <strong className="block text-gray-900">
-                              {song.title}
-                            </strong>
-                            <p className="text-gray-600">
-                              {displayArtistNames(song.artists)}
-                            </p>
-                          </div>
+                          <div className="min-w-0">
+                        <strong className="block text-gray-900 truncate">{song.title}</strong>
+                        <p className="text-gray-600 truncate">{displayArtistNames(song.artists)}</p>
+                        
+                        {/* 👇 3. THAY THẾ SVG BẰNG IMG TAG */}
+                        <div className="flex items-center text-xs text-gray-500 mt-1">
+                          <img src={listenIcon} alt="Lượt nghe" className="w-4 h-4" />
+                          <span className="ml-1">{song.listen_count ? song.listen_count.toLocaleString() : 0}</span>
+                        </div>
+                      </div>
                         </div>
                         <div className="flex items-center space-x-2">
                           <button

@@ -1,4 +1,4 @@
-// frontend/src/components/AddToPlaylistModal.js
+// frontend/src/components/modals/AddToPlaylistModal.js
 import React, { useContext, useState, useEffect } from "react";
 import api from "../../api/api";
 import { AuthContext } from "../../context/AuthContext";

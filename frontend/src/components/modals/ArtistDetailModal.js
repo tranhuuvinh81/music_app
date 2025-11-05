@@ -1,4 +1,4 @@
-// frontend/src/components/ArtistDetailsModal.js
+// frontend/src/components/modals/ArtistDetailsModal.js
 import React from "react";
 import api from "../../api/api";
 

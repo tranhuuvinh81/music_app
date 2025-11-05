@@ -1,4 +1,4 @@
-// frontend/src/components/EditPlaylistModal.js
+// frontend/src/components/forms/EditPlaylistModal.js
 import React, { useState } from "react";
 import api from "../../api/api";
 

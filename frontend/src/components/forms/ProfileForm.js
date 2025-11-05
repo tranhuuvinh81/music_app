@@ -1,4 +1,4 @@
-// frontend/src/components/ProfileForm.js
+// frontend/src/components/forms/ProfileForm.js
 import React, { useState, useEffect } from "react";
 import api from "../../api/api";
 
