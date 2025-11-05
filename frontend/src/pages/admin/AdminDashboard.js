@@ -58,12 +58,12 @@ const DashboardContent = ({ users, songs, artists }) => {
         </div>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h3 className="text-lg font-semibold text-gray-700 mb-4">Biểu đồ lượt nghe hàng tháng (Tháng)</h3>
+        {/* <div className="bg-white p-6 rounded-lg shadow-md">
+          <h3 className="text-lg font-semibold text-gray-700 mb-4">Biểu đồ lượt nghe hàng ngày (Ngày)</h3>
           <div className="h-64 bg-gray-200 rounded flex items-center justify-center text-gray-500">
-            [ Biểu đồ sẽ được thêm vào đây ]
+            [ Biểu đồ sẽ được thêm vào đây * ]
           </div>
-        </div>
+        </div> */}
         <div className="bg-white p-6 rounded-lg shadow-md">
           <h3 className="text-lg font-semibold text-gray-700 mb-4">Top 5 Bài hát được nghe nhiều nhất</h3>
           {topSongs.length > 0 ? (
@@ -458,7 +458,7 @@ function AdminDashboard() {
     <div className="flex h-screen bg-gray-100">
       <aside className="w-64 bg-white shadow-md flex-shrink-0">
         <div className="p-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">Admin Panel</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-6">𝙉𝙜𝙝𝙚 &amp; 𝙆𝙝𝙚𝙣</h2>
           <nav>
             <ul className="space-y-2">
               {['dashboard', 'users', 'songs', 'artists'].map((tab) => (
