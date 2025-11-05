@@ -4,8 +4,20 @@ import api from "../../api/api";
 import SongForm from "../../components/forms/SongForm";
 import UserDetailsModal from "../../components/modals/UserDetailsModal";
 import ArtistForm from "../../components/forms/ArtistForm";
+// 👉 THÊM MỚI: Import các component từ Recharts
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  Cell,
+} from "recharts";
 
-const DashboardContent = ({ users, songs, artists }) =>  {
+const DashboardContent = ({ users, songs, artists }) => {
   // Tính toán top 5 bài hát
   const topSongs = useMemo(() => {
     // Sắp xếp songs (bản sao) giảm dần theo listen_count và lấy 5 bài đầu
@@ -14,53 +26,79 @@ const DashboardContent = ({ users, songs, artists }) =>  {
       .slice(0, 5);
   }, [songs]);
 
-  return(
-  <div>
-    <header className="mb-8">
-      <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
-      <p className="text-gray-600">Tổng quan</p>
-    </header>
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <h3 className="text-lg font-semibold text-gray-700 mb-2">Tổng Người Dùng</h3>
-        <p className="text-3xl font-bold text-blue-600">{users.length}</p>
-      </div>
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <h3 className="text-lg font-semibold text-gray-700 mb-2">Tổng Bài Hát</h3>
-        <p className="text-3xl font-bold text-green-600">{songs.length}</p>
-      </div>
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <h3 className="text-lg font-semibold text-gray-700 mb-2">Tổng Nghệ Sĩ</h3>
-        <p className="text-3xl font-bold text-purple-600">{artists.length}</p>
-      </div>
-    </div>
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <h3 className="text-lg font-semibold text-gray-700 mb-4">Biểu đồ lượt nghe hàng tháng (Tháng)</h3>
-        <div className="h-64 bg-gray-200 rounded flex items-center justify-center text-gray-500">
-          [ Biểu đồ sẽ được thêm vào đây ]
+  // 👉 THÊM MỚI: Chuẩn bị dữ liệu cho biểu đồ
+  const chartData = useMemo(() => {
+    return topSongs.map((song) => ({
+      name: song.title.length > 20 ? song.title.substring(0, 20) + '...' : song.title,
+      listens: song.listen_count || 0,
+    }));
+  }, [topSongs]);
+
+  // Màu sắc cho các cột trong biểu đồ
+  const colors = ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
+
+  return (
+    <div>
+      <header className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
+        <p className="text-gray-600">Tổng quan</p>
+      </header>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h3 className="text-lg font-semibold text-gray-700 mb-2">Tổng Người Dùng</h3>
+          <p className="text-3xl font-bold text-blue-600">{users.length}</p>
+        </div>
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h3 className="text-lg font-semibold text-gray-700 mb-2">Tổng Bài Hát</h3>
+          <p className="text-3xl font-bold text-green-600">{songs.length}</p>
+        </div>
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h3 className="text-lg font-semibold text-gray-700 mb-2">Tổng Nghệ Sĩ</h3>
+          <p className="text-3xl font-bold text-purple-600">{artists.length}</p>
         </div>
       </div>
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <h3 className="text-lg font-semibold text-gray-700 mb-4">Top 5 Bài hát được nghe nhiều nhất</h3>
-        <div className="h-64 bg-gray-200 rounded flex items-center justify-center text-gray-500">
-          [ Biểu đồ sẽ được thêm vào đây ]
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h3 className="text-lg font-semibold text-gray-700 mb-4">Biểu đồ lượt nghe hàng tháng (Tháng)</h3>
+          <div className="h-64 bg-gray-200 rounded flex items-center justify-center text-gray-500">
+            [ Biểu đồ sẽ được thêm vào đây ]
+          </div>
         </div>
         <div className="bg-white p-6 rounded-lg shadow-md">
           <h3 className="text-lg font-semibold text-gray-700 mb-4">Top 5 Bài hát được nghe nhiều nhất</h3>
           {topSongs.length > 0 ? (
-            <ul className="space-y-3 h-64 overflow-y-auto">
-              {topSongs.map((song, index) => (
-                <li key={song.id} className="flex justify-between items-center text-sm">
-                  <span className="font-medium text-gray-800 truncate">
-                    {index + 1}. {song.title}
-                  </span>
-                  <span className="text-gray-500 font-bold">
-                    {(song.listen_count || 0).toLocaleString()} lượt
-                  </span>
-                </li>
-              ))}
-            </ul>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart
+                data={chartData}
+                margin={{
+                  top: 20,
+                  right: 30,
+                  left: 20,
+                  bottom: 60, // Tăng bottom margin để tên bài hát không bị cắt
+                }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  dataKey="name" 
+                  angle={-45} // Xoay nhãn trục X 45 độ
+                  textAnchor="end" // Căn chỉnh vị trí nhãn
+                  height={100} // Tăng chiều cao cho vùng nhãn
+                />
+                <YAxis />
+                <Tooltip 
+                  formatter={(value) => `${value.toLocaleString()} lượt`}
+                  contentStyle={{ backgroundColor: '#1f2937', border: 'none', borderRadius: '8px' }}
+                  labelStyle={{ color: '#f3f4f6' }}
+                />
+                <Bar dataKey="listens" name="Lượt nghe">
+                  {chartData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
+                  ))}
+                </Bar>
+                
+              </BarChart>
+            </ResponsiveContainer>
+            
           ) : (
             <div className="h-64 rounded flex items-center justify-center text-gray-500">
               Chưa có dữ liệu lượt nghe.
@@ -69,10 +107,10 @@ const DashboardContent = ({ users, songs, artists }) =>  {
         </div>
       </div>
     </div>
-  </div>
-);
-}
+  );
+};
 
+// ... (Phần còn lại của file UserManagementContent, SongManagementContent, v.v. giữ nguyên)
 const UserManagementContent = ({ users, handleViewUserClick, deleteUser }) => (
   <section className="bg-white rounded-lg shadow-md overflow-hidden">
     <header className="px-6 py-4 border-b border-gray-200">
@@ -229,13 +267,12 @@ function AdminDashboard() {
   const [showArtistForm, setShowArtistForm] = useState(false);
   const [editingArtist, setEditingArtist] = useState(null);
 
-  // 👉 SỬA LỖI: Thêm "lá chắn" bảo vệ cho các hàm fetch
   const fetchUsers = useCallback(() => {
     api.get("/api/users")
       .then((res) => setUsers(res.data || []))
       .catch((err) => {
         console.error(err);
-        setUsers([]); // Đặt về mảng rỗng khi có lỗi
+        setUsers([]);
       });
   }, []);
 
@@ -244,7 +281,7 @@ function AdminDashboard() {
       .then((res) => setSongs(res.data || []))
       .catch((err) => {
         console.error(err);
-        setSongs([]); // Đặt về mảng rỗng khi có lỗi
+        setSongs([]);
       });
   }, []);
 
@@ -253,7 +290,7 @@ function AdminDashboard() {
       .then((res) => setArtists(res.data || []))
       .catch((err) => {
         console.error(err);
-        setArtists([]); // Đặt về mảng rỗng khi có lỗi
+        setArtists([]);
       });
   }, []);
 
@@ -263,9 +300,7 @@ function AdminDashboard() {
     fetchArtists();
   }, [fetchUsers, fetchSongs, fetchArtists]);
 
-  // Logic cho Songs
   const filteredSongs = useMemo(() => {
-    // Nếu songs không phải là mảng, trả về mảng rỗng để tránh lỗi
     if (!Array.isArray(songs)) return [];
     if (!searchQuery) return songs;
     
@@ -275,7 +310,6 @@ function AdminDashboard() {
       const artistMatch =
         song.artists &&
         song.artists.some((artist) =>
-          // 👉 SỬA LỖI: Thêm optional chaining để tránh lỗi nếu artist.name là undefined
           artist.name?.toLowerCase().includes(lowercasedQuery)
         );
       return titleMatch || artistMatch;
@@ -304,7 +338,6 @@ function AdminDashboard() {
     }
   };
 
-  // Logic cho User
   const handleViewUserClick = (user) => {
     setSelectedUser(user);
     setShowUserDetails(true);
@@ -325,7 +358,6 @@ function AdminDashboard() {
     }
   };
 
-  // Logic cho Song
   const handleAddSongClick = () => {
     setEditingSong(null);
     setShowSongForm(true);
@@ -361,7 +393,6 @@ function AdminDashboard() {
     setEditingSong(null);
   };
 
-  //Logic cho artist
   const handleAddArtistClick = () => {
     setEditingArtist(null);
     setShowArtistForm(true);
@@ -436,7 +467,7 @@ function AdminDashboard() {
                     onClick={() => handleTabChange(tab)}
                     className={`w-full text-left px-4 py-3 rounded-lg font-medium transition-colors ${
                       activeTab === tab
-                        ? 'bg-gray-800 text-white'
+                        ? 'bg-gray-600 text-white'
                         : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                     }`}
                   >
