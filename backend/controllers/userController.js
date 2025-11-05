@@ -236,7 +236,7 @@ export const getListenHistory = (req, res) => {
 
   const sql = `
     SELECT
-      s.id, s.title, s.album, s.genre, s.release_year, s.file_url, s.image_url, s.lyrics_url, s.created_at,
+      s.id, s.title, s.album, s.genre, s.release_year, s.file_url, s.image_url, s.lyrics_url, s.created_at, s.listen_count,
       uh.last_listened,
       JSON_ARRAYAGG(
         JSON_OBJECT('id', a.id, 'name', a.name)
