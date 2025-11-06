@@ -170,7 +170,7 @@ function HomePage() {
       {/* MAIN CONTENT */}
       <div className="flex-1 overflow-y-auto flex flex-col">
         {/* BANNER */}
-        <div className="relative h-64 md:h-80 lg:h-96 flex-shrink-0">
+        <div className="relative h-64 md:h-80 lg:h-76 flex-shrink-0">
           <img
             src={bannerImg}
             alt="Music Banner"

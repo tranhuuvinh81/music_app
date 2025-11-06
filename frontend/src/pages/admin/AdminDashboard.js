@@ -103,18 +103,18 @@ const DashboardContent = ({ users, songs, artists, dailyListens }) => {
                 <Tooltip
                   formatter={(value) => `${value.toLocaleString()} lượt`}
                   contentStyle={{
-                    backgroundColor: "#1f2937",
+                    backgroundColor: "#353f4cff",
                     border: "none",
                     borderRadius: "8px",
                   }}
-                  labelStyle={{ color: "#f3f4f6" }}
+                  labelStyle={{ color: "#a07ef0ff" }}
                 />
                 <Line
                   type="monotone"
                   dataKey="count"
-                  stroke="#8b5cf6"
+                  stroke="#a07ef0ff"
                   strokeWidth={2}
-                  dot={{ fill: "#8b5cf6", r: 4 }}
+                  dot={{ fill: "#a07ef0ff", r: 4 }}
                   activeDot={{ r: 6 }}
                 />
               </LineChart>
@@ -151,11 +151,11 @@ const DashboardContent = ({ users, songs, artists, dailyListens }) => {
                 <Tooltip
                   formatter={(value) => `${value.toLocaleString()} lượt`}
                   contentStyle={{
-                    backgroundColor: "#1f2937",
+                    backgroundColor: "#6d86a7ff",
                     border: "none",
                     borderRadius: "8px",
                   }}
-                  labelStyle={{ color: "#f3f4f6" }}
+                  // labelStyle={{ color: "#f3f4f6" }}
                 />
                 <Bar dataKey="listens" name="Lượt nghe">
                   {chartData.map((entry, index) => (
