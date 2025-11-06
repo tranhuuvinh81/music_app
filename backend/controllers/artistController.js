@@ -2,11 +2,39 @@ import db from "../config/db.js";
 
 // Lấy tất cả nghệ sĩ (cho Card list)
 export const getAllArtists = (req, res) => {
-  // Lấy tất cả thông tin để dùng cho cả Card và Modal
-  const query = "SELECT * FROM artists ORDER BY name";
+  // Query này sẽ:
+  // 1. Lấy tất cả nghệ sĩ.
+  // 2. LEFT JOIN với các bài hát của họ (để giữ cả nghệ sĩ 0 bài hát).
+  // 3. SUM(listen_count) của các bài hát đó.
+  // 4. COALESCE để đổi NULL (nghệ sĩ 0 bài hát) thành 0.
+  const query = `
+    SELECT 
+      a.id, 
+      a.name, 
+      a.image_url, 
+      a.birth_year, 
+      a.field, 
+      a.description, 
+      a.created_at,
+      COALESCE(SUM(s.listen_count), 0) AS total_listens
+    FROM 
+      artists a
+    LEFT JOIN 
+      song_artists sa ON a.id = sa.artist_id
+    LEFT JOIN 
+      songs s ON sa.song_id = s.id
+    GROUP BY 
+      a.id, a.name, a.image_url, a.birth_year, a.field, a.description, a.created_at
+    ORDER BY 
+      a.name;
+  `;
+  
   db.query(query, (err, results) => {
-    if (err)
-      return res.status(500).json({ error: "Lỗi khi lấy danh sách nghệ sĩ" });
+    if (err) {
+      console.error("Lỗi khi lấy danh sách nghệ sĩ:", err);
+      return res.status(500).json({ error: "Lỗi khi lấy danh sách nghệ sĩ", details: err.message });
+    }
+    // Kết quả trả về sẽ là mảng artists, mỗi object có thêm 'total_listens'
     res.json(results);
   });
 };

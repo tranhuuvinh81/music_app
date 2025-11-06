@@ -35,7 +35,13 @@ const processChartData = (apiData = []) => {
   return finalData;
 };
 
-const DashboardContent = ({ users, songs, artists, dailyListens, artistListens }) => {
+const DashboardContent = ({
+  users,
+  songs,
+  artists,
+  dailyListens,
+  artistListens,
+}) => {
   const topSongs = useMemo(() => {
     return [...songs]
       .sort((a, b) => (b.listen_count || 0) - (a.listen_count || 0))
@@ -80,7 +86,7 @@ const DashboardContent = ({ users, songs, artists, dailyListens, artistListens }
           <p className="text-3xl font-bold text-purple-600">{artists.length}</p>
         </div>
       </div>
-      
+
       <div className="space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-white p-6 rounded-lg shadow-md">
@@ -148,7 +154,7 @@ const DashboardContent = ({ users, songs, artists, dailyListens, artistListens }
                       border: "none",
                       borderRadius: "8px",
                     }}
-                    labelStyle={{color:'#f3f4f6'}}
+                    labelStyle={{ color: "#f3f4f6" }}
                   />
                   <Bar dataKey="listens" name="Lượt nghe">
                     {chartData.map((entry, index) => (
@@ -180,22 +186,26 @@ const DashboardContent = ({ users, songs, artists, dailyListens, artistListens }
                   top: 20,
                   right: 30,
                   left: 20,
-                  bottom: 80, 
+                  bottom: 80,
                 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="name" 
-                  angle={-45} 
-                  textAnchor="end" 
+                <XAxis
+                  dataKey="name"
+                  angle={-45}
+                  textAnchor="end"
                   height={100}
                   interval={0} // Đảm bảo tất cả nhãn đều được hiển thị
                 />
                 <YAxis />
-                <Tooltip 
+                <Tooltip
                   formatter={(value) => `${value.toLocaleString()} lượt`}
-                  contentStyle={{ backgroundColor: '#1f2937', border: 'none', borderRadius: '8px' }}
-                  labelStyle={{ color: '#f3f4f6' }}
+                  contentStyle={{
+                    backgroundColor: "#1f2937",
+                    border: "none",
+                    borderRadius: "8px",
+                  }}
+                  labelStyle={{ color: "#f3f4f6" }}
                 />
                 <Bar dataKey="listens" name="Lượt nghe" fill="#3b82f6" />
               </BarChart>
@@ -302,7 +312,7 @@ const SongManagementContent = ({
         </h2>
         <input
           type="text"
-          placeholder="Tìm theo tên, nghệ sĩ..."
+          placeholder="Tìm theo tên bài hát, nghệ sĩ..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="px-3 py-2 w-64 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400"
@@ -403,16 +413,32 @@ const SongManagementContent = ({
     )}
   </section>
 );
-
 const ArtistManagementContent = ({
-  artists,
+  artists, // 👈 Sẽ đổi thành currentArtists
   handleAddArtistClick,
   handleEditArtistClick,
   deleteArtist,
+  // 👇 THÊM PROPS MỚI
+  artistSearchQuery,
+  setArtistSearchQuery,
+  currentArtists,
+  artistTotalPages,
+  artistPaginate,
+  artistCurrentPage,
 }) => (
   <section className="bg-white rounded-lg shadow-md overflow-hidden">
     <header className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-      <h2 className="text-xl font-semibold text-gray-800">Artist Management</h2>
+      <div className="flex items-center gap-4">
+        <h2 className="text-xl font-semibold text-gray-800">Artist Management</h2>
+        <input
+          type="text"
+          placeholder="Tìm theo tên nghệ sĩ..."
+          value={artistSearchQuery}
+          onChange={(e) => setArtistSearchQuery(e.target.value)}
+          className="px-3 py-2 w-64 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400"
+        />
+      </div>
+
       <button
         className="px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
         onClick={handleAddArtistClick}
@@ -420,6 +446,7 @@ const ArtistManagementContent = ({
         + Add new artist
       </button>
     </header>
+
     <div className="overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
@@ -427,19 +454,27 @@ const ArtistManagementContent = ({
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
               Image
             </th>
+
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
               Name
             </th>
+
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
               Birth Year
             </th>
+
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              Stream
+            </th>
+
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
               Actions
             </th>
           </tr>
         </thead>
+
         <tbody className="bg-white divide-y divide-gray-200">
-          {artists.map((artist) => (
+          {currentArtists.map((artist) => (
             <tr key={artist.id} className="hover:bg-gray-50">
               <td className="px-6 py-4">
                 <img
@@ -452,12 +487,19 @@ const ArtistManagementContent = ({
                   className="w-10 h-10 object-cover rounded-full"
                 />
               </td>
+
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                 {artist.name}
               </td>
+
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {artist.birth_year || "N/A"}
               </td>
+
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {(artist.total_listens || 0).toLocaleString()}
+              </td>
+
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <button
                   className="text-gray-600 hover:text-gray-900 mr-3"
@@ -465,6 +507,7 @@ const ArtistManagementContent = ({
                 >
                   Edit
                 </button>
+
                 <button
                   className="text-red-600 hover:text-red-900"
                   onClick={() => deleteArtist(artist.id)}
@@ -486,12 +529,16 @@ function AdminDashboard() {
   const [artists, setArtists] = useState([]);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [dailyListens, setDailyListens] = useState([]);
-  // 👉 THÊM MỚI: State cho dữ liệu lượt nghe theo nghệ sĩ
   const [artistListens, setArtistListens] = useState([]);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [songsPerPage] = useState(10);
   const [searchQuery, setSearchQuery] = useState("");
+
+  // --- 👇 THÊM STATE CHO ARTISTS ---
+  const [artistCurrentPage, setArtistCurrentPage] = useState(1);
+  const [artistsPerPage] = useState(10); // Có thể đặt số lượng khác nếu muốn
+  const [artistSearchQuery, setArtistSearchQuery] = useState("");
 
   const [showSongForm, setShowSongForm] = useState(false);
   const [editingSong, setEditingSong] = useState(null);
@@ -543,13 +590,13 @@ function AdminDashboard() {
       });
   }, []);
 
-  const fetchArtistListens = useCallback(() => {
-    api.get("/api/stats/top-artists")
+  const fetchArtistListens = useCallback(() => {
+    api
+      .get("/api/stats/top-artists")
       .then((res) => {
-
-        const chartData = (res.data || []).map(artist => ({
+        const chartData = (res.data || []).map((artist) => ({
           name: artist.name,
-          listens: artist.total_listens || 0
+          listens: artist.total_listens || 0,
         }));
         setArtistListens(chartData);
       })
@@ -557,7 +604,7 @@ function AdminDashboard() {
         console.error("Lỗi khi tải top nghệ sĩ:", err);
         setArtistListens([]); // Đặt mảng rỗng nếu có lỗi
       });
-  }, []);
+  }, []);
 
   useEffect(() => {
     fetchUsers();
@@ -601,6 +648,25 @@ function AdminDashboard() {
       setCurrentPage(1);
     }
   }, [filteredSongs, totalPages, currentPage]);
+
+  // --- 👇 THÊM LOGIC LỌC VÀ PHÂN TRANG CHO ARTISTS ---
+  const filteredArtists = useMemo(() => {
+    if (!Array.isArray(artists)) return [];
+    if (!artistSearchQuery) return artists;
+
+    const lowercasedQuery = artistSearchQuery.toLowerCase();
+    return artists.filter((artist) =>
+      artist.name?.toLowerCase().includes(lowercasedQuery)
+    );
+  }, [artists, artistSearchQuery]);
+
+  const currentArtists = useMemo(() => {
+    const indexOfLastArtist = artistCurrentPage * artistsPerPage;
+    const indexOfFirstArtist = indexOfLastArtist - artistsPerPage;
+    return filteredArtists.slice(indexOfFirstArtist, indexOfLastArtist);
+  }, [filteredArtists, artistCurrentPage, artistsPerPage]);
+
+  const artistTotalPages = Math.ceil(filteredArtists.length / artistsPerPage);
 
   const paginate = (pageNumber) => {
     if (pageNumber > 0 && pageNumber <= totalPages) {
@@ -674,14 +740,16 @@ function AdminDashboard() {
   };
 
   const deleteArtist = (artistId) => {
-    if (
-      window.confirm(
-        "Bạn có chắc chắn muốn xoá nghệ sĩ này? Thao tác này có thể ảnh hưởng đến bài hát liên quan."
-      )
-    ) {
+    if (window.confirm("Bạn có chắc chắn muốn xoá nghệ sĩ này?")) {
       api
         .delete(`/api/artists/${artistId}`)
-        .then(fetchArtists)
+        .then(() => {
+          fetchArtists(); // Tải lại danh sách nghệ sĩ
+          // 👇 Cập nhật logic phân trang
+          if (currentArtists.length === 1 && artistCurrentPage > 1) {
+            setArtistCurrentPage(artistCurrentPage - 1);
+          }
+        })
         .catch(console.error);
     }
   };
@@ -717,7 +785,6 @@ function AdminDashboard() {
             songs={songs}
             artists={artists}
             dailyListens={dailyListens}
-            // 👉 THÊM MỚI: Truyền prop artistListens
             artistListens={artistListens}
           />
         );
@@ -735,7 +802,9 @@ function AdminDashboard() {
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
             currentSongs={currentSongs}
+            // Sửa 'totalPages={songTotalPages}' thành 'totalPages={totalPages}'
             totalPages={totalPages}
+            // Sửa 'paginate={songPaginate}' thành 'paginate={paginate}'
             paginate={paginate}
             currentPage={currentPage}
             handleAddSongClick={handleAddSongClick}
@@ -747,7 +816,13 @@ function AdminDashboard() {
       case "artists":
         return (
           <ArtistManagementContent
-            artists={artists}
+            artistSearchQuery={artistSearchQuery}
+            setArtistSearchQuery={setArtistSearchQuery}
+            currentArtists={currentArtists}
+            artistTotalPages={artistTotalPages}
+            // artistPaginate={artistPaginate}
+            artistCurrentPage={artistCurrentPage}
+            artists={artists} // Prop này có thể không cần nữa nếu currentArtists thay thế
             handleAddArtistClick={handleAddArtistClick}
             handleEditArtistClick={handleEditArtistClick}
             deleteArtist={deleteArtist}

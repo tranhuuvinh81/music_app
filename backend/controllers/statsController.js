@@ -60,7 +60,7 @@ export const getTopArtistStats = (req, res) => {
         a.id, a.name -- Nhóm theo cả id và tên
       ORDER BY 
         total_listens DESC
-      LIMIT 5; -- Lấy top 5
+      LIMIT 10; -- Lấy top 5
     `;
 
     db.query(query, (err, results) => {
