@@ -11,7 +11,6 @@ const fetchGeminiSuggestionsFromApi = async (userPrompt) => {
   
   const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
 
-  // 👇 THAY ĐỔI SYSTEM PROMPT
   const systemPrompt = `
     Bạn là một trợ lý gợi ý nhạc. 
     Nhiệm vụ của bạn là nhận một yêu cầu (prompt) từ người dùng và trả về 3-5 từ khóa tìm kiếm (keywords) hoặc thể loại (genres) liên quan.
@@ -31,7 +30,6 @@ const fetchGeminiSuggestionsFromApi = async (userPrompt) => {
     Prompt: "nhạc Sơn Tùng M-TP"
     Trả lời: "Nơi này có anh, Hãy trao cho anh, Chạy ngay đi, Pop, V-Pop"
   `;
-  // 👆 KẾT THÚC THAY ĐỔI
 
   const payload = {
     contents: [{
@@ -50,7 +48,6 @@ const fetchGeminiSuggestionsFromApi = async (userPrompt) => {
     });
 
     if (!response.ok) {
-      // Dòng này (42) đang ném lỗi 403
       throw new Error(`API call failed with status: ${response.status}`);
     }
 
@@ -68,7 +65,6 @@ const fetchGeminiSuggestionsFromApi = async (userPrompt) => {
   }
 };
 
-// Controller để frontend gọi (giữ nguyên)
 export const getChatbotSuggestion = async (req, res) => {
   const { prompt } = req.body;
   if (!prompt) {
@@ -77,7 +73,6 @@ export const getChatbotSuggestion = async (req, res) => {
 
   try {
     const suggestionText = await fetchGeminiSuggestionsFromApi(prompt);
-    // Trả về text thô cho frontend
     res.json({ text: suggestionText }); 
   } catch (error) {
     res.status(500).json({ error: error.message });

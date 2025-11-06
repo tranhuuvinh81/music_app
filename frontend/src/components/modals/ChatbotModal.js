@@ -19,7 +19,7 @@ const fetchGeminiSuggestions = async (userPrompt) => {
       throw new Error("Phản hồi từ server không hợp lệ.");
     }
     
-    // Trả về text mà server của bạn đã lấy từ Gemini
+    // Trả về text mà server đã lấy từ Gemini
     return response.data.text; 
 
   } catch (error) {
@@ -27,7 +27,6 @@ const fetchGeminiSuggestions = async (userPrompt) => {
     return "Xin lỗi, tôi đang gặp sự cố. Vui lòng thử lại sau.";
   }
 };
-// --- Kết thúc hàm ---
 
 
 function ChatbotModal({ onClose }) {
@@ -35,7 +34,7 @@ function ChatbotModal({ onClose }) {
     {
       sender: 'bot',
       type: 'text',
-      text: 'Chào bạn! Bạn muốn nghe nhạc theo chủ đề gì hôm nay?'
+      text: 'Chào bạn! Bạn muốn nghe nhạc theo chủ đề gì hôm nay? Hãy nhập gợi ý của bạn và mình sẽ đưa ra các từ khoá và gửi bài hát phù hợp nhé!'
     }
   ]);
   const [input, setInput] = useState('');
@@ -48,7 +47,6 @@ function ChatbotModal({ onClose }) {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
- // 👇 BẮT ĐẦU SỬA: CẬP NHẬT LOGIC handleSend
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
 
@@ -121,7 +119,6 @@ function ChatbotModal({ onClose }) {
     
     setIsLoading(false);
   };
-  // 👆 KẾT THÚC SỬA
   // Hàm helper để hiển thị tên nghệ sĩ
   const displayArtistNames = (artistsArray) => {
     if (!artistsArray || artistsArray.length === 0) {
