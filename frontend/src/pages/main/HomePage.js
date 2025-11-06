@@ -214,13 +214,24 @@ function HomePage() {
                         />
                       )}
                       <div className="min-w-0">
-                        <strong className="block text-gray-900 truncate">{song.title}</strong>
-                        <p className="text-gray-600 truncate">{displayArtistNames(song.artists)}</p>
-                        
-                        {/* 👇 3. THAY THẾ SVG BẰNG IMG TAG */}
+                        <strong className="block text-gray-900 truncate">
+                          {song.title}
+                        </strong>
+                        <p className="text-gray-600 truncate">
+                          {displayArtistNames(song.artists)}
+                        </p>
+
                         <div className="flex items-center text-xs text-gray-500 mt-1">
-                          <img src={listenIcon} alt="Lượt nghe" className="w-4 h-4" />
-                          <span className="ml-1">{song.listen_count ? song.listen_count.toLocaleString() : 0}</span>
+                          <img
+                            src={listenIcon}
+                            alt="Lượt nghe"
+                            className="w-4 h-4"
+                          />
+                          <span className="ml-1">
+                            {song.listen_count
+                              ? song.listen_count.toLocaleString()
+                              : 0}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -349,15 +360,26 @@ function HomePage() {
                             />
                           )}
                           <div className="min-w-0">
-                        <strong className="block text-gray-900 truncate">{song.title}</strong>
-                        <p className="text-gray-600 truncate">{displayArtistNames(song.artists)}</p>
-                        
-                        {/* 👇 3. THAY THẾ SVG BẰNG IMG TAG */}
-                        <div className="flex items-center text-xs text-gray-500 mt-1">
-                          <img src={listenIcon} alt="Lượt nghe" className="w-4 h-4" />
-                          <span className="ml-1">{song.listen_count ? song.listen_count.toLocaleString() : 0}</span>
-                        </div>
-                      </div>
+                            <strong className="block text-gray-900 truncate">
+                              {song.title}
+                            </strong>
+                            <p className="text-gray-600 truncate">
+                              {displayArtistNames(song.artists)}
+                            </p>
+
+                            <div className="flex items-center text-xs text-gray-500 mt-1">
+                              <img
+                                src={listenIcon}
+                                alt="Lượt nghe"
+                                className="w-4 h-4"
+                              />
+                              <span className="ml-1">
+                                {song.listen_count
+                                  ? song.listen_count.toLocaleString()
+                                  : 0}
+                              </span>
+                            </div>
+                          </div>
                         </div>
                         <div className="flex items-center space-x-2">
                           <button
@@ -455,15 +477,26 @@ function HomePage() {
                             />
                           )}
                           <div className="min-w-0">
-                        <strong className="block text-gray-900 truncate">{song.title}</strong>
-                        <p className="text-gray-600 truncate">{displayArtistNames(song.artists)}</p>
-                        
-                        {/* 👇 3. THAY THẾ SVG BẰNG IMG TAG */}
-                        <div className="flex items-center text-xs text-gray-500 mt-1">
-                          <img src={listenIcon} alt="Lượt nghe" className="w-4 h-4" />
-                          <span className="ml-1">{song.listen_count ? song.listen_count.toLocaleString() : 0}</span>
-                        </div>
-                      </div>
+                            <strong className="block text-gray-900 truncate">
+                              {song.title}
+                            </strong>
+                            <p className="text-gray-600 truncate">
+                              {displayArtistNames(song.artists)}
+                            </p>
+
+                            <div className="flex items-center text-xs text-gray-500 mt-1">
+                              <img
+                                src={listenIcon}
+                                alt="Lượt nghe"
+                                className="w-4 h-4"
+                              />
+                              <span className="ml-1">
+                                {song.listen_count
+                                  ? song.listen_count.toLocaleString()
+                                  : 0}
+                              </span>
+                            </div>
+                          </div>
                         </div>
                         <div className="flex items-center space-x-2">
                           <button

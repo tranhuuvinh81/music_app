@@ -10,6 +10,7 @@ import artistRoutes from "./routes/artistRoutes.js";
 import searchRoutes from "./routes/searchRoutes.js";
 import path from "path";
 import { fileURLToPath } from "url";
+import statsRoutes from "./routes/statsRoutes.js";
 
 // Cần thiết cho __dirname trong ES Modules
 const __filename = fileURLToPath(import.meta.url);
@@ -31,14 +32,15 @@ app.use("/api/songs", songRoutes);
 app.use("/api/playlists", playlistRoutes);
 app.use("/api/artists", artistRoutes);
 app.use('/api/search', searchRoutes);
+app.use("/api/stats", statsRoutes);
 
 // Test route
 app.get("/", (req, res) => {
-  res.send("🎵 Music App Backend đang hoạt động!");
+  res.send("Music App Backend đang hoạt động!");
 });
 
 // Khởi động server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`🚀 Server đang chạy tại http://localhost:${PORT}`);
+  console.log(`Server đang chạy tại http://localhost:${PORT}`);
 });
