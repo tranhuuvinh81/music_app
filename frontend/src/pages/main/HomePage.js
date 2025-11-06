@@ -9,6 +9,7 @@ import ArtistDetailsModal from "../../components/modals/ArtistDetailModal";
 import Footer from "../../components/layout/Footer";
 import bannerImg from "../../assets/images/116d710d1e61b0cc8debc32470695fff.jpg";
 import listenIcon from "../../assets/icon/listen-1.png";
+import ChatbotModal from "../../components/modals/ChatbotModal";
 
 function HomePage() {
   const [displaySongs, setDisplaySongs] = useState([]);
@@ -24,8 +25,8 @@ function HomePage() {
   const [modalSongId, setModalSongId] = useState(null);
   const recentSectionRef = useRef(null);
   const [artistModalData, setArtistModalData] = useState(null);
-
   const [isListExpanded, setIsListExpanded] = useState(false);
+  const [showChatbot, setShowChatbot] = useState(false);
 
   useEffect(() => {
     if (selectedTab === "songs") {
@@ -168,7 +169,7 @@ function HomePage() {
       </div>
 
       {/* MAIN CONTENT */}
-      <div className="flex-1 overflow-y-auto flex flex-col">
+      <div className="flex-1 overflow-y-auto flex flex-col relative">
         {/* BANNER */}
         <div className="relative h-64 md:h-80 lg:h-76 flex-shrink-0">
           <img
@@ -548,6 +549,30 @@ function HomePage() {
         </div>
 
         <Footer />
+
+        {/* NÚT CHATBOT */}
+        <button
+          onClick={() => setShowChatbot(true)}
+          className="fixed bottom-20 right-6 bg-gray-500 text-white p-4 rounded-full shadow-lg hover:bg-gray-700 transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 z-40"
+          title="Hỏi Chatbot"
+          // Căn chỉnh nút bấm bên trái của Right Sidebar (w-80 -> 20rem)
+          style={{ right: "calc(20rem + 1.5rem)" }} // 20rem = w-80, 1.5rem = p-6
+        >
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+            ></path>
+          </svg>
+        </button>
       </div>
 
       {/* RIGHT SIDEBAR */}
@@ -565,6 +590,8 @@ function HomePage() {
           onClose={() => setArtistModalData(null)}
         />
       )}
+
+      {showChatbot && <ChatbotModal onClose={() => setShowChatbot(false)} />}
     </div>
   );
 }

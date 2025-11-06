@@ -7,8 +7,7 @@ import api from "../../api/api";
 
 function Navigation() {
   const { user, fullUser, logout } = useContext(AuthContext);
-  const { searchQuery, setSearchQuery, performSearch } =
-    useContext(SongContext);
+  const { searchQuery, setSearchQuery, performSearch } = useContext(SongContext);
   const navigate = useNavigate();
 
   const handleSearchChange = (e) => {

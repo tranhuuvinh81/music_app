@@ -11,6 +11,7 @@ import searchRoutes from "./routes/searchRoutes.js";
 import path from "path";
 import { fileURLToPath } from "url";
 import statsRoutes from "./routes/statsRoutes.js";
+import chatbotRoutes from "./routes/chatbotRoutes.js";
 
 // Cần thiết cho __dirname trong ES Modules
 const __filename = fileURLToPath(import.meta.url);
@@ -33,6 +34,7 @@ app.use("/api/playlists", playlistRoutes);
 app.use("/api/artists", artistRoutes);
 app.use('/api/search', searchRoutes);
 app.use("/api/stats", statsRoutes);
+app.use("/api/chatbot", chatbotRoutes);
 
 // Test route
 app.get("/", (req, res) => {
