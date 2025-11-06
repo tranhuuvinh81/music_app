@@ -19,21 +19,14 @@ import {
 } from "recharts";
 
 const processChartData = (apiData = []) => {
-  // Tạo một Map để tra cứu nhanh
   const dataMap = new Map(apiData.map((item) => [item.date, item.count]));
   const finalData = [];
-
-  // Lặp 7 ngày từ 6 ngày trước đến hôm nay
   for (let i = 6; i >= 0; i--) {
     const date = new Date();
     date.setDate(date.getDate() - i);
-
-    // Format ngày thành 'dd/mm'
     const day = String(date.getDate()).padStart(2, "0");
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const formattedDate = `${day}/${month}`;
-
-    // Lấy count từ Map, hoặc 0 nếu không có
     finalData.push({
       date: formattedDate,
       count: dataMap.get(formattedDate) || 0,
@@ -42,15 +35,13 @@ const processChartData = (apiData = []) => {
   return finalData;
 };
 
-const DashboardContent = ({ users, songs, artists, dailyListens }) => {
-  // Tính toán top 5 bài hát
+const DashboardContent = ({ users, songs, artists, dailyListens, artistListens }) => {
   const topSongs = useMemo(() => {
     return [...songs]
       .sort((a, b) => (b.listen_count || 0) - (a.listen_count || 0))
       .slice(0, 5);
   }, [songs]);
 
-  // Chuẩn bị dữ liệu cho biểu đồ cột
   const chartData = useMemo(() => {
     return topSongs.map((song) => ({
       name:
@@ -89,87 +80,129 @@ const DashboardContent = ({ users, songs, artists, dailyListens }) => {
           <p className="text-3xl font-bold text-purple-600">{artists.length}</p>
         </div>
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h3 className="text-lg font-semibold text-gray-700 mb-4">
-            Biểu đồ lượt nghe hàng ngày (7 ngày qua)
-          </h3>
-          {dailyListens.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={dailyListens}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip
-                  formatter={(value) => `${value.toLocaleString()} lượt`}
-                  contentStyle={{
-                    backgroundColor: "#353f4cff",
-                    border: "none",
-                    borderRadius: "8px",
+      
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h3 className="text-lg font-semibold text-gray-700 mb-4">
+              Biểu đồ lượt nghe hàng ngày (7 ngày qua)
+            </h3>
+            {dailyListens.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={dailyListens}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis />
+                  <Tooltip
+                    formatter={(value) => `${value.toLocaleString()} lượt`}
+                    contentStyle={{
+                      backgroundColor: "#353f4cff",
+                      border: "none",
+                      borderRadius: "8px",
+                    }}
+                    labelStyle={{ color: "#f3f4f6" }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="count"
+                    stroke="#a07ef0ff"
+                    strokeWidth={2}
+                    dot={{ fill: "#a07ef0ff", r: 4 }}
+                    activeDot={{ r: 6 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-64 rounded flex items-center justify-center text-gray-500">
+                Đang tải dữ liệu...
+              </div>
+            )}
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h3 className="text-lg font-semibold text-gray-700 mb-4">
+              Top 5 Bài hát được nghe nhiều nhất
+            </h3>
+            {topSongs.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart
+                  data={chartData}
+                  margin={{
+                    top: 20,
+                    right: 30,
+                    left: 20,
+                    bottom: 60,
                   }}
-                  labelStyle={{ color: "#a07ef0ff" }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="count"
-                  stroke="#a07ef0ff"
-                  strokeWidth={2}
-                  dot={{ fill: "#a07ef0ff", r: 4 }}
-                  activeDot={{ r: 6 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="h-64 rounded flex items-center justify-center text-gray-500">
-              Đang tải dữ liệu...
-            </div>
-          )}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="name"
+                    angle={-45}
+                    textAnchor="end"
+                    height={100}
+                  />
+                  <YAxis />
+                  <Tooltip
+                    formatter={(value) => `${value.toLocaleString()} lượt`}
+                    contentStyle={{
+                      backgroundColor: "#6d86a7ff",
+                      border: "none",
+                      borderRadius: "8px",
+                    }}
+                    labelStyle={{color:'#f3f4f6'}}
+                  />
+                  <Bar dataKey="listens" name="Lượt nghe">
+                    {chartData.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={colors[index % colors.length]}
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-64 rounded flex items-center justify-center text-gray-500">
+                Chưa có dữ liệu lượt nghe.
+              </div>
+            )}
+          </div>
         </div>
+
         <div className="bg-white p-6 rounded-lg shadow-md">
           <h3 className="text-lg font-semibold text-gray-700 mb-4">
-            Top 5 Bài hát được nghe nhiều nhất
+            Top nghệ sĩ được nghe nhiều nhất
           </h3>
-          {topSongs.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
+          {artistListens.length > 0 ? (
+            <ResponsiveContainer width="100%" height={350}>
               <BarChart
-                data={chartData}
+                data={artistListens}
                 margin={{
                   top: 20,
                   right: 30,
                   left: 20,
-                  bottom: 60,
+                  bottom: 80, 
                 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis
-                  dataKey="name"
-                  angle={-45}
-                  textAnchor="end"
+                <XAxis 
+                  dataKey="name" 
+                  angle={-45} 
+                  textAnchor="end" 
                   height={100}
+                  interval={0} // Đảm bảo tất cả nhãn đều được hiển thị
                 />
                 <YAxis />
-                <Tooltip
+                <Tooltip 
                   formatter={(value) => `${value.toLocaleString()} lượt`}
-                  contentStyle={{
-                    backgroundColor: "#6d86a7ff",
-                    border: "none",
-                    borderRadius: "8px",
-                  }}
-                  // labelStyle={{ color: "#f3f4f6" }}
+                  contentStyle={{ backgroundColor: '#1f2937', border: 'none', borderRadius: '8px' }}
+                  labelStyle={{ color: '#f3f4f6' }}
                 />
-                <Bar dataKey="listens" name="Lượt nghe">
-                  {chartData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={colors[index % colors.length]}
-                    />
-                  ))}
-                </Bar>
+                <Bar dataKey="listens" name="Lượt nghe" fill="#3b82f6" />
               </BarChart>
             </ResponsiveContainer>
           ) : (
             <div className="h-64 rounded flex items-center justify-center text-gray-500">
-              Chưa có dữ liệu lượt nghe.
+              Đang tải dữ liệu nghệ sĩ...
             </div>
           )}
         </div>
@@ -453,6 +486,8 @@ function AdminDashboard() {
   const [artists, setArtists] = useState([]);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [dailyListens, setDailyListens] = useState([]);
+  // 👉 THÊM MỚI: State cho dữ liệu lượt nghe theo nghệ sĩ
+  const [artistListens, setArtistListens] = useState([]);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [songsPerPage] = useState(10);
@@ -499,23 +534,41 @@ function AdminDashboard() {
     api
       .get("/api/stats/daily-listens")
       .then((res) => {
-        // Gọi hàm helper để lấp đầy 7 ngày
         const formattedData = processChartData(res.data || []);
         setDailyListens(formattedData);
       })
       .catch((err) => {
         console.error("Lỗi khi tải thống kê lượt nghe:", err);
-        // khi lỗi, vẫn tạo 7 ngày trống để biểu đồ không bị hỏng
         setDailyListens(processChartData([]));
       });
   }, []);
+
+  const fetchArtistListens = useCallback(() => {
+    api.get("/api/stats/top-artists")
+      .then((res) => {
+
+        const chartData = (res.data || []).map(artist => ({
+          name: artist.name,
+          listens: artist.total_listens || 0
+        }));
+        setArtistListens(chartData);
+      })
+      .catch((err) => {
+        console.error("Lỗi khi tải top nghệ sĩ:", err);
+        setArtistListens([]); // Đặt mảng rỗng nếu có lỗi
+      });
+  }, []);
 
   useEffect(() => {
     fetchUsers();
     fetchSongs();
     fetchArtists();
-    fetchDailyListens(); // 👉 Gọi hàm fetch dữ liệu mới
+    fetchDailyListens();
   }, [fetchUsers, fetchSongs, fetchArtists, fetchDailyListens]);
+
+  useEffect(() => {
+    fetchArtistListens();
+  }, [fetchArtistListens]);
 
   const filteredSongs = useMemo(() => {
     if (!Array.isArray(songs)) return [];
@@ -664,6 +717,8 @@ function AdminDashboard() {
             songs={songs}
             artists={artists}
             dailyListens={dailyListens}
+            // 👉 THÊM MỚI: Truyền prop artistListens
+            artistListens={artistListens}
           />
         );
       case "users":
@@ -705,6 +760,7 @@ function AdminDashboard() {
             songs={songs}
             artists={artists}
             dailyListens={dailyListens}
+            artistListens={artistListens}
           />
         );
     }

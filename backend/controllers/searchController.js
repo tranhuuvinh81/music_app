@@ -45,11 +45,7 @@ export const searchAll = async (req, res) => {
   const searchTerm = `%${q}%`;
 
   try {
-    // Promise tìm kiếm bài hát
     const searchSongsPromise = new Promise((resolve, reject) => {
-      // Query này tìm bài hát dựa trên:
-      // 1. Tiêu đề bài hát (s.title)
-      // 2. Tên nghệ sĩ liên kết (a.name)
       // Dùng DISTINCT để tránh trùng lặp bài hát nếu nhiều nghệ sĩ cùng khớp
       const query = `
         SELECT DISTINCT s.id, s.title, s.album, s.genre, s.release_year, s.file_url, s.image_url, s.lyrics_url, s.created_at
@@ -65,7 +61,7 @@ export const searchAll = async (req, res) => {
       });
     });
 
-    // Promise tìm kiếm nghệ sĩ (giữ nguyên)
+    // Promise tìm kiếm nghệ sĩ
     const searchArtistsPromise = new Promise((resolve, reject) => {
       const query = "SELECT * FROM artists WHERE name LIKE ?";
       db.query(query, [searchTerm], (err, results) => {

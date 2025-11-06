@@ -1,7 +1,7 @@
 // backend/controllers/songController.js
 import db from "../config/db.js";
 
-// Hàm này sẽ lấy danh sách nghệ sĩ đầy đủ cho một danh sách bài hát
+// lấy danh sách nghệ sĩ đầy đủ cho một danh sách bài hát
 const fetchArtistsForSongs = (songs) => {
   return new Promise((resolve, reject) => {
     if (!songs || songs.length === 0) {
@@ -27,8 +27,8 @@ const fetchArtistsForSongs = (songs) => {
             id: link.id,
             name: link.name,
             image_url: link.image_url,
-          })); // Chỉ lấy thông tin cần thiết
-        return { ...song, artists: artists }; // Thêm mảng artists vào object song
+          })); 
+        return { ...song, artists: artists };
       });
       resolve(songsWithArtists);
     });
@@ -37,11 +37,10 @@ const fetchArtistsForSongs = (songs) => {
 
 // Lấy tất cả bài hát (có kèm nghệ sĩ)
 export const getAllSongs = async (req, res) => {
-  // Bỏ cột 'artist' cũ nếu bạn chưa xóa
   const query =
     "SELECT id, title, album, genre, release_year, file_url, image_url, lyrics_url, listen_count, created_at FROM songs ORDER BY created_at DESC";
   db.query(query, async (err, songs) => {
-    // Thêm async ở đây
+    // Thêm async
     if (err) return res.status(500).json({ error: "Lỗi khi truy vấn bài hát" });
     try {
       // Lấy thêm thông tin nghệ sĩ cho các bài hát này
@@ -192,7 +191,7 @@ export const updateSong = async (req, res) => {
   }
 
   try {
-    // Lấy thông tin file cũ
+
     const getOldSongQuery =
       "SELECT file_url, image_url, lyrics_url FROM songs WHERE id = ?";
     db.query(getOldSongQuery, [songId], (err, results) => {
@@ -203,7 +202,6 @@ export const updateSong = async (req, res) => {
 
       let { file_url, image_url, lyrics_url } = results[0];
 
-      // Cập nhật file urls nếu có file mới
       if (req.files) {
         if (req.files.songFile)
           file_url = `/uploads/songs/${req.files.songFile[0].filename}`;
@@ -213,7 +211,6 @@ export const updateSong = async (req, res) => {
           lyrics_url = `/uploads/lyrics/${req.files.lyricFile[0].filename}`;
       }
 
-      // 1. Cập nhật bảng songs (không còn cột artist)
       const updateSongQuery = `UPDATE songs SET title=?, album=?, genre=?, release_year=?, file_url=?, image_url=?, lyrics_url=? WHERE id=?`;
       db.query(
         updateSongQuery,
@@ -233,8 +230,6 @@ export const updateSong = async (req, res) => {
               error: "Lỗi khi cập nhật bài hát",
               details: updateErr.message,
             });
-
-          // 2. Xóa liên kết nghệ sĩ cũ
           const deleteLinksQuery = "DELETE FROM song_artists WHERE song_id = ?";
           db.query(deleteLinksQuery, [songId], (deleteErr) => {
             if (deleteErr)
@@ -243,7 +238,6 @@ export const updateSong = async (req, res) => {
                 details: deleteErr.message,
               });
 
-            // 3. Thêm liên kết nghệ sĩ mới
             const newArtistLinks = parsedArtistIds.map((artistId) => [
               songId,
               artistId,
@@ -305,7 +299,7 @@ export const getSongsByArtist = (req, res) => {
   const { artistName } = req.params; // Nhận tên nghệ sĩ
   const decodedArtistName = decodeURIComponent(artistName);
 
-  // 1. Tìm artist_id từ tên
+  // Tìm artist_id từ tên
   const findArtistIdQuery = "SELECT id FROM artists WHERE name = ?";
   db.query(findArtistIdQuery, [decodedArtistName], (err, artistResults) => {
     if (err) return res.status(500).json({ error: "Lỗi tìm ID nghệ sĩ" });
@@ -314,7 +308,7 @@ export const getSongsByArtist = (req, res) => {
     }
     const artistId = artistResults[0].id;
 
-    // 2. Tìm song_id từ artist_id trong bảng trung gian
+    // Tìm song_id từ artist_id trong bảng trung gian
     const findSongIdsQuery =
       "SELECT song_id FROM song_artists WHERE artist_id = ?";
     db.query(findSongIdsQuery, [artistId], (err, songLinks) => {
@@ -325,7 +319,7 @@ export const getSongsByArtist = (req, res) => {
       }
       const songIds = songLinks.map((link) => link.song_id);
 
-      // 3. Lấy thông tin bài hát từ song_id
+      // lấy thông tin bài hát từ song_id
       const getSongsQuery =
         "SELECT id, title, album, genre, release_year, file_url, image_url, lyrics_url, listen_count, created_at FROM songs WHERE id IN (?) ORDER BY title";
       db.query(getSongsQuery, [songIds], async (err, songs) => {
