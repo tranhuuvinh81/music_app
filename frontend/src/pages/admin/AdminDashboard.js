@@ -1,5 +1,5 @@
 // frontend/src/pages/admin/AdminDashboard.js
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, use } from "react";
 import api from "../../api/api";
 import SongForm from "../../components/forms/SongForm";
 import UserDetailsModal from "../../components/modals/UserDetailsModal";
@@ -414,22 +414,24 @@ const SongManagementContent = ({
   </section>
 );
 const ArtistManagementContent = ({
-  artists, // 👈 Sẽ đổi thành currentArtists
+  artists,
   handleAddArtistClick,
   handleEditArtistClick,
   deleteArtist,
-  // 👇 THÊM PROPS MỚI
+
   artistSearchQuery,
   setArtistSearchQuery,
   currentArtists,
   artistTotalPages,
-  artistPaginate,
+  paginateArtists,
   artistCurrentPage,
 }) => (
   <section className="bg-white rounded-lg shadow-md overflow-hidden">
     <header className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
       <div className="flex items-center gap-4">
-        <h2 className="text-xl font-semibold text-gray-800">Artist Management</h2>
+        <h2 className="text-xl font-semibold text-gray-800">
+          Artist Management
+        </h2>
         <input
           type="text"
           placeholder="Tìm theo tên nghệ sĩ..."
@@ -446,7 +448,6 @@ const ArtistManagementContent = ({
         + Add new artist
       </button>
     </header>
-
     <div className="overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
@@ -520,6 +521,40 @@ const ArtistManagementContent = ({
         </tbody>
       </table>
     </div>
+    {artistTotalPages > 1 && (
+      <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-center space-x-2">
+        <button
+          onClick={() => paginateArtists(artistCurrentPage - 1)}
+          disabled={artistCurrentPage === 1}
+          className="px-3 py-1 text-sm font-medium text-gray-600 bg-white rounded-md border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Trước
+        </button>
+        {Array.from({ length: artistTotalPages }, (_, i) => i + 1).map(
+          (number) => (
+            <button
+              key={number}
+              onClick={() => paginateArtists(number)}
+              className={`px-3 py-1 text-sm font-medium rounded-md border ${
+                artistCurrentPage === number
+                  ? "bg-gray-600 text-white border-gray-600"
+                  : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"
+              }`}
+            >
+              {number}
+            </button>
+          )
+        )}
+        <button
+          onClick={() => paginateArtists(artistCurrentPage + 1)}
+          disabled={artistCurrentPage === artistTotalPages}
+          className="px-3 py-1 text-sm font-medium text-gray-600 bg-white rounded-md border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Sau
+        </button>
+      </div>
+    )}
+     {" "}
   </section>
 );
 
@@ -535,9 +570,8 @@ function AdminDashboard() {
   const [songsPerPage] = useState(10);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // --- 👇 THÊM STATE CHO ARTISTS ---
   const [artistCurrentPage, setArtistCurrentPage] = useState(1);
-  const [artistsPerPage] = useState(10); // Có thể đặt số lượng khác nếu muốn
+  const [artistsPerPage] = useState(5); // Có thể đặt số lượng khác nếu muốn
   const [artistSearchQuery, setArtistSearchQuery] = useState("");
 
   const [showSongForm, setShowSongForm] = useState(false);
@@ -649,24 +683,40 @@ function AdminDashboard() {
     }
   }, [filteredSongs, totalPages, currentPage]);
 
-  // --- 👇 THÊM LOGIC LỌC VÀ PHÂN TRANG CHO ARTISTS ---
+  // --- Logic Lọc và Phân trang cho Artists (Giữ nguyên) ---
+  // filteredArtists sử dụng 'artistSearchQuery'
   const filteredArtists = useMemo(() => {
     if (!Array.isArray(artists)) return [];
     if (!artistSearchQuery) return artists;
-
     const lowercasedQuery = artistSearchQuery.toLowerCase();
     return artists.filter((artist) =>
       artist.name?.toLowerCase().includes(lowercasedQuery)
     );
   }, [artists, artistSearchQuery]);
 
+  // currentArtists sử dụng 'artistCurrentPage'
   const currentArtists = useMemo(() => {
     const indexOfLastArtist = artistCurrentPage * artistsPerPage;
     const indexOfFirstArtist = indexOfLastArtist - artistsPerPage;
     return filteredArtists.slice(indexOfFirstArtist, indexOfLastArtist);
   }, [filteredArtists, artistCurrentPage, artistsPerPage]);
 
+  // Tên biến cho Artists là 'artistTotalPages'
   const artistTotalPages = Math.ceil(filteredArtists.length / artistsPerPage);
+  useEffect(() => {
+    if (artistCurrentPage > artistTotalPages && artistTotalPages > 0) {
+      setArtistCurrentPage(artistTotalPages);
+    } else if (artistTotalPages === 0) {
+      setArtistCurrentPage(1);
+    }
+  }, [filteredArtists, artistTotalPages, artistCurrentPage]);
+
+  // --- 👇 THÊM HÀM paginateArtists ---
+  const paginateArtists = (pageNumber) => {
+    if (pageNumber > 0 && pageNumber <= artistTotalPages) {
+      setArtistCurrentPage(pageNumber);
+    }
+  };
 
   const paginate = (pageNumber) => {
     if (pageNumber > 0 && pageNumber <= totalPages) {
@@ -820,7 +870,7 @@ function AdminDashboard() {
             setArtistSearchQuery={setArtistSearchQuery}
             currentArtists={currentArtists}
             artistTotalPages={artistTotalPages}
-            // artistPaginate={artistPaginate}
+            paginateArtists={paginateArtists}
             artistCurrentPage={artistCurrentPage}
             artists={artists} // Prop này có thể không cần nữa nếu currentArtists thay thế
             handleAddArtistClick={handleAddArtistClick}
