@@ -137,7 +137,7 @@ function ChatbotModal({ onClose }) {
       <div className="bg-white rounded-t-lg md:rounded-lg shadow-xl w-full max-w-lg h-[70vh] flex flex-col">
         {/* Header */}
         <div className="flex justify-between items-center p-4 border-b">
-          <h3 className="text-xl font-bold text-gray-800">Chatbot DJ 🎧</h3>
+          <h3 className="text-xl font-bold text-gray-800">Chatbot</h3>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-800 text-3xl">&times;</button>
         </div>
 

@@ -3,11 +3,9 @@ import { useOutletContext } from "react-router-dom";
 import api from "../../api/api";
 
 function AdminArtistPage() {
-  const { artists, handleAddArtistClick, handleEditArtistClick, fetchArtists } =
-    useOutletContext();
-
+  const { artists, handleAddArtistClick, handleEditArtistClick, fetchArtists } = useOutletContext();
   const [artistCurrentPage, setArtistCurrentPage] = useState(1);
-  const [artistsPerPage] = useState(10);
+  const [artistsPerPage] = useState(5);
   const [artistSearchQuery, setArtistSearchQuery] = useState("");
 
   const filteredArtists = useMemo(() => {

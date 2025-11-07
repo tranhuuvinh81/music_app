@@ -68,7 +68,7 @@ function ArtistForm({ artistToEdit, onFormSubmit, onCancel }) {
           </h3>
           <button
             onClick={onCancel}
-            className="text-gray-400 hover:text-gray-600"
+            className="text-gray-500 hover:text-gray-800 text-3xl"
           >
             &times;
           </button>

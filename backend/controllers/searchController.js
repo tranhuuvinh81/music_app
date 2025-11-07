@@ -26,7 +26,8 @@ const fetchArtistsForSongs = (songs) => {
           .filter((link) => link.song_id === song.id)
           .map((link) => ({ id: link.id, name: link.name })); // Chỉ lấy id và name
 
-        const { artist, ...songData } = song;
+        // Bỏ cột 'artist' cũ (nếu có)
+        const { artist, ...songData } = song; 
         return { ...songData, artists: artists };
       });
       resolve(songsWithArtists);
@@ -46,22 +47,34 @@ export const searchAll = async (req, res) => {
 
   try {
     const searchSongsPromise = new Promise((resolve, reject) => {
-      // Dùng DISTINCT để tránh trùng lặp bài hát nếu nhiều nghệ sĩ cùng khớp
+      // 👇 BẮT ĐẦU SỬA ĐỔI
+      // 1. Thêm s.country, s.listen_count vào SELECT
+      // 2. Thêm s.genre LIKE ? và s.country LIKE ? vào WHERE
       const query = `
-        SELECT DISTINCT s.id, s.title, s.album, s.genre, s.release_year, s.file_url, s.image_url, s.lyrics_url, s.created_at
+        SELECT DISTINCT 
+          s.id, s.title, s.album, s.genre, s.release_year, s.country, 
+          s.file_url, s.image_url, s.lyrics_url, s.created_at, s.listen_count
         FROM songs s
         LEFT JOIN song_artists sa ON s.id = sa.song_id
         LEFT JOIN artists a ON sa.artist_id = a.id
-        WHERE s.title LIKE ? OR a.name LIKE ?
-        ORDER BY s.created_at DESC
+        WHERE 
+          s.title LIKE ? 
+          OR a.name LIKE ?
+          OR s.genre LIKE ?
+          OR s.country LIKE ?
+        ORDER BY 
+          s.created_at DESC
       `;
-      db.query(query, [searchTerm, searchTerm], (err, results) => {
+      
+      // 3. Cập nhật tham số query (từ 2 thành 4)
+      db.query(query, [searchTerm, searchTerm, searchTerm, searchTerm], (err, results) => {
         if (err) return reject(err);
-        resolve(results); // Kết quả chỉ chứa thông tin bài hát cơ bản
+        resolve(results);
       });
+      // 👆 KẾT THÚC SỬA ĐỔI
     });
 
-    // Promise tìm kiếm nghệ sĩ
+    // Promise tìm kiếm nghệ sĩ (giữ nguyên)
     const searchArtistsPromise = new Promise((resolve, reject) => {
       const query = "SELECT * FROM artists WHERE name LIKE ?";
       db.query(query, [searchTerm], (err, results) => {

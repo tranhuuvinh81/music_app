@@ -136,7 +136,7 @@ function HomePage() {
                 }`}
                 onClick={() => handleTabChange("songs")}
               >
-                <span>Home</span>
+                <span>Trang chủ</span>
               </li>
               <li
                 className={`px-4 py-2 rounded cursor-pointer hover:bg-gray-200 ${
@@ -144,7 +144,7 @@ function HomePage() {
                 }`}
                 onClick={() => handleTabChange("artists")}
               >
-                <span>Singer</span>
+                <span>Ca sĩ</span>
               </li>
               <li
                 className={`px-4 py-2 rounded cursor-pointer hover:bg-gray-200 ${
@@ -152,7 +152,7 @@ function HomePage() {
                 }`}
                 onClick={() => handleTabChange("genres")}
               >
-                <span>Genre</span>
+                <span>Thể loại âm nhạc</span>
               </li>
               <li
                 className={`px-4 py-2 rounded cursor-pointer hover:bg-gray-200 ${
@@ -160,7 +160,7 @@ function HomePage() {
                 }`}
                 onClick={() => handleTabChange("recently")}
               >
-                <span>Recently</span>
+                <span>Lịch sử nghe</span>
               </li>
             </ul>
           </div>

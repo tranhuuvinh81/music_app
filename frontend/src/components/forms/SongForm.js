@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import api from "../../api/api";
 import Select from "react-select";
+import CreatetableSelect from "react-select/creatable";
 
 function SongForm({ songToEdit, onFormSubmit, onCancel }) {
   const [formData, setFormData] = useState({
@@ -9,6 +10,7 @@ function SongForm({ songToEdit, onFormSubmit, onCancel }) {
     album: "",
     genre: "",
     release_year: "",
+    country: "",
   });
   const [songFile, setSongFile] = useState(null);
   const [imageFile, setImageFile] = useState(null);
@@ -18,6 +20,9 @@ function SongForm({ songToEdit, onFormSubmit, onCancel }) {
 
   const [allArtists, setAllArtists] = useState([]); // Danh sách tất cả nghệ sĩ
   const [selectedArtists, setSelectedArtists] = useState([]); // Danh sách nghệ sĩ đã chọn cho bài hát này
+
+  const [allGenres, setAllGenres] = useState([]); // Danh sách tất cả thể loại
+  const [selectedGenres, setSelectedGenres] = useState(null); // Thể loại đã chọn
 
   useEffect(() => {
     const fetchArtists = async () => {
@@ -32,8 +37,25 @@ function SongForm({ songToEdit, onFormSubmit, onCancel }) {
         console.error("Lỗi khi tải danh sách nghệ sĩ:", err);
       }
     };
+
+    const fetchGenres = async () => {
+      try {
+        const res = await api.get("/api/songs/genres"); // API này sẽ trả về ['Pop', 'Ballad', 'K-Pop']
+        const options = res.data.map((genre) => ({
+          value: genre,
+          label: genre,
+        }));
+        setAllGenres(options);
+      } catch (err) {
+        console.error("Lỗi khi tải danh sách thể loại:", err);
+      }
+    };
+
     fetchArtists();
+    fetchGenres();
   }, []);
+
+
 
   // Set giá trị mặc định khi edit
   useEffect(() => {
@@ -41,8 +63,9 @@ function SongForm({ songToEdit, onFormSubmit, onCancel }) {
       setFormData({
         title: songToEdit.title || "",
         album: songToEdit.album || "",
-        genre: songToEdit.genre || "",
+        // genre: songToEdit.genre || "",
         release_year: songToEdit.release_year || "",
+        country: songToEdit.country || "",
       });
       // Set nghệ sĩ đã chọn nếu đang edit (songToEdit.artists là mảng object)
       const currentArtistOptions = (songToEdit.artists || []).map((artist) => ({
@@ -50,9 +73,16 @@ function SongForm({ songToEdit, onFormSubmit, onCancel }) {
         label: artist.name,
       }));
       setSelectedArtists(currentArtistOptions);
+
+      // Chuyển "Pop,K-Pop" thành [{ value: 'Pop', label: 'Pop' }, { value: 'K-Pop', label: 'K-Pop' }]
+      const currentGenreOptions = songToEdit.genre
+        ? songToEdit.genre.split(',').map(g => ({ value: g.trim(), label: g.trim() }))
+        : [];
+      setSelectedGenres(currentGenreOptions);
+
     } else {
       // Reset khi mở form thêm mới
-      setFormData({ title: "", album: "", genre: "", release_year: "" });
+      setFormData({ title: "", album: "", genre: "", release_year: "", country: "" });
       setSelectedArtists([]);
       setSongFile(null);
       setImageFile(null);
@@ -68,6 +98,9 @@ function SongForm({ songToEdit, onFormSubmit, onCancel }) {
   const handleArtistChange = (selectedOptions) => {
     setSelectedArtists(selectedOptions || []);
   };
+  const handleGenreChange = (selectedOptions) => {
+    setSelectedGenres(selectedOptions || []);
+  }
 
   const handleSongFileChange = (e) => {
     setSongFile(e.target.files[0]);
@@ -94,6 +127,10 @@ function SongForm({ songToEdit, onFormSubmit, onCancel }) {
     // GỬI MẢNG ID NGHỆ SĨ LÊN SERVER
     const artistIds = selectedArtists.map((option) => option.value);
     data.append("artistIds", JSON.stringify(artistIds)); // Gửi dưới dạng chuỗi JSON
+
+    // Chuyển [{ value: 'Pop', label: 'Pop' }] thành "Pop,K-Pop"
+    const genreString = selectedGenres.map(g => g.value).join(',');
+    data.append("genre", genreString);
 
     if (songFile) data.append("songFile", songFile);
     if (imageFile) data.append("imageFile", imageFile);
@@ -124,7 +161,7 @@ function SongForm({ songToEdit, onFormSubmit, onCancel }) {
           </h3>
           <button
             onClick={onCancel}
-            className="text-gray-400 hover:text-gray-600"
+            className="text-gray-500 hover:text-gray-800 text-3xl"
           >
             &times;
           </button>
@@ -171,7 +208,7 @@ function SongForm({ songToEdit, onFormSubmit, onCancel }) {
               />
             </div>
 
-            {/* Input Album, Genre, Release Year */}
+            {/* Input Album, Genre, Release Year, Country */}
             <div>
               <label
                 htmlFor="album"
@@ -195,13 +232,18 @@ function SongForm({ songToEdit, onFormSubmit, onCancel }) {
               >
                 Thể loại
               </label>
-              <input
-                type="text"
+              <CreatetableSelect
                 id="genre"
+                isMulti
+                isClearable
                 name="genre"
-                value={formData.genre}
-                onChange={handleChange}
-                className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md"
+                options={allGenres} // Lựa chọn có sẵn
+                value={selectedGenres}
+                onChange={handleGenreChange}
+                placeholder="Chọn hoặc tạo thể loại..."
+                noOptionsMessage={() => "Gõ để tạo thể loại mới"}
+                className="mt-1 basic-multi-select"
+                classNamePrefix="select"
               />
             </div>
             <div>
@@ -217,6 +259,23 @@ function SongForm({ songToEdit, onFormSubmit, onCancel }) {
                 name="release_year"
                 value={formData.release_year}
                 onChange={handleChange}
+                className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="country"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Quốc gia
+              </label>
+              <input
+                type="text"
+                id="country"
+                name="country"
+                value={formData.country}
+                onChange={handleChange}
+                placeholder="Việt Nam, Hàn Quốc, US-UK..."
                 className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md"
               />
             </div>

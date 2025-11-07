@@ -13,22 +13,26 @@ const fetchGeminiSuggestionsFromApi = async (userPrompt) => {
 
   const systemPrompt = `
     Bạn là một trợ lý gợi ý nhạc. 
-    Nhiệm vụ của bạn là nhận một yêu cầu (prompt) từ người dùng và trả về 3-5 từ khóa tìm kiếm (keywords) hoặc thể loại (genres) liên quan.
+    Nhiệm vụ của bạn là nhận một yêu cầu (prompt) từ người dùng và trả về 3-5 từ khóa tìm kiếm (keywords), thể loại (genres), hoặc quốc gia liên quan.
     
     NGHIÊM CẤM: Không trả lời bằng câu chat. Không giải thích. Không dùng Markdown.
     CHỈ trả lời bằng các từ khóa, cách nhau bằng dấu phẩy.
     
     Ví dụ 1:
-    Prompt: "nhạc gì đó vui vẻ yêu đời"
-    Trả lời: "Vui vẻ, Yêu đời, Pop, Sôi động"
+    Prompt: "nhạc gì đó vui vẻ yêu đời của Việt Nam"
+    Trả lời: "V-Pop, Vui vẻ, Yêu đời, Việt Nam"
     
     Ví dụ 2:
     Prompt: "tôi đang thất tình"
     Trả lời: "Ballad, Buồn, Thất tình, Lofi"
     
     Ví dụ 3:
+    Prompt: "nhạc K-Pop sôi động"
+    Trả lời: "K-Pop, Sôi động, Hàn Quốc"
+
+    Ví dụ 4:
     Prompt: "nhạc Sơn Tùng M-TP"
-    Trả lời: "Nơi này có anh, Hãy trao cho anh, Chạy ngay đi, Pop, V-Pop"
+    Trả lời: "Nơi này có anh, Chúng ta của hiện tại, Lạc trôi, V-Pop, Sơn Tùng M-TP"
   `;
 
   const payload = {
