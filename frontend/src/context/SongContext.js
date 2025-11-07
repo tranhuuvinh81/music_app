@@ -31,7 +31,7 @@ export const SongProvider = ({ children }) => {
       value={{
         searchQuery,
         setSearchQuery,
-        searchResults, // cung cấp kết quả tìm kiếm
+        searchResults,
         isLoading,
         performSearch
       }}

@@ -22,6 +22,12 @@ import PlaylistPage from "./pages/main/PlaylistPage";
 import ProfilePage from "./pages/main/ProfilePage";
 import SearchPage from "./pages/main/SearchPage";
 
+import AdminLayout from "./pages/admin/AdminLayout";
+import AdminOverview from "./pages/admin/AdminOverview";
+import AdminUserPage from "./pages/admin/AdminUserPage";
+import AdminSongPage from "./pages/admin/AdminSongPage";
+import AdminArtistPage from "./pages/admin/AdminArtistPage";
+
 import "../src/styles/App.css";
 
 // --- CÁC COMPONENT BẢO VỆ ROUTE ---
@@ -100,10 +106,15 @@ function App() {
                 path="/admin"
                 element={
                   <AdminRoute>
-                    <AdminDashboard />
+                    <AdminLayout />
                   </AdminRoute>
                 }
-              />
+              >
+                <Route index element={<AdminOverview />} />
+                <Route path="users" element={<AdminUserPage />} />
+                <Route path="songs" element={<AdminSongPage />} />
+                <Route path="artists" element={<AdminArtistPage />} />
+              </Route>
             </Routes>
           </Router>
         </SongProvider>
