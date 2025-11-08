@@ -94,7 +94,7 @@ function SongDetails() {
           </div>
         </div>
         <div className="text-right text-xs text-gray-500 mb-2">
-          <p>{currentSong.genre}</p>
+          <p>{currentSong.country}</p>
           <span>Phát hành: {currentSong.release_year}</span>
         </div>
 

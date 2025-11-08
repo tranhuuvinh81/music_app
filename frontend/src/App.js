@@ -28,6 +28,14 @@ import AdminUserPage from "./pages/admin/AdminUserPage";
 import AdminSongPage from "./pages/admin/AdminSongPage";
 import AdminArtistPage from "./pages/admin/AdminArtistPage";
 
+// 👇 2. IMPORT LAYOUT MỚI VÀ CÁC TRANG CON MỚI
+import MainLayout from "./pages/main/MainLayout"; // HomePage cũ đổi tên
+import HomeSongsPage from "./pages/main/HomeSongsPage";
+import ArtistsPage from "./pages/main/ArtistsPage";
+import GenresPage from "./pages/main/GenresPage";
+import HistoryPage from "./pages/main/HistoryPage";
+import CountryPage from "./pages/main/CountryPage";
+
 import "../src/styles/App.css";
 
 // --- CÁC COMPONENT BẢO VỆ ROUTE ---
@@ -56,7 +64,7 @@ const AdminRoute = ({ children }) => {
 };
 
 // MAIN LAYOUT CHO USER
-const MainLayout = () => {
+const AppMusicLayout = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navigation />
@@ -77,9 +85,19 @@ function App() {
           <Router>
             <Routes>
               {/* Route cho Layout chính của người dùng */}
-              <Route path="/" element={<MainLayout />}>
+              <Route path="/" element={<AppMusicLayout />}>
                 {/* Các trang con của MainLayout */}
-                <Route index element={<HomePage />} />
+                {/* <Route index element={<HomePage />} /> */}
+                <Route path="/" element={<MainLayout />}> 
+                  {/* Các trang con lồng bên trong MainLayout (cột giữa) */}
+                  <Route index element={<HomeSongsPage />} />
+                  <Route path="artists" element={<ArtistsPage />} />
+                  <Route path="genres" element={<GenresPage />} />
+                  <Route path="countries" element={<CountryPage />} />
+                  <Route path="history" element={
+                    <ProtectedRoute><HistoryPage /></ProtectedRoute>
+                  } />
+                </Route>
                 <Route path="search" element={<SearchPage />} />
                 <Route
                   path="playlists"

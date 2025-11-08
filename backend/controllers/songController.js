@@ -387,3 +387,51 @@ export const getSongsByGenre = (req, res) => {
     }
   });
 };
+
+
+
+// --- HÀM MỚI 1: Lấy danh sách quốc gia unique ---
+export const getUniqueCountries = (req, res) => {
+  const query = "SELECT country FROM songs WHERE country IS NOT NULL AND country != ''";
+  db.query(query, (err, results) => {
+    if (err)
+      return res.status(500).json({ error: "Lỗi khi lấy danh sách quốc gia" });
+
+    const allCountries = new Set();
+    results.forEach((row) => {
+      const countries = row.country
+        .split(',')
+        .map((c) => c.trim())
+        .filter((c) => c);
+      countries.forEach((c) => allCountries.add(c));
+    });
+    
+    res.json(Array.from(allCountries).sort());
+  });
+};
+
+// --- HÀM MỚI 2: Lấy bài hát theo quốc gia ---
+export const getSongsByCountry = (req, res) => {
+  const { countryName } = req.params;
+  const decodedCountry = decodeURIComponent(countryName);
+  const searchTerm = `%${decodedCountry}%`;
+  
+  const query =
+    "SELECT id, title, album, genre, release_year, country, file_url, image_url, lyrics_url, listen_count, created_at FROM songs WHERE country LIKE ? ORDER BY title";
+  
+  db.query(query, [searchTerm], async (err, songs) => {
+    if (err)
+      return res
+        .status(500)
+        .json({ error: "Lỗi khi lấy bài hát theo quốc gia" });
+    try {
+      const songsWithArtists = await fetchArtistsForSongs(songs);
+      res.json(songsWithArtists);
+    } catch (fetchErr) {
+      res.status(500).json({
+        error: "Lỗi khi lấy thông tin nghệ sĩ",
+        details: fetchErr.message,
+      });
+    }
+  });
+};
