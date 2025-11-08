@@ -43,13 +43,31 @@ export const registerUser = async (req, res) => {
 
 // Lấy danh sách người dùng (ẩn mật khẩu)
 export const getAllUsers = (req, res) => {
-  db.query(
-    "SELECT id, username, full_name, age, email, phone, role, avatar_url FROM users",
-    (err, results) => {
-      if (err) return res.status(500).json({ error: err.message });
-      res.json(results);
-    }
-  );
+  // 👇 BẮT ĐẦU SỬA ĐỔI QUERY
+  // 1. JOIN với user_history
+  // 2. COUNT(uh.id) để đếm số lượt nghe
+  // 3. GROUP BY theo tất cả các cột của user
+  const query = `
+    SELECT 
+      u.id, u.username, u.full_name, u.age, u.email, u.phone, u.role, u.avatar_url,
+      COUNT(uh.id) AS total_listens
+    FROM 
+      users u
+    LEFT JOIN 
+      user_history uh ON u.id = uh.user_id
+    GROUP BY 
+      u.id, u.username, u.full_name, u.age, u.email, u.phone, u.role, u.avatar_url
+    ORDER BY 
+      u.id ASC;
+  `;
+  // 👆 KẾT THÚC SỬA ĐỔI QUERY
+
+  db.query(query, (err, results) => {
+      if (err) return res.status(500).json({ error: err.message });
+      // Giờ đây 'results' sẽ chứa mảng user, mỗi user có thêm 'total_listens'
+      res.json(results);
+    }
+  );
 };
 
 // Lấy thông tin chi tiết user theo ID (cho profile hoặc admin view)
