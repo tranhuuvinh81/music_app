@@ -102,6 +102,18 @@ function MainLayout() {
                 Quốc gia
               </NavLink>
               <NavLink
+                to="/playlists"
+                className={({ isActive }) =>
+                  `block px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    isActive
+                      ? "bg-gray-800 text-white"
+                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                  }`
+                }
+              >
+                Playlist của tôi
+              </NavLink>
+              <NavLink
                 to="/history"
                 className={({ isActive }) =>
                   `block px-4 py-2 rounded-lg text-sm font-medium transition-colors ${

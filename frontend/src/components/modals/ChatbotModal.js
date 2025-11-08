@@ -1,12 +1,12 @@
 import React, { useState, useContext, useRef, useEffect } from 'react';
 import { AudioContext } from '../../context/AudioContext';
-import api from '../../api/api'; // API của backend (để search VÀ gọi chatbot)
+import api from '../../api/api'; // API của backend
 
 // --- HÀM GỌI BACKEND ---
 /**
- * Gửi prompt đến BACKEND của bạn để nhận gợi ý.
+ * Gửi prompt đến BACKEND. Backend sẽ xử lý mọi thứ và trả về MẢNG BÀI HÁT.
  * @param {string} userPrompt - Yêu cầu của người dùng, vd: "bài hát về mưa"
- * @returns {string} - Một chuỗi text thô từ backend (đã được xử lý bởi Gemini)
+ * @returns {Array} - Một mảng các object bài hát
  */
 const fetchGeminiSuggestions = async (userPrompt) => {
   try {
@@ -15,18 +15,20 @@ const fetchGeminiSuggestions = async (userPrompt) => {
       prompt: userPrompt
     });
 
-    if (!response.data || !response.data.text) {
+    // Backend trả về { songs: [...] }
+    if (!response.data || !Array.isArray(response.data.songs)) {
       throw new Error("Phản hồi từ server không hợp lệ.");
     }
     
-    // Trả về text mà server đã lấy từ Gemini
-    return response.data.text; 
+    return response.data.songs; // Trả về mảng bài hát
 
   } catch (error) {
     console.error("Lỗi khi gọi API Chatbot (backend):", error);
-    return "Xin lỗi, tôi đang gặp sự cố. Vui lòng thử lại sau.";
+    // Trả về mảng rỗng nếu có lỗi
+    return []; 
   }
 };
+// --- Kết thúc hàm ---
 
 
 function ChatbotModal({ onClose }) {
@@ -34,7 +36,7 @@ function ChatbotModal({ onClose }) {
     {
       sender: 'bot',
       type: 'text',
-      text: 'Chào bạn! Bạn muốn nghe nhạc theo chủ đề gì hôm nay? Hãy nhập gợi ý của bạn và mình sẽ đưa ra các từ khoá và gửi bài hát phù hợp nhé!'
+      text: 'Chào bạn! Bạn muốn nghe nhạc theo chủ đề gì hôm nay? (ví dụ: "nhạc chill để code", "bài hát về mưa", "sôi động lên nào!")'
     }
   ]);
   const [input, setInput] = useState('');
@@ -42,11 +44,11 @@ function ChatbotModal({ onClose }) {
   const { playSong } = useContext(AudioContext);
   const messagesEndRef = useRef(null);
 
-  // Tự động cuộn xuống tin nhắn mới nhất
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Logic xử lý khi gửi tin nhắn
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
 
@@ -55,43 +57,10 @@ function ChatbotModal({ onClose }) {
     setInput('');
     setIsLoading(true);
 
-    // 1. GỌI GEMINI (thông qua backend) ĐỂ LẤY KEYWORDS
-    // geminiResponseText sẽ là: "Lofi, Ballad, Buồn"
-    const geminiResponseText = await fetchGeminiSuggestions(input);
-
-    // Kiểm tra xem Gemini có trả về lỗi không
-    if (geminiResponseText.startsWith("Xin lỗi")) {
-      setMessages(prev => [
-        ...prev,
-        { sender: 'bot', type: 'text', text: geminiResponseText }
-      ]);
-      setIsLoading(false);
-      return;
-    }
-
-    // 2. PHÂN TÍCH KEYWORDS VÀ TÌM KIẾM TRONG DATABASE
-    // Tách chuỗi "Lofi, Ballad, Buồn" thành mảng ['Lofi', 'Ballad', 'Buồn']
-    const keywords = geminiResponseText.split(',').map(kw => kw.trim()).filter(Boolean);
+    // 1. GỌI API CHATBOT, NHẬN VỀ MẢNG BÀI HÁT
+    const foundSongs = await fetchGeminiSuggestions(input);
     
-    // Tạo một promise tìm kiếm cho mỗi keyword
-    const searchPromises = keywords.map(keyword => 
-      api.get(`/api/search?q=${encodeURIComponent(keyword)}`) // Gọi API search của BẠN
-        .then(res => res.data.songs) // Chỉ lấy kết quả bài hát
-        .catch(() => []) 
-    );
-    
-    const searchResults = await Promise.all(searchPromises);
-    
-    // Làm phẳng mảng kết quả và loại bỏ trùng lặp
-    const foundSongsMap = new Map();
-    searchResults.flat().forEach(song => {
-      if (song && song.id) {
-         foundSongsMap.set(song.id, song);
-      }
-    });
-    const foundSongs = Array.from(foundSongsMap.values());
-
-    // 3. TẠO TIN NHẮN TRẢ LỜI
+    // 2. TẠO TIN NHẮN TRẢ LỜI
     if (foundSongs.length > 0) {
       setMessages(prev => [
         ...prev,
@@ -112,13 +81,14 @@ function ChatbotModal({ onClose }) {
         {
           sender: 'bot',
           type: 'text',
-          text: `Xin lỗi, tôi không tìm thấy bài hát nào trong thư viện khớp với các từ khóa (${geminiResponseText}). Bạn thử chủ đề khác nhé?`
+          text: `Xin lỗi, tôi không tìm thấy bài hát nào trong thư viện khớp với yêu cầu của bạn. Bạn thử chủ đề khác nhé?`
         }
       ]);
     }
     
     setIsLoading(false);
   };
+
   // Hàm helper để hiển thị tên nghệ sĩ
   const displayArtistNames = (artistsArray) => {
     if (!artistsArray || artistsArray.length === 0) {
@@ -128,7 +98,6 @@ function ChatbotModal({ onClose }) {
   };
 
   const handlePlaySuggestion = (song) => {
-    // Tạo một playlist tạm thời chỉ chứa bài hát này
     playSong(song, [song], 0); 
   };
 
@@ -137,8 +106,8 @@ function ChatbotModal({ onClose }) {
       <div className="bg-white rounded-t-lg md:rounded-lg shadow-xl w-full max-w-lg h-[70vh] flex flex-col">
         {/* Header */}
         <div className="flex justify-between items-center p-4 border-b">
-          <h3 className="text-xl font-bold text-gray-800">Chatbot</h3>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-800 text-3xl">&times;</button>
+          <h3 className="text-xl font-bold text-gray-800">Chatbot DJ 🎧</h3>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-800 text-3xl leading-none">&times;</button>
         </div>
 
         {/* Khung chat */}
@@ -148,27 +117,26 @@ function ChatbotModal({ onClose }) {
               
               {/* Tin nhắn Text */}
               {msg.type === 'text' && (
-                <div className={`px-4 py-2 rounded-lg max-w-[80%] shadow-sm ${msg.sender === 'user' ? 'bg-gray-600 text-white' : 'bg-gray-100 text-gray-800'}`}>
+                <div className={`px-4 py-2 rounded-lg max-w-[80%] ${msg.sender === 'user' ? 'bg-gray-600 text-white' : 'bg-gray-100 text-gray-800'}`}>
                   {msg.text}
                 </div>
               )}
 
               {/* Tin nhắn Gợi ý (Song) */}
               {msg.type === 'songs' && (
-                <div className="w-full max-w-[90%] bg-gray-100 rounded-lg p-3">
+                <div className="w-full max-w-[80%] bg-gray-100 rounded-lg p-3">
                   <ul className="space-y-2">
                     {msg.songs.map(song => (
                       <li key={song.id} className="flex items-center justify-between p-2 bg-white rounded shadow-sm">
-                        <div className="flex items-center min-w-0 mr-2">
+                        <div className="flex items-center min-w-0">
                           <img 
                             src={song.image_url ? `${api.defaults.baseURL}${song.image_url}` : 'https://via.placeholder.com/40'} 
                             alt={song.title}
-                            className="w-10 h-10 rounded object-cover mr-3 flex-shrink-0"
+                            className="w-10 h-10 rounded object-cover mr-3"
                           />
                           <div className="min-w-0">
                             <p className="font-semibold text-gray-800 truncate">{song.title}</p>
                             <p className="text-sm text-gray-500 truncate">
-                              {/* Sử dụng hàm helper đã tạo */}
                               {displayArtistNames(song.artists)}
                             </p>
                           </div>
@@ -188,7 +156,6 @@ function ChatbotModal({ onClose }) {
 
             </div>
           ))}
-          {/* Hiển thị "Bot đang gõ..." */}
           {isLoading && (
             <div className="flex justify-start">
               <div className="px-4 py-2 rounded-lg bg-gray-100 text-gray-500">
@@ -207,7 +174,7 @@ function ChatbotModal({ onClose }) {
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleSend()}
             placeholder="Gửi tin nhắn..."
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
+            className="flex-1 px-4 py-2 border rounded-l-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
             disabled={isLoading}
           />
           <button

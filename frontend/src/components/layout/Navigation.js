@@ -74,12 +74,12 @@ function Navigation() {
           <div className="hidden md:flex items-center space-x-4">
             {user ? (
               <>
-                <Link
+                {/* <Link
                   to="/playlists"
                   className="text-gray-700 hover:text-gray-600 px-3 py-2 rounded-md text-sm font-medium"
                 >
                   Playlist
-                </Link>
+                </Link> */}
                 {user.role === "admin" && (
                   <Link
                     to="/admin"
