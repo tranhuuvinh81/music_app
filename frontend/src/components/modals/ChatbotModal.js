@@ -36,7 +36,7 @@ function ChatbotModal({ onClose }) {
     {
       sender: 'bot',
       type: 'text',
-      text: 'Chào bạn! Bạn muốn nghe nhạc theo chủ đề gì hôm nay? (ví dụ: "nhạc chill để code", "bài hát về mưa", "sôi động lên nào!")'
+      text: 'Chào bạn! Bạn muốn nghe nhạc gì?")'
     }
   ]);
   const [input, setInput] = useState('');

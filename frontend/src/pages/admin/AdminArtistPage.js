@@ -80,6 +80,9 @@ function AdminArtistPage() {
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                ID
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                 Image
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
@@ -99,6 +102,9 @@ function AdminArtistPage() {
           <tbody className="bg-white divide-y divide-gray-200">
             {currentArtists.map((artist) => (
               <tr key={artist.id} className="hover:bg-gray-50">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {artist.id}
+                </td>
                 <td className="px-6 py-4">
                   <img
                     src={
