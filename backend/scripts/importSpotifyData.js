@@ -77,8 +77,7 @@
 // }
 
 // // chạy script
-// importFromSpotify("chill");
-// ==============================
+// importFromSpotify("chill");// ==============================
 // 📦 IMPORTS
 // ==============================
 import dotenv from "dotenv";
@@ -88,7 +87,7 @@ import fetch from "node-fetch";
 dotenv.config();
 
 // ==============================
-// ⚙️ KẾT NỐI DATABASE (Promise-based)
+// ⚙️ KẾT NỐI DATABASE
 // ==============================
 const connection = await mysql.createConnection({
   host: process.env.DB_HOST,
@@ -96,18 +95,16 @@ const connection = await mysql.createConnection({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
 });
-
 console.log("✅ Đã kết nối MySQL thành công!");
 
 // ==============================
-// 🎫 HÀM LẤY ACCESS TOKEN SPOTIFY
+// 🎫 HÀM LẤY TOKEN SPOTIFY
 // ==============================
 async function getSpotifyAccessToken() {
   const clientId = process.env.SPOTIFY_CLIENT_ID;
   const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
-  const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString(
-    "base64"
-  );
+  const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
+
   const response = await fetch("https://accounts.spotify.com/api/token", {
     method: "POST",
     headers: {
@@ -116,9 +113,8 @@ async function getSpotifyAccessToken() {
     },
     body: "grant_type=client_credentials",
   });
-  if (!response.ok) {
-    throw new Error(`Lỗi lấy access token: ${response.statusText}`);
-  }
+
+  if (!response.ok) throw new Error(`Lỗi lấy token: ${response.statusText}`);
   const data = await response.json();
   console.log("🎫 Lấy mới Spotify Access Token thành công!");
   return data.access_token;
@@ -130,15 +126,11 @@ async function getSpotifyAccessToken() {
 async function importSpotifyData(keyword = "pop") {
   try {
     const token = await getSpotifyAccessToken();
-    const url = `https://api.spotify.com/v1/search?q=${encodeURIComponent(
-      keyword
-    )}&type=track&limit=50`;
+    const url = `https://api.spotify.com/v1/search?q=${encodeURIComponent(keyword)}&type=track&limit=10`;
 
-    console.log(`🎧 Đang import các bài hát cho từ khóa "${keyword}"...`);
+    console.log(`🎧 Đang import 10 bài hát cho từ khóa "${keyword}"...`);
 
-    const res = await fetch(url, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
     const data = await res.json();
 
     const tracks = data.tracks?.items || [];
@@ -147,20 +139,15 @@ async function importSpotifyData(keyword = "pop") {
       const spotifyTrackId = track.id;
       const title = track.name;
 
-      if (!spotifyTrackId) {
-        console.log(`⚠️ Bỏ qua bài hát không có Spotify ID: ${title}`);
-        continue;
-      }
+      if (!spotifyTrackId) continue;
 
+      // 🧩 Kiểm tra bài hát theo spotify_id
       const [existingSong] = await connection.query(
         `SELECT id FROM songs WHERE spotify_id = ? LIMIT 1`,
         [spotifyTrackId]
       );
-
       if (existingSong.length > 0) {
-        console.log(
-          `ℹ️ Đã bỏ qua: ${title} (ID: ${existingSong[0].id}) đã tồn tại.`
-        );
+        console.log(`ℹ️ Đã tồn tại bài hát: ${title}`);
         continue;
       }
 
@@ -170,62 +157,44 @@ async function importSpotifyData(keyword = "pop") {
         : null;
       const image_url = track.album?.images?.[0]?.url || null;
       const file_url = track.preview_url;
-
-      let genre = keyword;
-      if (track.album && track.album.genres && track.album.genres.length > 0) {
-        genre = track.album.genres.join(", ");
-      }
-
-      let country = null;
-      if (
-        keyword.toLowerCase().includes("v-pop") ||
-        keyword.toLowerCase().includes("vietnam")
-      )
-        country = "Việt Nam";
-      if (keyword.toLowerCase().includes("k-pop")) country = "Hàn Quốc";
-      if (keyword.toLowerCase().includes("us-uk")) country = "US-UK";
-
+      const genre = keyword;
       const listen_count = Math.floor(Math.random() * 10000);
 
-      // 👇 ĐÂY LÀ PHẦN SỬA LỖI CÚ PHÁP
       const [result] = await connection.query(
-        `INSERT INTO songs (title, album, genre, release_year, country, image_url, file_url, listen_count, spotify_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`, // 9 dấu ? và NOW()
-        [
-          // 9 tham số
-          title,
-          album,
-          genre,
-          release_year,
-          country, // Đã thêm
-          image_url,
-          file_url,
-          listen_count,
-          spotifyTrackId,
-        ]
+        `INSERT INTO songs (title, album, genre, release_year, image_url, file_url, listen_count, spotify_id, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+        [title, album, genre, release_year, image_url, file_url, listen_count, spotifyTrackId]
       );
-      // 👆 KẾT THÚC SỬA LỖI
 
       const songId = result.insertId;
-      console.log(`✅ Đã thêm: ${title} (ID: ${songId})`);
+      console.log(`✅ Đã thêm bài hát: ${title} (ID: ${songId})`);
 
+      // ====================================
+      // 👩‍🎤 Xử lý nghệ sĩ
+      // ====================================
       for (const artist of track.artists) {
+        const artistSpotifyId = artist.id;
         const artistName = artist.name;
-        const [existing] = await connection.query(
-          `SELECT id FROM artists WHERE name = ? LIMIT 1`,
-          [artistName]
+
+        // Kiểm tra trùng lặp theo spotify_id
+        const [existingArtist] = await connection.query(
+          `SELECT id FROM artists WHERE spotify_id = ? LIMIT 1`,
+          [artistSpotifyId]
         );
 
         let artistId;
-        if (existing.length > 0) {
-          artistId = existing[0].id;
+        if (existingArtist.length > 0) {
+          artistId = existingArtist[0].id;
         } else {
           const [artistResult] = await connection.query(
-            `INSERT INTO artists (name, created_at) VALUES (?, NOW())`,
-            [artistName]
+            `INSERT INTO artists (name, spotify_id, created_at)
+             VALUES (?, ?, NOW())`,
+            [artistName, artistSpotifyId]
           );
           artistId = artistResult.insertId;
         }
 
+        // Liên kết bài hát - nghệ sĩ
         await connection.query(
           `INSERT INTO song_artists (song_id, artist_id) VALUES (?, ?)`,
           [songId, artistId]
@@ -235,16 +204,15 @@ async function importSpotifyData(keyword = "pop") {
 
     console.log(`🎉 Hoàn tất import từ khóa "${keyword}"!`);
   } catch (err) {
-    console.error("❌ Lỗi import:", err.message, err.stack);
+    console.error("❌ Lỗi import:", err.message);
   }
 }
 
 // ==============================
-// 🚀 CHẠY CHƯƠNG TRÌNH
+// 🚀 CHẠY SCRIPT
 // ==============================
 (async () => {
-  await importSpotifyData("chill us-uk"); // ============================== // 🔚 ĐÓNG KẾT NỐI // ==============================
-
+  await importSpotifyData("nhạc yêu đời");
   await connection.end();
   console.log("👋 Đã đóng kết nối MySQL.");
 })();

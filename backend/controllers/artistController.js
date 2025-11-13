@@ -26,7 +26,7 @@ export const getAllArtists = (req, res) => {
     GROUP BY 
       a.id, a.name, a.image_url, a.birth_year, a.field, a.description, a.created_at
     ORDER BY 
-      a.name;
+      total_listens DESC;
   `;
   
   db.query(query, (err, results) => {

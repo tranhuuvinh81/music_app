@@ -8,6 +8,10 @@ function ArtistsPage() {
   const [artists, setArtists] = useState([]);
   const [displaySongs, setDisplaySongs] = useState([]);
   const [selectedArtist, setSelectedArtist] = useState(null);
+  
+  const [isListExpanded, setIsListExpanded] = useState(false);
+  const [isArtistListExpanded, setIsArtistListExpanded] = useState(false);
+
   const { playSong } = useContext(AudioContext);
   const { openAddModal, openArtistModal } = useOutletContext(); // Lấy hàm từ MainLayout
 
@@ -18,14 +22,15 @@ function ArtistsPage() {
       .catch(err => console.error(err));
   }, []);
 
-  // Fetch bài hát khi chọn một nghệ sĩ
   useEffect(() => {
     if (selectedArtist) {
       api.get(`/api/songs/artist/${encodeURIComponent(selectedArtist)}`)
         .then(res => setDisplaySongs(res.data))
         .catch(err => console.error(err));
+      
+      setIsListExpanded(false);
     } else {
-      setDisplaySongs([]); // Xóa danh sách bài hát nếu không chọn nghệ sĩ
+      setDisplaySongs([]);
     }
   }, [selectedArtist]);
 
@@ -34,13 +39,21 @@ function ArtistsPage() {
     return artistsArray.map((artist) => artist.name).join(", ");
   };
 
+  const toggleListExpansion = () => {
+    setIsListExpanded(!isListExpanded);
+  };
+
+  const toggleArtistListExpansion = () => {
+    setIsArtistListExpanded(!isArtistListExpanded);
+  };
+
   return (
     <div className="p-6 flex-grow">
       {!selectedArtist ? (
         <>
           <h2 className="text-2xl font-bold mb-6 text-gray-800">Nghệ sĩ nổi bật</h2>
           <ul className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {artists.map((artist) => (
+            {(isArtistListExpanded ? artists : artists.slice(0, 8)).map((artist) => (
               <li key={artist.id} className="bg-white rounded-lg shadow-md overflow-hidden transform transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
                 <img 
                   src={artist.image_url ? `${api.defaults.baseURL}${artist.image_url}` : 'https://via.placeholder.com/150?text=No+Image'}
@@ -59,6 +72,14 @@ function ArtistsPage() {
               </li>
             ))}
           </ul>
+          {artists.length > 8 && (
+            <button 
+              onClick={toggleArtistListExpansion} 
+              className="mt-6 w-full py-2 text-center text-gray-500 hover:text-gray-600 font-medium transition-colors"
+            >
+              {isArtistListExpanded ? "Thu gọn" : "Xem thêm..."}
+            </button>
+          )}
         </>
       ) : (
         <>
@@ -71,11 +92,19 @@ function ArtistsPage() {
             </h2>
           </div>
           <SongList
-            songs={displaySongs}
+            songs={isListExpanded ? displaySongs : displaySongs.slice(0, 10)}
             onPlay={playSong}
             onOpenModal={openAddModal}
             displayArtistNames={displayArtistNames}
           />
+          {displaySongs.length > 10 && (
+            <button 
+              onClick={toggleListExpansion} 
+              className="mt-4 w-full py-2 text-center text-gray-500 hover:text-gray-600 font-medium transition-colors"
+            >
+              {isListExpanded ? "Thu gọn" : "Xem thêm..."}
+            </button>
+          )}
         </>
       )}
     </div>
