@@ -111,7 +111,7 @@ function MainLayout() {
                   }`
                 }
               >
-                Playlist của tôi
+                Thư viện
               </NavLink>
               <NavLink
                 to="/history"

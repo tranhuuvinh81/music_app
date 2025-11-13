@@ -97,8 +97,7 @@ function App() {
                   <Route path="history" element={
                     <ProtectedRoute><HistoryPage /></ProtectedRoute>
                   } />
-                </Route>
-                <Route path="search" element={<SearchPage />} />
+                  <Route path="search" element={<SearchPage />} />
                 <Route
                   path="playlists"
                   element={
@@ -107,6 +106,8 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
+                </Route>
+                
                 <Route
                   path="profile"
                   element={
