@@ -160,7 +160,7 @@ function HomePage() {
                 }`}
                 onClick={() => handleTabChange("recently")}
               >
-                <span>Lịch sử nghe</span>
+                <span>Lịch sử</span>
               </li>
             </ul>
           </div>
