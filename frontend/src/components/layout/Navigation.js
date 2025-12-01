@@ -4,6 +4,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { SongContext } from "../../context/SongContext";
 import api from "../../api/api";
+import logo from "../../assets/images/logo-removebg-preview.png";
+
 
 function Navigation() {
   const { user, fullUser, logout } = useContext(AuthContext);
@@ -36,7 +38,8 @@ function Navigation() {
         <div className="flex justify-between items-center h-16">
           <Link to="/" className="flex-shrink-0 flex items-center">
             <span className="text-xl font-bold text-gray-600">
-              𝙉𝙜𝙝𝙚 &amp; 𝙆𝙝𝙚𝙣
+              {/* 𝙉𝙜𝙝𝙚 &amp; 𝙆𝙝𝙚𝙣 */}
+              <img src={logo} alt="Logo" className="h-20 w-auto" />
             </span>
           </Link>
 
