@@ -1,11 +1,20 @@
-// frontend/src/pages/main/PlaylistPage.js
 import React, { useState, useEffect, useContext } from "react";
 import api from "../../api/api";
 import { AuthContext } from "../../context/AuthContext";
 import { AudioContext } from "../../context/AudioContext";
 import PlaylistForm from "../../components/forms/PlaylistForm";
 import EditPlaylistModal from "../../components/forms/EditPlaylistModal";
+
 const BACKEND_URL = "http://localhost:5000";
+
+// Hàm helper hiển thị tên nghệ sĩ (tái sử dụng từ các trang khác)
+const displayArtistNames = (artistsArray) => {
+  if (!Array.isArray(artistsArray) || artistsArray.length === 0) {
+    return "Nghệ sĩ không xác định";
+  }
+  return artistsArray.map((artist) => artist.name).join(", ");
+};
+
 function PlaylistPage() {
   const [playlists, setPlaylists] = useState([]);
   const [currentPlaylistId, setCurrentPlaylistId] = useState(null);
@@ -19,7 +28,6 @@ function PlaylistPage() {
   const { user, isAuthenticated } = useContext(AuthContext);
   const { playSong } = useContext(AudioContext);
 
-  // Hàm tải lại danh sách playlists
   const fetchPlaylists = () => {
     if (isAuthenticated) {
       api
@@ -33,15 +41,31 @@ function PlaylistPage() {
     fetchPlaylists();
   }, [isAuthenticated, user]);
 
+  // 👇 SỬA LỖI Ở ĐÂY: Logic lọc an toàn hơn
   useEffect(() => {
     if (playlistSearchQuery) {
       const lowerQuery = playlistSearchQuery.toLowerCase();
       setFilteredPlaylistSongs(
-        playlistSongs.filter(
-          (song) =>
-            song.title.toLowerCase().includes(lowerQuery) ||
-            song.artist.toLowerCase().includes(lowerQuery)
-        )
+        playlistSongs.filter((song) => {
+          // 1. Kiểm tra title
+          const titleMatch = song.title?.toLowerCase().includes(lowerQuery);
+          
+          // 2. Kiểm tra artist (Hỗ trợ cả cấu trúc cũ và mới)
+          let artistMatch = false;
+          
+          // Nếu là cấu trúc mới (mảng artists)
+          if (Array.isArray(song.artists)) {
+            artistMatch = song.artists.some(artist => 
+              artist.name?.toLowerCase().includes(lowerQuery)
+            );
+          } 
+          // Nếu là cấu trúc cũ (chuỗi artist) - Fallback
+          else if (typeof song.artist === 'string') {
+            artistMatch = song.artist.toLowerCase().includes(lowerQuery);
+          }
+
+          return titleMatch || artistMatch;
+        })
       );
     } else {
       setFilteredPlaylistSongs(playlistSongs);
@@ -220,13 +244,18 @@ function PlaylistPage() {
                   key={song.id}
                   className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                 >
-                  <div className="flex-1">
-                    <strong className="block text-gray-800">
+                  <div className="flex-1 min-w-0 mr-4"> {/* Thêm min-w-0 */}
+                    <strong className="block text-gray-800 truncate">
                       {song.title}
                     </strong>
-                    <p className="text-gray-600">{song.artist}</p>
+                    {/* 👇 SỬA LỖI HIỂN THỊ NGHỆ SĨ: Hỗ trợ cả mảng và chuỗi */}
+                    <p className="text-gray-600 truncate">
+                      {Array.isArray(song.artists) 
+                        ? displayArtistNames(song.artists) 
+                        : (song.artist || "Nghệ sĩ không xác định")}
+                    </p>
                   </div>
-                  <div className="flex space-x-2">
+                  <div className="flex space-x-2 flex-shrink-0">
                     <button
                       onClick={() => handlePlaySong(song, playlistSongs, index)}
                       className="px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
