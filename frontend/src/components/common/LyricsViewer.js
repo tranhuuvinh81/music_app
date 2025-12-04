@@ -10,7 +10,7 @@ import React, {
 import { AudioContext } from "../../context/AudioContext";
 import api from "../../api/api";
 
-// Hàm helper parseLRC
+// Hàm helper parseLRC (không đổi)
 const parseLRC = (lrcString) => {
   if (!lrcString) return [];
 
@@ -44,7 +44,7 @@ function LyricsViewer() {
   const containerRef = useRef(null);
   const [translateY, setTranslateY] = useState(0);
 
-  // useEffect để tải file .lrc
+  // useEffect để tải file .lrc (không đổi)
   useEffect(() => {
     if (!currentLyricsUrl) {
       setLrcContent(null);
@@ -104,16 +104,22 @@ function LyricsViewer() {
 
   if (isLoading) {
     return (
-      <div className="h-[300px] flex items-center justify-center text-gray-400">
-        Đang tải lời bài hát...
+      <div className="h-full w-full flex flex-col items-center justify-center text-zinc-400 animate-pulse">
+        <svg className="w-12 h-12 mb-4 text-[#7Ab2D3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <p className="text-sm">Đang tải lời bài hát...</p>
       </div>
     );
   }
 
   if (!lrcContent || parsedLyrics.length === 0) {
     return (
-      <div className="h-[300px] flex items-center justify-center text-gray-500">
-        Không có lời bài hát cho bài này.
+      <div className="h-full w-full flex flex-col items-center justify-center text-zinc-500">
+        <svg className="w-12 h-12 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <p className="text-sm">Không có lời bài hát cho bài này.</p>
       </div>
     );
   }
@@ -121,35 +127,38 @@ function LyricsViewer() {
   return (
     <div
       ref={containerRef}
-      className="h-[300px] w-full p-4 text-center scrollbar-hide relative overflow-hidden"
+      className="h-full w-full p-4 text-center relative overflow-hidden"
     >
       <ul
-        className="space-y-4 absolute left-0 right-0"
+        className="space-y-3 absolute left-0 right-0 px-4"
         style={{
           transform: `translateY(${translateY}px)`,
-          transition: "transform 0.5s ease-out",
+          transition: "transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
         }}
       >
-        <li className="h-24" aria-hidden="true"></li>
+        {/* Placeholder for centering effect */}
+        <li className="h-32" aria-hidden="true"></li>
 
         {parsedLyrics.map((line, index) => {
           const isActive = index === activeLineIndex;
+          const isUpcoming = index === activeLineIndex + 1;
 
-          let liClasses = `
-            px-4 transition-all duration-300 ease-in-out
-            w-full
-          `;
+          // Base classes for all lines
+          let liClasses = "px-4 transition-all duration-500 ease-out w-full transform";
 
           if (isActive) {
-            // Lời chính
-            liClasses +=
-              " text-lg md:text-base font-bold text-white scale-100 opacity-100";
+            // Active line styling
+            liClasses += " text-white text-xl font-bold scale-100 opacity-100";
+            // Add a glow effect
+            liClasses += " [text-shadow:0_0_15px_rgba(122,178,211,0.8)]";
+          } else if (isUpcoming) {
+            // Upcoming line styling (subtle hint)
+            liClasses += " text-zinc-300 text-base scale-100 opacity-70";
           } else {
-            // Lời phụ
-            liClasses +=
-              " text-base md:text-sm text-gray-500 scale-95 opacity-50";
+            // Inactive lines styling
+            liClasses += " text-zinc-500 text-sm scale-95 opacity-50";
           }
-
+          
           return (
             <li
               key={`${line.time}-${index}`}
@@ -161,7 +170,8 @@ function LyricsViewer() {
           );
         })}
 
-        <li className="h-24" aria-hidden="true"></li>
+        {/* Placeholder for centering effect */}
+        <li className="h-32" aria-hidden="true"></li>
       </ul>
     </div>
   );

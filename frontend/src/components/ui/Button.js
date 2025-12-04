@@ -1,52 +1,46 @@
+// frontend/src/components/ui/Button.js
 import React from 'react';
-import clsx from 'clsx'; // Thư viện tiện ích để ghép class, cài đặt: npm install clsx
 
-const Button = React.forwardRef(({
-  children,
-  className = '',
-  variant = 'primary', // 'primary' | 'secondary' | 'danger' | 'ghost'
-  size = 'md',         // 'sm' | 'md' | 'lg'
+const Button = ({ 
+  children, 
+  onClick, 
+  type = 'button', 
+  className = '', 
+  variant = 'primary', 
+  size = 'medium',
   disabled = false,
-  type = 'button',
-  icon, // Component icon (ví dụ: <svg>...</svg>)
-  ...props
-}, ref) => {
-  const baseClasses = 'inline-flex items-center justify-center font-medium rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
-
-  const variants = {
-    primary: 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500',
-    secondary: 'bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500',
-    danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
-    ghost: 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 focus:ring-blue-500',
+  ...props 
+}) => {
+  const baseClasses = 'rounded-full font-medium transition-all duration-300 focus:outline-none';
+  
+  const variantClasses = {
+    primary: 'bg-gradient-to-r from-[#7Ab2D3] to-[#4A90E2] text-white hover:shadow-lg hover:scale-105',
+    secondary: 'bg-white bg-opacity-20 backdrop-blur-sm text-white hover:bg-opacity-30',
+    accent: 'bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-white hover:shadow-lg hover:scale-105',
+    ghost: 'bg-transparent text-white hover:bg-white hover:bg-opacity-20',
   };
-
-  const sizes = {
-    sm: 'px-3 py-1.5 text-sm',
-    md: 'px-4 py-2 text-sm',
-    lg: 'px-6 py-3 text-base',
+  
+  const sizeClasses = {
+    small: 'px-3 py-1 text-sm',
+    medium: 'px-4 py-2',
+    large: 'px-6 py-3 text-lg',
   };
-
-  const classes = clsx(
-    baseClasses,
-    variants[variant],
-    sizes[size],
-    className
-  );
-
+  
+  const disabledClasses = disabled ? 'opacity-50 cursor-not-allowed' : '';
+  
+  const buttonClasses = `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${disabledClasses} ${className}`;
+  
   return (
     <button
-      ref={ref}
       type={type}
+      className={buttonClasses}
+      onClick={onClick}
       disabled={disabled}
-      className={classes}
       {...props}
     >
-      {icon && <span className="mr-2">{icon}</span>}
       {children}
     </button>
   );
-});
-
-Button.displayName = 'Button';
+};
 
 export default Button;

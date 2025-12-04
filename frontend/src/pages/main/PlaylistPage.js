@@ -5,14 +5,19 @@ import { AudioContext } from "../../context/AudioContext";
 import PlaylistForm from "../../components/forms/PlaylistForm";
 import EditPlaylistModal from "../../components/forms/EditPlaylistModal";
 
-const BACKEND_URL = "http://localhost:5000";
-
-// Hàm helper hiển thị tên nghệ sĩ (tái sử dụng từ các trang khác)
+// Hàm helper hiển thị tên nghệ sĩ
 const displayArtistNames = (artistsArray) => {
   if (!Array.isArray(artistsArray) || artistsArray.length === 0) {
     return "Nghệ sĩ không xác định";
   }
   return artistsArray.map((artist) => artist.name).join(", ");
+};
+
+// 👇 1. THÊM HÀM XỬ LÝ ẢNH
+const getImageUrl = (url) => {
+  if (!url) return 'https://via.placeholder.com/40';
+  if (url.startsWith('http')) return url; // Link Spotify
+  return `${api.defaults.baseURL}${url}`; // Link nội bộ
 };
 
 function PlaylistPage() {
@@ -41,26 +46,19 @@ function PlaylistPage() {
     fetchPlaylists();
   }, [isAuthenticated, user]);
 
-  // 👇 SỬA LỖI Ở ĐÂY: Logic lọc an toàn hơn
   useEffect(() => {
     if (playlistSearchQuery) {
       const lowerQuery = playlistSearchQuery.toLowerCase();
       setFilteredPlaylistSongs(
         playlistSongs.filter((song) => {
-          // 1. Kiểm tra title
           const titleMatch = song.title?.toLowerCase().includes(lowerQuery);
-          
-          // 2. Kiểm tra artist (Hỗ trợ cả cấu trúc cũ và mới)
           let artistMatch = false;
           
-          // Nếu là cấu trúc mới (mảng artists)
           if (Array.isArray(song.artists)) {
             artistMatch = song.artists.some(artist => 
               artist.name?.toLowerCase().includes(lowerQuery)
             );
-          } 
-          // Nếu là cấu trúc cũ (chuỗi artist) - Fallback
-          else if (typeof song.artist === 'string') {
+          } else if (typeof song.artist === 'string') {
             artistMatch = song.artist.toLowerCase().includes(lowerQuery);
           }
 
@@ -178,13 +176,9 @@ function PlaylistPage() {
             key={pl.id}
             className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow flex items-center space-x-4"
           >
-            {/* Thumbnail */}
+            {/* Thumbnail Playlist */}
             <img
-              src={
-                pl.thumbnail_url
-                  ? `${BACKEND_URL}${pl.thumbnail_url}`
-                  : "https://via.placeholder.com/60"
-              }
+              src={getImageUrl(pl.thumbnail_url)}
               alt={pl.name}
               className="w-16 h-16 rounded object-cover cursor-pointer"
               onClick={() => viewPlaylist(pl.id)}
@@ -202,7 +196,6 @@ function PlaylistPage() {
               </p>
             </div>
 
-            {/* Nút Sửa và Xóa */}
             <div className="flex flex-col space-y-2">
               <button
                 onClick={() => handleOpenEditModal(pl)}
@@ -244,17 +237,25 @@ function PlaylistPage() {
                   key={song.id}
                   className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                 >
-                  <div className="flex-1 min-w-0 mr-4"> {/* Thêm min-w-0 */}
-                    <strong className="block text-gray-800 truncate">
-                      {song.title}
-                    </strong>
-                    {/* 👇 SỬA LỖI HIỂN THỊ NGHỆ SĨ: Hỗ trợ cả mảng và chuỗi */}
-                    <p className="text-gray-600 truncate">
-                      {Array.isArray(song.artists) 
-                        ? displayArtistNames(song.artists) 
-                        : (song.artist || "Nghệ sĩ không xác định")}
-                    </p>
+                  {/* 👇 2. CẬP NHẬT PHẦN HIỂN THỊ BÀI HÁT */}
+                  <div className="flex items-center space-x-4 flex-1 min-w-0 mr-4">
+                    {/* Ảnh bài hát */}
+                    <img 
+                        src={getImageUrl(song.image_url)} 
+                        alt={song.title} 
+                        className="w-12 h-12 rounded object-cover flex-shrink-0"
+                    />
+                    <div className="min-w-0">
+                        <strong className="block text-gray-800 truncate">{song.title}</strong>
+                        <p className="text-gray-600 truncate">
+                            {/* Dùng hàm helper hiển thị nghệ sĩ */}
+                            {Array.isArray(song.artists) 
+                              ? displayArtistNames(song.artists) 
+                              : (song.artist || "Nghệ sĩ không xác định")}
+                        </p>
+                    </div>
                   </div>
+                  
                   <div className="flex space-x-2 flex-shrink-0">
                     <button
                       onClick={() => handlePlaySong(song, playlistSongs, index)}

@@ -3,31 +3,31 @@ import React from "react";
 
 const Footer = () => {
   return (
-    <footer className="bg-gray-800 text-white py-8 mt-12">
+    <footer className="bg-gradient-to-b from-[#7Ab2D3] to-[#4A90E2] text-white py-8 mt-12">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
             <h3 className="text-lg font-semibold mb-4">Về Nghe và khen</h3>
-            <p className="text-gray-400 text-sm">
+            <p className="text-white text-opacity-80 text-sm">
               Dự án học tập nền tảng nghe nhạc trực tuyến, Trường Đại học Thăng Long
             </p>
           </div>
 
           <div>
             <h3 className="text-lg font-semibold mb-4">Liên kết</h3>
-            <ul className="text-gray-400 text-sm space-y-2">
+            <ul className="text-white text-opacity-80 text-sm space-y-2">
               <li>
-                <a href="#" className="hover:text-white transition-colors">
+                <a href="#" className="hover:text-white transition-colors duration-300">
                   Chính sách bảo mật
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition-colors">
+                <a href="#" className="hover:text-white transition-colors duration-300">
                   Điều khoản sử dụng
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition-colors">
+                <a href="#" className="hover:text-white transition-colors duration-300">
                   Liên hệ
                 </a>
               </li>
@@ -39,7 +39,7 @@ const Footer = () => {
             <div className="flex space-x-4">
               <a
                 href="https://fb.com/matchaLatvinh"
-                className="text-gray-400 hover:text-white transition-colors"
+                className="text-white text-opacity-80 hover:text-white hover:scale-110 transition-all duration-300"
               >
                 <svg
                   className="w-6 h-6"
@@ -51,7 +51,7 @@ const Footer = () => {
               </a>
               <a
                 href="https://github.com/tranhuuvinh81"
-                className="text-gray-400 hover:text-white transition-colors"
+                className="text-white text-opacity-80 hover:text-white hover:scale-110 transition-all duration-300"
               >
                 <svg
                   className="w-6 h-6" 
@@ -68,7 +68,7 @@ const Footer = () => {
               </a>
               <a
                 href="https://instagram.com/ok.ko_1"
-                className="text-gray-400 hover:text-white transition-colors"
+                className="text-white text-opacity-80 hover:text-white hover:scale-110 transition-all duration-300"
               >
                 <svg
                   className="w-6 h-6"
@@ -79,9 +79,12 @@ const Footer = () => {
                 </svg>
               </a>
             </div>
+            <button className="mt-4 bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur-sm px-4 py-2 rounded-full text-white font-medium transition-all duration-300 hover:shadow-lg">
+              Contact Us
+            </button>
           </div>
         </div>
-        <div className="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400 text-sm">
+        <div className="border-t border-white border-opacity-20 mt-8 pt-8 text-center text-white text-opacity-80 text-sm">
           <p>
             &copy; {new Date().getFullYear()} Music App. All rights reserved.
           </p>
