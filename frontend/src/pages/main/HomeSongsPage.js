@@ -4,69 +4,20 @@ import api from '../../api/api';
 import { AudioContext } from '../../context/AudioContext';
 import { AuthContext } from '../../context/AuthContext';
 import Footer from '../../components/layout/Footer';
+import SongCard from '../../components/ui/SongCard';
 import bannerImg from '../../assets/images/116d710d1e61b0cc8debc32470695fff.jpg';
 import listenIcon from '../../assets/icon/listen-1.png';
-
-// Hàm helper để render danh sách bài hát (tái sử dụng)
-export const SongList = ({ songs, onPlay, onOpenModal, displayArtistNames }) => {
-  const [menuOpenSongId, setMenuOpenSongId] = useState(null);
-  const { isAuthenticated } = useContext(AuthContext); // Lấy AuthContext
-
-  const toggleMenu = (songId) => {
-    setMenuOpenSongId(prevId => (prevId === songId ? null : songId));
-  };
-
-  const handleOpenAddModal = (songId) => {
-    setMenuOpenSongId(null);
-    onOpenModal(songId); // Gọi hàm từ context
-  };
-
-  return (
-    <ul className="space-y-4">
-      {songs.map((song, index) => (
-        <li key={song.id} className="bg-white p-4 rounded-lg shadow flex items-center justify-between hover:shadow-md transition-shadow">
-          <div className="flex items-center space-x-4 min-w-0">
-            {song.image_url && (
-              <img src={`${api.defaults.baseURL}${song.image_url}`} alt={song.title} className="w-12 h-12 object-cover rounded flex-shrink-0" />
-            )}
-            <div className="min-w-0">
-              <strong className="block text-gray-900 truncate">{song.title}</strong>
-              <p className="text-gray-600 truncate">{displayArtistNames(song.artists)}</p>
-              <div className="flex items-center text-xs text-gray-500 mt-1">
-                <img src={listenIcon} alt="Lượt nghe" className="w-4 h-4" />
-                <span className="ml-1">{song.listen_count ? song.listen_count.toLocaleString() : 0}</span>
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center space-x-2 flex-shrink-0">
-            <button onClick={() => onPlay(song, songs, index)} className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" /></svg>
-            </button>
-            {isAuthenticated && (
-              <div className="relative">
-                <button onClick={() => toggleMenu(song.id)} className="p-2 text-gray-600 hover:text-gray-800">...</button>
-                {menuOpenSongId === song.id && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10">
-                    <button onClick={() => handleOpenAddModal(song.id)} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                      Thêm vào playlist
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </li>
-      ))}
-    </ul>
-  );
-};
+import { FiHeart, FiMoreHorizontal } from 'react-icons/fi';
 
 // Component trang chủ chính
 function HomeSongsPage() {
   const [displaySongs, setDisplaySongs] = useState([]);
   const [isListExpanded, setIsListExpanded] = useState(false);
-  const { playSong } = useContext(AudioContext);
+  const [menuOpenSongId, setMenuOpenSongId] = useState(null);
+  const [favoriteSongs, setFavoriteSongs] = useState(new Set());
+  const { currentSong, isPlaying, playSong } = useContext(AudioContext);
   const { openAddModal } = useOutletContext(); // Lấy hàm từ MainLayout
+  const { isAuthenticated } = useContext(AuthContext);
 
   useEffect(() => {
     // Chỉ fetch các bài hát nổi bật
@@ -84,10 +35,35 @@ function HomeSongsPage() {
     setIsListExpanded(!isListExpanded);
   };
 
+  const toggleMenu = (songId) => {
+    setMenuOpenSongId(prevId => (prevId === songId ? null : songId));
+  };
+
+  const handleOpenAddModal = (songId) => {
+    setMenuOpenSongId(null);
+    openAddModal(songId);
+  };
+
+  const toggleFavorite = (songId) => {
+    setFavoriteSongs(prev => {
+      const newFavorites = new Set(prev);
+      if (newFavorites.has(songId)) {
+        newFavorites.delete(songId);
+      } else {
+        newFavorites.add(songId);
+      }
+      return newFavorites;
+    });
+  };
+
+  const handlePlaySong = (song, songs, index) => {
+    playSong(song, songs, index);
+  };
+
   return (
     <>
       {/* BANNER */}
-      <div className="relative h-64 md:h-80 lg:h-76 flex-shrink-0">
+      <div className="relative h-64 md:h-80 lg:h-96 flex-shrink-0">
         <img src={bannerImg} alt="Music Banner" className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
         <div className="absolute bottom-0 left-0 p-6 md:p-8">
@@ -99,14 +75,74 @@ function HomeSongsPage() {
       {/* CONTENT AREA */}
       <div className="p-6 flex-grow">
         <h2 className="text-2xl font-bold mb-6 text-gray-800">Bài hát nổi bật</h2>
-        <SongList
-          songs={isListExpanded ? displaySongs : displaySongs.slice(0, 10)}
-          onPlay={playSong}
-          onOpenModal={openAddModal}
-          displayArtistNames={displayArtistNames}
-        />
+        
+        {/* Grid of Song Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-6">
+          {(isListExpanded ? displaySongs : displaySongs.slice(0, 10)).map((song, index) => {
+            // Check if this song is currently playing
+            const isCurrentSong = currentSong && currentSong.id === song.id;
+            const isFavorite = favoriteSongs.has(song.id);
+            
+            // Format song data for SongCard component
+            const songCardData = {
+              id: song.id,
+              title: song.title,
+              artist: displayArtistNames(song.artists),
+              coverImage: song.image_url ? `${api.defaults.baseURL}${song.image_url}` : null,
+              listenCount: song.listen_count || 0
+            };
+            
+            return (
+              <div key={song.id} className="relative">
+                <SongCard
+                  song={songCardData}
+                  isPlaying={isCurrentSong && isPlaying}
+                  onPlay={() => handlePlaySong(song, displaySongs, index)}
+                  onAddToFavorites={() => toggleFavorite(song.id)}
+                  isFavorite={isFavorite}
+                  className="bg-gradient-to-b from-white to-[#f0f9ff] shadow-md"
+                />
+                
+                {/* Custom Options Menu */}
+                {isAuthenticated && (
+                  <div className="absolute top-2 right-2 z-10">
+                    <button 
+                      onClick={() => toggleMenu(song.id)} 
+                      className="p-2 bg-white bg-opacity-80 rounded-full text-gray-700 hover:bg-opacity-100 transition-all duration-200"
+                    >
+                      <FiMoreHorizontal />
+                    </button>
+                    {menuOpenSongId === song.id && (
+                      <div className="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg z-20">
+                        <button 
+                          onClick={() => handleOpenAddModal(song.id)} 
+                          className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          Thêm vào playlist
+                        </button>
+                        <button 
+                          onClick={() => toggleFavorite(song.id)}
+                          className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          {isFavorite ? "Xóa khỏi yêu thích" : "Thêm vào yêu thích"}
+                        </button>
+                        <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                          Chia sẻ
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        
         {displaySongs.length > 10 && (
-          <button onClick={toggleListExpansion} className="mt-4 w-full py-2 text-center text-gray-500 hover:text-gray-600 font-medium transition-colors">
+          <button 
+            onClick={toggleListExpansion} 
+            className="mt-4 w-full py-2 text-center text-gray-500 hover:text-gray-600 font-medium transition-colors"
+          >
             {isListExpanded ? "Thu gọn" : "Xem thêm..."}
           </button>
         )}

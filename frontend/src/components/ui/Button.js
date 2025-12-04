@@ -15,7 +15,7 @@ const Button = ({
   
   const variantClasses = {
     primary: 'bg-gradient-to-r from-[#7Ab2D3] to-[#4A90E2] text-white hover:shadow-lg hover:scale-105',
-    secondary: 'bg-white bg-opacity-20 backdrop-blur-sm text-white hover:bg-opacity-30',
+    secondary: 'bg-white bg-opacity-20 backdrop-blur-sm  hover:bg-opacity-30',
     accent: 'bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-white hover:shadow-lg hover:scale-105',
     ghost: 'bg-transparent text-white hover:bg-white hover:bg-opacity-20',
   };
