@@ -73,7 +73,7 @@ function Navigation() {
           </form>
 
           <div className="hidden md:flex items-center space-x-4">
-            <Link
+            {/* <Link
               to="/"
               className="text-white  px-3 py-2 rounded-md text-xl font-medium hover:bg-white hover:bg-opacity-20 transition-all duration-300" //hover:text-[#4A90E2]
             >
@@ -90,13 +90,13 @@ function Navigation() {
               className="text-white hover:text-[#4A90E2] px-3 py-2 rounded-md text-xl font-medium hover:bg-white hover:bg-opacity-20 transition-all duration-300"
             >
               Favorite
-            </Link>
+            </Link> */}
             {user ? (
               <>
                 {user.role === "admin" && (
                   <Link
                     to="/admin"
-                    className="text-white hover:text-[#4A90E2] px-3 py-2 rounded-md text-xl font-medium hover:bg-white hover:bg-opacity-20 transition-all duration-300"
+                    className="text-white  px-3 py-2 rounded-md text-xl font-medium hover:bg-white hover:bg-opacity-20 transition-all duration-300"
                   >
                     Admin Dashboard
                   </Link>
@@ -249,7 +249,7 @@ function Navigation() {
         </div>
       </div>
 
-      {/* Mobile menu */}
+      {/* Mobile menu
       <div className="md:hidden border-t border-gray-200 bg-white bg-opacity-80 backdrop-blur-sm">
         <div className="px-2 pt-2 pb-3 space-y-1">
           <Link
@@ -298,7 +298,7 @@ function Navigation() {
             </>
           )}
         </div>
-      </div>
+      </div> */}
     </nav>
   );
 }

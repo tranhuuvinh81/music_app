@@ -42,7 +42,7 @@ function MainLayout() {
   };
 
   return (
-    <div className="font-genos flex flex-col min-h-screen bg-gradient-to-br from-[#f0f9ff] to-white">
+    <div className="font-genos text-xl flex flex-col min-h-screen bg-gradient-to-br from-[#f0f9ff] to-white">
       {/* =================== MAIN CONTENT =================== */}
       <main className="flex flex-1 overflow-hidden">
         {/* =================== SIDEBAR =================== */}
@@ -53,7 +53,7 @@ function MainLayout() {
                 to="/"
                 end
                 className={({ isActive }) =>
-                  `flex items-center mt-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 ${
+                  `flex items-center mt-3 px-4 py-3 rounded-lg text-xl font-medium transition-all duration-300 ${
                     isActive
                       ? "bg-white bg-opacity-90 text-[#7Ab2D3] shadow-md transform scale-105"
                       : "text-white hover:bg-white hover:bg-opacity-20"
@@ -68,7 +68,7 @@ function MainLayout() {
               <NavLink
                 to="/artists"
                 className={({ isActive }) =>
-                  `flex items-center px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 ${
+                  `flex items-center px-4 py-3 rounded-lg text-xl font-medium transition-all duration-300 ${
                     isActive
                       ? "bg-white bg-opacity-90 text-[#7Ab2D3] shadow-md transform scale-105"
                       : "text-white hover:bg-white hover:bg-opacity-20"
@@ -83,7 +83,7 @@ function MainLayout() {
               <NavLink
                 to="/genres"
                 className={({ isActive }) =>
-                  `flex items-center px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 ${
+                  `flex items-center px-4 py-3 rounded-lg text-xl font-medium transition-all duration-300 ${
                     isActive
                       ? "bg-white bg-opacity-90 text-[#7Ab2D3] shadow-md transform scale-105"
                       : "text-white hover:bg-white hover:bg-opacity-20"
@@ -98,7 +98,7 @@ function MainLayout() {
               <NavLink
                 to="/countries"
                 className={({ isActive }) =>
-                  `flex items-center px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 ${
+                  `flex items-center px-4 py-3 rounded-lg text-xl font-medium transition-all duration-300 ${
                     isActive
                       ? "bg-white bg-opacity-90 text-[#7Ab2D3] shadow-md transform scale-105"
                       : "text-white hover:bg-white hover:bg-opacity-20"
@@ -113,7 +113,7 @@ function MainLayout() {
               <NavLink
                 to="/playlists"
                 className={({ isActive }) =>
-                  `flex items-center px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 ${
+                  `flex items-center px-4 py-3 rounded-lg text-xl font-medium transition-all duration-300 ${
                     isActive
                       ? "bg-white bg-opacity-90 text-[#7Ab2D3] shadow-md transform scale-105"
                       : "text-white hover:bg-white hover:bg-opacity-20"
@@ -128,7 +128,7 @@ function MainLayout() {
               <NavLink
                 to="/history"
                 className={({ isActive }) =>
-                  `flex items-center px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 ${
+                  `flex items-center px-4 py-3 rounded-lg text-xl font-medium transition-all duration-300 ${
                     isActive
                       ? "bg-white bg-opacity-90 text-[#7Ab2D3] shadow-md transform scale-105"
                       : "text-white hover:bg-white hover:bg-opacity-20"
@@ -153,7 +153,7 @@ function MainLayout() {
                     <p className="text-white font-medium">{user.full_name || 'User'}</p>
                     <button
                       onClick={handleLogout}
-                      className="text-white text-opacity-70 text-sm hover:text-opacity-100 transition-opacity"
+                      className="text-white text-opacity-70 text-xl hover:text-opacity-100 transition-opacity"
                     >
                       Đăng xuất
                     </button>
