@@ -1,6 +1,7 @@
+// frontend/src/pages/admin/AdminUserPage.js
 import React, { useState, useMemo, useEffect } from "react";
 import { useOutletContext } from "react-router-dom";
-import api from "../../api/api"; // Cần import api để dùng deleteUser
+import api from "../../api/api"; 
 
 function AdminUserPage() {
   const { users, handleViewUserClick, fetchUsers } = useOutletContext();
@@ -31,7 +32,7 @@ function AdminUserPage() {
     });
   }, [users, searchQuery]);
 
-  // 👇 4. LOGIC PHÂN TRANG (Dùng danh sách đã lọc)
+  // LOGIC PHÂN TRANG (Dùng danh sách đã lọc)
   const currentUsers = useMemo(() => {
     const indexOfLastUser = currentPage * usersPerPage;
     const indexOfFirstUser = indexOfLastUser - usersPerPage;
@@ -57,7 +58,7 @@ function AdminUserPage() {
     }
   };
 
-  // 👇 5. CẬP NHẬT HÀM XÓA
+  // HÀM XÓA
   const deleteUser = (userId) => {
     if (window.confirm("Bạn có chắc muốn xóa người dùng này?")) {
       api
@@ -75,7 +76,6 @@ function AdminUserPage() {
 
   return (
     <section className="bg-white rounded-lg shadow-md overflow-hidden">
-      {/* ... (Toàn bộ JSX của UserManagementContent cũ dán vào đây) ... */}
       <header className="px-6 py-4 border-b border-gray-200">
         <div className="flex items-center gap-4">
         <h2 className="text-xl font-semibold text-gray-800">User Management</h2>
@@ -155,9 +155,7 @@ function AdminUserPage() {
               </tr>
             ))}
           </tbody>
-               {" "}
         </table>
-           {" "}
       </div>
       {totalPages > 1 && (
         <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-center space-x-2">

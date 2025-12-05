@@ -1,4 +1,4 @@
-// frontend/src/App.js (Đã cấu trúc lại)
+// frontend/src/App.js 
 import React, { useContext } from "react";
 import {
   BrowserRouter as Router,
@@ -11,10 +11,8 @@ import { AuthProvider, AuthContext } from "./context/AuthContext";
 import { AudioProvider } from "./context/AudioContext";
 import { SongProvider } from "./context/SongContext";
 
-// Components & Pages
 import Navigation from "./components/layout/Navigation";
 import AudioPlayer from "./components/layout/AudioPlayer";
-import HomePage from "./pages/main/HomePage";
 import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -28,8 +26,7 @@ import AdminUserPage from "./pages/admin/AdminUserPage";
 import AdminSongPage from "./pages/admin/AdminSongPage";
 import AdminArtistPage from "./pages/admin/AdminArtistPage";
 
-// 👇 2. IMPORT LAYOUT MỚI VÀ CÁC TRANG CON MỚI
-import MainLayout from "./pages/main/MainLayout"; // HomePage cũ đổi tên
+import MainLayout from "./pages/main/MainLayout"; 
 import HomeSongsPage from "./pages/main/HomeSongsPage";
 import ArtistsPage from "./pages/main/ArtistsPage";
 import GenresPage from "./pages/main/GenresPage";

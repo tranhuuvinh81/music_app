@@ -1,3 +1,4 @@
+// frontend/src/pages/admin/AdminLayout.js
 import React, { useState, useEffect, useCallback, createContext, useContext } from "react";
 import { Outlet, NavLink } from "react-router-dom"; // Dùng Outlet và NavLink
 import api from "../../api/api";
@@ -108,7 +109,7 @@ const processChartData = (apiData = []) => {
     fetchArtistListens();
   }, [fetchUsers, fetchSongs, fetchArtists, fetchDailyListens, fetchArtistListens]);
 
-  // --- CÁC HÀM HANDLER CHO MODALS (VẪN ĐẶT Ở ĐÂY) ---
+  // --- CÁC HÀM HANDLER CHO MODALS  ---
   const handleViewUserClick = (user) => { setSelectedUser(user); setShowUserDetails(true); };
   const handleUserDetailsClose = () => { setShowUserDetails(false); setSelectedUser(null); };
   const handleUserUpdate = () => { fetchUsers(); };
@@ -149,9 +150,6 @@ const processChartData = (apiData = []) => {
             <h2 className="text-2xl font-bold text-gray-800 mb-6">Admin Panel</h2>
             <nav>
               <ul className="space-y-2">
-                {/* 👇 THAY THẾ <button> BẰNG <NavLink>
-                  'end' đảm bảo link "Dashboard" không bị active khi ở "/admin/users"
-                */}
                 <li>
                   <NavLink
                     to="/admin"
@@ -215,7 +213,7 @@ const processChartData = (apiData = []) => {
         </aside>
 
         <main className="flex-1 overflow-y-auto p-6">
-          {/* 👇 Outlet sẽ render trang con (Overview, Users, Songs, Artists) */}
+          {/* Outlet sẽ render trang con (Overview, Users, Songs, Artists) */}
           <Outlet context={{ 
             // Truyền context cho các trang con
             users, songs, artists, dailyListens, artistListens,

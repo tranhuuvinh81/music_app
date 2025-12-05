@@ -52,7 +52,6 @@ function AudioPlayer() {
   const [showOptions, setShowOptions] = useState(false);
   const optionsRef = useRef(null);
   
-  // Thêm padding vào body để tránh bị che khuất bởi player
   useEffect(() => {
     const playerHeight = 80; // Chiều cao của player
     document.body.style.paddingBottom = `${playerHeight}px`;
@@ -240,16 +239,16 @@ function AudioPlayer() {
             {showOptions && (
               <div className="absolute bottom-full right-0 mb-2 w-48 bg-white rounded-lg shadow-lg py-2 z-10">
                 <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                  Add to Playlist
+                  Thêm vào Playlist
                 </button>
                 <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                  Share
+                  Chia sẻ
                 </button>
                 <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                  View Album
+                  Xem Album
                 </button>
                 <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                  View Artist
+                  Xem Nghệ Sĩ
                 </button>
               </div>
             )}

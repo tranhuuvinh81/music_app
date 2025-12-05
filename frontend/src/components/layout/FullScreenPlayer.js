@@ -1,3 +1,4 @@
+// frontend/src/components/layout/FullScreenPlayer.js
 import React, { useContext, useState, useRef, useEffect } from "react";
 import { AudioContext } from "../../context/AudioContext";
 import api from "../../api/api";

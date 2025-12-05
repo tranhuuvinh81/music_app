@@ -1,3 +1,4 @@
+// frontend/src/pages/main/PlaylistPage.js
 import React, { useState, useEffect, useContext } from "react";
 import api from "../../api/api";
 import { AuthContext } from "../../context/AuthContext";
@@ -13,7 +14,7 @@ const displayArtistNames = (artistsArray) => {
   return artistsArray.map((artist) => artist.name).join(", ");
 };
 
-// 👇 1. THÊM HÀM XỬ LÝ ẢNH
+// HÀM XỬ LÝ ẢNH
 const getImageUrl = (url) => {
   if (!url) return 'https://via.placeholder.com/40';
   if (url.startsWith('http')) return url; // Link Spotify

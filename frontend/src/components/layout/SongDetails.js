@@ -112,7 +112,7 @@ function SongDetails({ onExpand }) {
 
   const toggleFavorite = () => {
     setIsFavorite(!isFavorite);
-    // Here you would typically update the backend or context
+    // UPDATE SAU
   };
 
   const handlePlayPause = () => {

@@ -10,7 +10,7 @@ import React, {
 import { AudioContext } from "../../context/AudioContext";
 import api from "../../api/api";
 
-// Hàm helper parseLRC (không đổi)
+// Hàm helper parseLRC
 const parseLRC = (lrcString) => {
   if (!lrcString) return [];
 
@@ -44,7 +44,7 @@ function LyricsViewer() {
   const containerRef = useRef(null);
   const [translateY, setTranslateY] = useState(0);
 
-  // useEffect để tải file .lrc (không đổi)
+  // useEffect để tải file .lrc
   useEffect(() => {
     if (!currentLyricsUrl) {
       setLrcContent(null);

@@ -210,7 +210,7 @@ function MainLayout() {
           </div>
         </aside> */}
         <aside className="w-80 bg-white shadow-md p-4 overflow-y-auto flex-shrink-0">
-          {/* 👇 3. TRUYỀN CALLBACK onExpand CHO SONG DETAILS */}
+          {/* TRUYỀN CALLBACK onExpand CHO SONG DETAILS */}
           <SongDetails onExpand={() => setIsFullScreen(true)} />
         </aside>
       </main>
@@ -226,7 +226,7 @@ function MainLayout() {
         />
       )}
       {showChatbot && <ChatbotModal onClose={closeChatbot} />}
-      {/* 👇 4. RENDER FULL SCREEN PLAYER */}
+      {/* RENDER FULL SCREEN PLAYER */}
       {isFullScreen && (
         <FullScreenPlayer onClose={() => setIsFullScreen(false)} />
       )}

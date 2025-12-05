@@ -1,3 +1,4 @@
+// frontend/src/components/modals/ChatbotModal.js
 import React, { useState, useContext, useRef, useEffect } from 'react';
 import { AudioContext } from '../../context/AudioContext';
 import api from '../../api/api';
@@ -20,7 +21,6 @@ const fetchGeminiSuggestions = async (userPrompt) => {
   }
 };
 
-// 👇 Hàm helper để lấy URL ảnh chính xác
 const getImageUrl = (url) => {
   if (!url) return 'https://via.placeholder.com/40';
   if (url.startsWith('http')) return url; // Link Spotify/Online
@@ -117,7 +117,6 @@ function ChatbotModal({ onClose }) {
                     {msg.songs.map(song => (
                       <li key={song.id} className="flex items-center justify-between p-2 bg-white rounded shadow-sm">
                         <div className="flex items-center min-w-0 mr-2">
-                          {/* 👇 SỬA LỖI: Dùng hàm getImageUrl */}
                           <img 
                             src={getImageUrl(song.image_url)} 
                             alt={song.title}

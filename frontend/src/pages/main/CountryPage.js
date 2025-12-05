@@ -1,3 +1,4 @@
+// frontend/src/pages/main/CountryPage.js
 import React, { useState, useEffect, useContext } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import api from '../../api/api';

@@ -711,7 +711,6 @@ function AdminDashboard() {
     }
   }, [filteredArtists, artistTotalPages, artistCurrentPage]);
 
-  // --- 👇 THÊM HÀM paginateArtists ---
   const paginateArtists = (pageNumber) => {
     if (pageNumber > 0 && pageNumber <= artistTotalPages) {
       setArtistCurrentPage(pageNumber);
@@ -795,7 +794,6 @@ function AdminDashboard() {
         .delete(`/api/artists/${artistId}`)
         .then(() => {
           fetchArtists(); // Tải lại danh sách nghệ sĩ
-          // 👇 Cập nhật logic phân trang
           if (currentArtists.length === 1 && artistCurrentPage > 1) {
             setArtistCurrentPage(artistCurrentPage - 1);
           }
@@ -852,9 +850,7 @@ function AdminDashboard() {
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
             currentSongs={currentSongs}
-            // Sửa 'totalPages={songTotalPages}' thành 'totalPages={totalPages}'
             totalPages={totalPages}
-            // Sửa 'paginate={songPaginate}' thành 'paginate={paginate}'
             paginate={paginate}
             currentPage={currentPage}
             handleAddSongClick={handleAddSongClick}
@@ -872,7 +868,7 @@ function AdminDashboard() {
             artistTotalPages={artistTotalPages}
             paginateArtists={paginateArtists}
             artistCurrentPage={artistCurrentPage}
-            artists={artists} // Prop này có thể không cần nữa nếu currentArtists thay thế
+            artists={artists}
             handleAddArtistClick={handleAddArtistClick}
             handleEditArtistClick={handleEditArtistClick}
             deleteArtist={deleteArtist}
