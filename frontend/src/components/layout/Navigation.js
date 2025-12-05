@@ -96,7 +96,7 @@ function Navigation() {
                 {user.role === "admin" && (
                   <Link
                     to="/admin"
-                    className="text-white  px-3 py-2 rounded-md text-xl font-medium hover:bg-white hover:bg-opacity-20 transition-all duration-300"
+                    className="text-white  px-3 py-2 rounded-md text-xl font-bold hover:bg-white hover:bg-opacity-20 transition-all duration-300"
                   >
                     Admin Dashboard
                   </Link>
@@ -106,13 +106,13 @@ function Navigation() {
               <>
                 <Link
                   to="/login"
-                  className="text-white hover:text-[#4A90E2] px-3 py-2 rounded-md text-xl font-medium hover:bg-white hover:bg-opacity-20 transition-all duration-300"
+                  className="text-white hover:text-[#4A90E2] px-3 py-2 rounded-md text-xl font-bold hover:bg-white hover:bg-opacity-20 transition-all duration-300"
                 >
                   Đăng nhập
                 </Link>
                 <Link
                   to="/register"
-                  className="bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-white px-4 py-2 rounded-full font-medium hover:shadow-lg hover:scale-105 transition-all duration-300"
+                  className="bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-white px-4 py-2 rounded-full font-bold hover:shadow-lg hover:scale-105 transition-all duration-300"
                 >
                   Đăng ký
                 </Link>
@@ -138,14 +138,14 @@ function Navigation() {
                     />
                   ) : (
                     <div className="h-10 w-10 rounded-full bg-gradient-to-r from-[#7Ab2D3] to-[#4A90E2] flex items-center justify-center shadow-md">
-                      <span className="text-white font-medium">
+                      <span className="text-white font-bold">
                         {fullUser
                           ? fullUser.full_name.charAt(0).toUpperCase()
                           : "U"}
                       </span>
                     </div>
                   )}
-                  <span className="ml-2 text-white text-xl font-medium hidden md:block">
+                  <span className="ml-2 text-white text-xl font-bold hidden md:block">
                     {fullUser ? fullUser.full_name : "Tài khoản"}
                   </span>
                   <svg
