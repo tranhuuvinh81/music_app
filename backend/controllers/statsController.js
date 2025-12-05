@@ -39,7 +39,7 @@ export const getDailyListenStats = (req, res) => {
       .json({ error: "Lỗi máy chủ không xác định", details: error.message });
   }
 };
-// --- HÀM MỚI: Lấy Top Nghệ Sĩ ---
+// --- Lấy Top Nghệ Sĩ ---
 export const getTopArtistStats = (req, res) => {
   try {
     // 1. JOIN 3 bảng: artists, song_artists, songs

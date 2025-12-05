@@ -27,7 +27,7 @@ const fetchArtistsForSongs = (songs) => {
             id: link.id,
             name: link.name,
             image_url: link.image_url,
-          })); 
+          }));
         return { ...song, artists: artists };
       });
       resolve(songsWithArtists);
@@ -83,7 +83,7 @@ export const getSongById = async (req, res) => {
 export const incrementListenCount = (req, res) => {
   const { id } = req.params;
   const query = "UPDATE songs SET listen_count = listen_count + 1 WHERE id = ?";
-  
+
   db.query(query, [id], (err, result) => {
     if (err) {
       // Ghi log lỗi nhưng không cần báo về client
@@ -94,7 +94,7 @@ export const incrementListenCount = (req, res) => {
       return res.status(404).json({ message: "Không tìm thấy bài hát" });
     }
     // Gửi 204 No Content, client không cần dữ liệu trả về
-    res.sendStatus(204); 
+    res.sendStatus(204);
   });
 };
 
@@ -130,10 +130,19 @@ export const addSong = (req, res) => {
     ? `/uploads/lyrics/${req.files.lyricFile[0].filename}`
     : null;
 
-  const query = `INSERT INTO songs (title, album, genre, release_year, country, file_url, image_url, lyrics_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+  const query = `INSERT INTO songs (title, album, genre, release_year, country, file_url, image_url, lyrics_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
   db.query(
     query,
-    [title, album, genre, release_year, country || null, file_url, image_url, lyrics_url],
+    [
+      title,
+      album,
+      genre,
+      release_year,
+      country || null,
+      file_url,
+      image_url,
+      lyrics_url,
+    ],
     (err, result) => {
       if (err)
         return res
@@ -191,7 +200,6 @@ export const updateSong = async (req, res) => {
   }
 
   try {
-
     const getOldSongQuery =
       "SELECT file_url, image_url, lyrics_url FROM songs WHERE id = ?";
     db.query(getOldSongQuery, [songId], (err, results) => {
@@ -286,26 +294,27 @@ export const deleteSong = (req, res) => {
 
 // Lấy danh sách thể loại unique
 export const getGenres = (req, res) => {
-  // 1. Lấy TẤT CẢ các chuỗi genre
-  const query = "SELECT genre FROM songs WHERE genre IS NOT NULL AND genre != ''";
-  db.query(query, (err, results) => {
-    if (err)
-      return res.status(500).json({ error: "Lỗi khi lấy danh sách thể loại" });
+  // 1. Lấy TẤT CẢ các chuỗi genre
+  const query =
+    "SELECT genre FROM songs WHERE genre IS NOT NULL AND genre != ''";
+  db.query(query, (err, results) => {
+    if (err)
+      return res.status(500).json({ error: "Lỗi khi lấy danh sách thể loại" });
 
     // 2. Tách chuỗi và tạo một Set (tập hợp) duy nhất
     const allGenres = new Set();
     results.forEach((row) => {
       // Tách chuỗi "Pop, K-Pop, Ballad" thành ["Pop", "K-Pop", "Ballad"]
       const genres = row.genre
-        .split(',')
+        .split(",")
         .map((g) => g.trim()) // Xóa khoảng trắng
         .filter((g) => g); // Bỏ các chuỗi rỗng
       genres.forEach((g) => allGenres.add(g));
     });
-    
+
     // 3. Chuyển Set thành mảng đã sắp xếp và trả về
-    res.json(Array.from(allGenres).sort());
-  });
+    res.json(Array.from(allGenres).sort());
+  });
 };
 
 // Lấy bài hát theo nghệ sĩ
@@ -357,81 +366,76 @@ export const getSongsByArtist = (req, res) => {
 
 // Lấy bài hát theo thể loại
 export const getSongsByGenre = (req, res) => {
-  const { genre } = req.params;
+  const { genre } = req.params;
   const decodedGenre = decodeURIComponent(genre);
-  
+
   // 1. Thay vì "genre = ?", dùng "FIND_IN_SET" hoặc "LIKE"
   // FIND_IN_SET chính xác hơn LIKE
   // Nó sẽ tìm 'Pop' trong 'Pop,K-Pop' nhưng không tìm 'Pop' trong 'K-Pop'
   // Chúng ta phải xóa khoảng trắng nếu có: 'Pop, K-Pop' -> 'Pop,K-Pop'
   // Cách đơn giản và hiệu quả nhất vẫn là LIKE
   const searchTerm = `%${decodedGenre}%`;
-  
   // 2. Cập nhật query (thêm listen_count và dùng LIKE)
   const query =
-    "SELECT id, title, album, genre, release_year, country, file_url, image_url, lyrics_url, listen_count, created_at FROM songs WHERE genre LIKE ? ORDER BY title";
-  
-  db.query(query, [searchTerm], async (err, songs) => { // 3. Đổi tham số
-    if (err)
-      return res
-        .status(500)
-        .json({ error: "Lỗi khi lấy bài hát theo thể loại" });
-    try {
-      const songsWithArtists = await fetchArtistsForSongs(songs);
-      res.json(songsWithArtists);
-    } catch (fetchErr) {
-      res.status(500).json({
-        error: "Lỗi khi lấy thông tin nghệ sĩ",
-        details: fetchErr.message,
-      });
-    }
-  });
+    "SELECT id, title, album, genre, release_year, country, file_url, image_url, lyrics_url, listen_count, created_at FROM songs WHERE genre LIKE ? ORDER BY title";
+  db.query(query, [searchTerm], async (err, songs) => {
+    // 3. Đổi tham số
+    if (err)
+      return res
+        .status(500)
+        .json({ error: "Lỗi khi lấy bài hát theo thể loại" });
+    try {
+      const songsWithArtists = await fetchArtistsForSongs(songs);
+      res.json(songsWithArtists);
+    } catch (fetchErr) {
+      res.status(500).json({
+        error: "Lỗi khi lấy thông tin nghệ sĩ",
+        details: fetchErr.message,
+      });
+    }
+  });
 };
 
-
-
-// --- HÀM MỚI 1: Lấy danh sách quốc gia unique ---
+// --- Lấy danh sách quốc gia unique ---
 export const getUniqueCountries = (req, res) => {
-  const query = "SELECT country FROM songs WHERE country IS NOT NULL AND country != ''";
-  db.query(query, (err, results) => {
-    if (err)
-      return res.status(500).json({ error: "Lỗi khi lấy danh sách quốc gia" });
+  const query =
+    "SELECT country FROM songs WHERE country IS NOT NULL AND country != ''";
+  db.query(query, (err, results) => {
+    if (err)
+      return res.status(500).json({ error: "Lỗi khi lấy danh sách quốc gia" });
 
-    const allCountries = new Set();
-    results.forEach((row) => {
-      const countries = row.country
-        .split(',')
-        .map((c) => c.trim())
-        .filter((c) => c);
-      countries.forEach((c) => allCountries.add(c));
-    });
-    
-    res.json(Array.from(allCountries).sort());
-  });
+    const allCountries = new Set();
+    results.forEach((row) => {
+      const countries = row.country
+        .split(",")
+        .map((c) => c.trim())
+        .filter((c) => c);
+      countries.forEach((c) => allCountries.add(c));
+    });
+    res.json(Array.from(allCountries).sort());
+  });
 };
 
-// --- HÀM MỚI 2: Lấy bài hát theo quốc gia ---
+// Lấy bài hát theo quốc gia ---
 export const getSongsByCountry = (req, res) => {
-  const { countryName } = req.params;
+  const { countryName } = req.params;
   const decodedCountry = decodeURIComponent(countryName);
-  const searchTerm = `%${decodedCountry}%`;
-  
-  const query =
-    "SELECT id, title, album, genre, release_year, country, file_url, image_url, lyrics_url, listen_count, created_at FROM songs WHERE country LIKE ? ORDER BY title";
-  
-  db.query(query, [searchTerm], async (err, songs) => {
-    if (err)
-      return res
-        .status(500)
-        .json({ error: "Lỗi khi lấy bài hát theo quốc gia" });
-    try {
-      const songsWithArtists = await fetchArtistsForSongs(songs);
-      res.json(songsWithArtists);
-    } catch (fetchErr) {
-      res.status(500).json({
-        error: "Lỗi khi lấy thông tin nghệ sĩ",
-        details: fetchErr.message,
-      });
-    }
-  });
+  const searchTerm = `%${decodedCountry}%`;
+  const query =
+    "SELECT id, title, album, genre, release_year, country, file_url, image_url, lyrics_url, listen_count, created_at FROM songs WHERE country LIKE ? ORDER BY title";
+  db.query(query, [searchTerm], async (err, songs) => {
+    if (err)
+      return res
+        .status(500)
+        .json({ error: "Lỗi khi lấy bài hát theo quốc gia" });
+    try {
+      const songsWithArtists = await fetchArtistsForSongs(songs);
+      res.json(songsWithArtists);
+    } catch (fetchErr) {
+      res.status(500).json({
+        error: "Lỗi khi lấy thông tin nghệ sĩ",
+        details: fetchErr.message,
+      });
+    }
+  });
 };

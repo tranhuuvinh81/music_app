@@ -1,4 +1,5 @@
-import connection from "../config/db.js"; // Hoặc import db from ... tùy vào file config của bạn
+// backend/controllers/playlistController.js
+import connection from "../config/db.js"; 
 
 // --- HÀM HELPER: Lấy nghệ sĩ cho danh sách bài hát ---
 const fetchArtistsForSongs = (songs) => {
@@ -20,7 +21,7 @@ const fetchArtistsForSongs = (songs) => {
           .filter((link) => link.song_id === song.id)
           .map((link) => ({ id: link.id, name: link.name }));
         
-        // Loại bỏ trường 'artist' cũ (nếu có) và thêm mảng 'artists'
+        // Loại bỏ trường 'artist' cũ và thêm mảng 'artists'
         const { artist, ...songData } = song;
         return { ...songData, artists: artists };
       });
@@ -29,7 +30,7 @@ const fetchArtistsForSongs = (songs) => {
   });
 };
 
-// 🟢 Tạo playlist mới
+// Tạo playlist mới
 export const createPlaylist = (req, res) => {
   const { name, description } = req.body;
   const user_id = req.user.id;
@@ -45,7 +46,7 @@ export const createPlaylist = (req, res) => {
   });
 };
 
-// 🟢 Lấy tất cả playlist của 1 user
+// Lấy tất cả playlist của 1 user
 export const getPlaylistsByUser = (req, res) => {
   const user_id = req.params.user_id;
   if (req.user.id.toString() !== user_id && req.user.role !== 'admin') {
@@ -58,7 +59,7 @@ export const getPlaylistsByUser = (req, res) => {
   });
 };
 
-// 🟢 Thêm bài hát vào playlist
+// Thêm bài hát vào playlist
 export const addSongToPlaylist = (req, res) => {
   const { playlist_id, song_id } = req.body;
   if (!playlist_id || !song_id) {
@@ -86,7 +87,7 @@ export const addSongToPlaylist = (req, res) => {
   });
 };
 
-// 🟢 Lấy danh sách bài hát trong 1 playlist (ĐÃ CẬP NHẬT)
+// Lấy danh sách bài hát trong 1 playlist 
 export const getSongsInPlaylist = (req, res) => {
   const playlist_id = req.params.playlist_id;
 
@@ -96,7 +97,7 @@ export const getSongsInPlaylist = (req, res) => {
       return res.status(403).json({ message: "Bạn không sở hữu playlist này" });
     }
 
-    // 👇 Cập nhật query để lấy đủ các cột mới (country, listen_count...)
+    // Cập nhật query để lấy đủ các cột mới (country, listen_count...)
     const sql = `
       SELECT s.id, s.title, s.album, s.genre, s.release_year, s.country, s.file_url, s.image_url, s.lyrics_url, s.listen_count, s.created_at
       FROM songs s
@@ -108,7 +109,7 @@ export const getSongsInPlaylist = (req, res) => {
       if (err) return res.status(500).json({ message: "Lỗi khi lấy danh sách bài hát", error: err });
       
       try {
-        // 👇 Gọi helper để lấy danh sách nghệ sĩ và gắn vào bài hát
+        // Gọi helper để lấy danh sách nghệ sĩ và gắn vào bài hát
         const songsWithArtists = await fetchArtistsForSongs(songs);
         res.json(songsWithArtists);
       } catch (fetchErr) {
@@ -118,7 +119,7 @@ export const getSongsInPlaylist = (req, res) => {
   });
 };
 
-// 🟢 Xóa bài hát khỏi playlist
+// Xóa bài hát khỏi playlist
 export const removeSongFromPlaylist = (req, res) => {
   const { playlist_id, song_id } = req.body;
   if (!playlist_id || !song_id) {
@@ -142,7 +143,7 @@ export const removeSongFromPlaylist = (req, res) => {
   });
 };
 
-// 🟢 Xóa playlist
+// Xóa playlist
 export const deletePlaylist = (req, res) => {
   const { playlist_id } = req.params;
   connection.query("SELECT user_id FROM playlists WHERE id = ?", [playlist_id], (err, results) => {
@@ -159,11 +160,8 @@ export const deletePlaylist = (req, res) => {
   });
 };
 
-// 🟢 Cập nhật playlist (đã thêm ở các bước trước, giữ nguyên nếu có)
+// Cập nhật playlist (đã thêm ở các bước trước, giữ nguyên nếu có)
 export const updatePlaylist = (req, res) => {
-    // ... (giữ nguyên code updatePlaylist nếu bạn đã có)
     const { playlist_id } = req.params;
-    // ... logic update ...
-    // Nếu chưa có, bạn có thể thêm vào hoặc bỏ qua nếu không cần sửa lại phần này.
-    // (Dựa trên file bạn gửi ban đầu thì chưa có hàm này, nhưng nếu bạn đã thêm thì giữ nguyên)
+    // UPDATE SAU
 };

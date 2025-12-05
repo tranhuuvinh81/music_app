@@ -10,7 +10,7 @@ import {
   getSongsByArtist,
   getSongsByGenre,
   incrementListenCount,
-  getUniqueCountries, // 👈 ĐÃ IMPORT
+  getUniqueCountries,
   getSongsByCountry 
 } from "../controllers/songController.js";
 import { verifyToken, isAdmin } from "../middleware/authMiddleware.js";
@@ -26,7 +26,6 @@ router.get("/genre/:genre", getSongsByGenre); // Lấy bài hát theo thể lo�
 
 router.post("/:id/listen", incrementListenCount); // Tăng lượt nghe bài hát
 
-// 👇 ĐÃ THÊM ROUTE
 router.get("/countries", getUniqueCountries); // Lấy danh sách quốc gia
 router.get("/country/:countryName", getSongsByCountry); // Lấy bài hát theo quốc gia
 

@@ -1,3 +1,4 @@
+// backend/controllers/artistController.js
 import db from "../config/db.js";
 
 // Lấy tất cả nghệ sĩ (cho Card list)

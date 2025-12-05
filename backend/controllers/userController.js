@@ -43,11 +43,10 @@ export const registerUser = async (req, res) => {
 
 // Lấy danh sách người dùng (ẩn mật khẩu)
 export const getAllUsers = (req, res) => {
-  // 👇 BẮT ĐẦU SỬA ĐỔI QUERY
   // 1. JOIN với user_history
   // 2. COUNT(uh.id) để đếm số lượt nghe
   // 3. GROUP BY theo tất cả các cột của user
-  const query = `
+  const query = `
     SELECT 
       u.id, u.username, u.full_name, u.age, u.email, u.phone, u.role, u.avatar_url,
       COUNT(uh.id) AS total_listens
@@ -60,14 +59,12 @@ export const getAllUsers = (req, res) => {
     ORDER BY 
       u.id ASC;
   `;
-  // 👆 KẾT THÚC SỬA ĐỔI QUERY
 
-  db.query(query, (err, results) => {
-      if (err) return res.status(500).json({ error: err.message });
-      // Giờ đây 'results' sẽ chứa mảng user, mỗi user có thêm 'total_listens'
-      res.json(results);
-    }
-  );
+  db.query(query, (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    // Giờ đây 'results' sẽ chứa mảng user, mỗi user có thêm 'total_listens'
+    res.json(results);
+  });
 };
 
 // Lấy thông tin chi tiết user theo ID (cho profile hoặc admin view)
@@ -133,7 +130,7 @@ export const updateUser = async (req, res) => {
       values.push(hashedPassword);
     }
 
-    // 👇 2. Thêm logic cập nhật role (CHỈ DÀNH CHO ADMIN)
+    // logic cập nhật role (CHỈ DÀNH CHO ADMIN)
     if (role && loggedInUser.role === "admin") {
       updateFields.push("role = ?");
       values.push(role);
@@ -280,7 +277,6 @@ export const getListenHistory = (req, res) => {
         .status(500)
         .json({ error: "Lỗi khi lấy lịch sử nghe", details: err.message });
 
-    // 👇 SỬA LẠI LOGIC PARSE Ở ĐÂY
     const historyWithParsedArtists = results.map((song) => {
       let parsedArtists = []; // Mặc định là mảng rỗng
       if (song.artists) {

@@ -1,3 +1,4 @@
+// backend/routes/artistRoutes.js
 import express from "express";
 import {
   getAllArtists,

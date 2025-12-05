@@ -1,5 +1,6 @@
+// backend/controllers/chatbotController.js
 import fetch from 'node-fetch';
-import db from "../config/db.js"; // 👈 1. IMPORT DATABASE
+import db from "../config/db.js";
 
 // --- HÀM HELPER: LẤY VÀ FORMAT TẤT CẢ BÀI HÁT ---
 const getFormattedSongList = () => {
@@ -55,7 +56,7 @@ const fetchArtistsForSongs = (songs) => {
   });
 };
 
-// --- HÀM GỌI GEMINI (ĐÃ CẬP NHẬT PROMPT) ---
+// --- HÀM GỌI GEMINI ---
 const fetchGeminiSuggestionsFromApi = async (userPrompt, songListString) => {
   const apiKey = process.env.GOOGLE_GEMINI_API_KEY;
   if (!apiKey) {
@@ -64,7 +65,6 @@ const fetchGeminiSuggestionsFromApi = async (userPrompt, songListString) => {
   
   const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
 
-  // 👇 SYSTEM PROMPT MỚI
   const systemPrompt = `
     Bạn là một DJ chuyên nghiệp. Nhiệm vụ của bạn là xem một DANH SÁCH BÀI HÁT CÓ SẴN và một YÊU CẦU CỦA NGƯỜI DÙNG.
     Bạn phải chọn ra tối đa 5 ID bài hát từ danh sách phù hợp nhất với yêu cầu.
@@ -77,7 +77,7 @@ const fetchGeminiSuggestionsFromApi = async (userPrompt, songListString) => {
     - Nếu không tìm thấy bài nào, trả về một chuỗi rỗng.
   `;
   
-  // 👇 PROMPT MỚI (GHÉP DANH SÁCH VÀ YÊU CẦU)
+  // PROMT GHÉP DANH SÁCH VÀ YÊU CẦU
   const fullPrompt = `
     Đây là danh sách bài hát có sẵn:
     ---
@@ -151,7 +151,7 @@ export const getChatbotSuggestion = async (req, res) => {
       return res.json({ songs: [] });
     }
 
-    // 👇 BƯỚC E: LẤY THÔNG TIN BÀI HÁT ĐẦY ĐỦ TỪ DB
+    // LẤY THÔNG TIN BÀI HÁT ĐẦY ĐỦ TỪ DB
     const getFullSongsQuery = `
       SELECT id, title, album, genre, release_year, country, file_url, image_url, lyrics_url, listen_count, created_at
       FROM songs 
@@ -164,7 +164,7 @@ export const getChatbotSuggestion = async (req, res) => {
             return res.status(500).json({ error: "Lỗi khi lấy dữ liệu bài hát" });
         }
 
-        // 👇 BƯỚC F: GẮN THÔNG TIN NGHỆ SĨ ĐẦY ĐỦ
+        // GẮN THÔNG TIN NGHỆ SĨ ĐẦY ĐỦ
         const songsWithArtists = await fetchArtistsForSongs(songResults);
 
         // Sắp xếp kết quả trả về theo đúng thứ tự Gemini đã gợi ý

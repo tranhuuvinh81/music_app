@@ -1,3 +1,4 @@
+// backend/controllers/searchController.js
 import db from "../config/db.js";
 
 // Hàm này sẽ lấy danh sách nghệ sĩ đầy đủ cho một danh sách bài hát
@@ -47,7 +48,6 @@ export const searchAll = async (req, res) => {
 
   try {
     const searchSongsPromise = new Promise((resolve, reject) => {
-      // 👇 BẮT ĐẦU SỬA ĐỔI
       // 1. Thêm s.country, s.listen_count vào SELECT
       // 2. Thêm s.genre LIKE ? và s.country LIKE ? vào WHERE
       const query = `
@@ -71,7 +71,6 @@ export const searchAll = async (req, res) => {
         if (err) return reject(err);
         resolve(results);
       });
-      // 👆 KẾT THÚC SỬA ĐỔI
     });
 
     // Promise tìm kiếm nghệ sĩ (giữ nguyên)
