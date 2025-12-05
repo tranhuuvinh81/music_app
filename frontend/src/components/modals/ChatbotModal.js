@@ -1,12 +1,12 @@
+// frontend/src/components/modals/ChatbotModal.js
 import React, { useState, useContext, useRef, useEffect } from 'react';
 import { AudioContext } from '../../context/AudioContext';
-// 👇 1. IMPORT AuthContext
 import { AuthContext } from '../../context/AuthContext';
 import api from '../../api/api';
 import { FiSend, FiX, FiMusic, FiUser } from 'react-icons/fi';
 import avt from '../../assets/images/onlylogo-removebg-preview.png'; // Logo mặc định cho Bot
 
-// --- HÀM GỌI BACKEND (Giữ nguyên) ---
+// --- HÀM GỌI BACKEND ---
 const fetchGeminiSuggestions = async (userPrompt) => {
   try {
     const response = await api.post('/api/chatbot/suggest', {
