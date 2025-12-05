@@ -228,7 +228,7 @@ function AudioPlayer() {
           </button>
           
           <div className="relative" ref={optionsRef}>
-            <button
+            {/* <button
               onClick={() => setShowOptions(!showOptions)}
               className="p-1 rounded-full text-white text-opacity-70 hover:text-opacity-100 transition-all duration-300"
               title="More Options"
@@ -251,7 +251,7 @@ function AudioPlayer() {
                   Xem Nghệ Sĩ
                 </button>
               </div>
-            )}
+            )} */}
           </div>
           
           <div className="flex items-center space-x-2">

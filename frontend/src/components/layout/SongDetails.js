@@ -17,7 +17,7 @@ const formatTime = (seconds) => {
   return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
 };
 
-function SongDetails({ onExpand }) {
+function SongDetails({ onExpand, openAddModal, openArtistModal }) {
   const { currentPlaylist, currentIndex } = useContext(AudioContext);
   const currentSong = currentPlaylist[currentIndex];
   const [isFavorite, setIsFavorite] = useState(false);
@@ -25,6 +25,9 @@ function SongDetails({ onExpand }) {
   const [lyricsHeight, setLyricsHeight] = useState(0);
   const optionsRef = useRef(null);
   const containerRef = useRef(null);
+
+  const [menuOpenSongId, setMenuOpenSongId] = useState(null);
+  const [showArtistSubmenu, setShowArtistSubmenu] = useState(false); // State cho submenu nghệ sĩ
 
   const {
     isPlaying,
@@ -47,6 +50,32 @@ function SongDetails({ onExpand }) {
   const [isAnimating, setIsAnimating] = useState(false);
   const [albumRotation, setAlbumRotation] = useState(0);
   const animationRef = useRef(null);
+
+  // Hàm xử lý khi click vào một nghệ sĩ cụ thể
+  const handleViewArtist = async (artistName) => {
+    setShowOptions(false);
+    setShowArtistSubmenu(false);
+
+    try {
+      // Vì Song object chỉ có {id, name}, ta cần fetch thông tin đầy đủ của Artist để hiển thị Modal
+      // Giả sử bạn có API getArtistByName hoặc getArtistById
+      // Ở đây ta dùng cách tìm trong danh sách tất cả (hơi thủ công nhưng nhanh)
+      // Tốt nhất là backend nên trả về full info artist trong bài hát, hoặc ta fetch lại
+
+      // Cách đơn giản: Gọi API search hoặc get all để tìm
+      // Tuy nhiên, để nhanh, ta sẽ gọi API lấy danh sách nghệ sĩ và tìm
+      const res = await api.get("/api/artists");
+      const fullArtistInfo = res.data.find((a) => a.name === artistName);
+
+      if (fullArtistInfo) {
+        openArtistModal(fullArtistInfo);
+      } else {
+        alert("Không tìm thấy thông tin chi tiết nghệ sĩ này.");
+      }
+    } catch (err) {
+      console.error("Lỗi khi tải thông tin nghệ sĩ:", err);
+    }
+  };
 
   // Calculate lyrics height based on container width (4:3 aspect ratio)
   useEffect(() => {
@@ -119,6 +148,22 @@ function SongDetails({ onExpand }) {
     togglePlay();
   };
 
+  const handleOpenAddModal = (songId) => {
+    setMenuOpenSongId(null);
+    setShowOptions(false); // Đóng menu options khi mở modal
+    // Gọi hàm được truyền từ props
+    if (openAddModal) {
+      openAddModal(songId);
+    } else {
+      console.error("openAddModal function is missing!");
+    }
+  };
+  const getImageUrl = (url) => {
+    if (!url) return "https://via.placeholder.com/300";
+    if (url.startsWith("http")) return url;
+    return `${api.defaults.baseURL}${url}`;
+  };
+
   if (!currentSong) {
     return (
       <div className="flex flex-col items-center h-full p-6 bg-gradient-to-b from-white to-[#f0f9ff] rounded-xl shadow-lg">
@@ -178,7 +223,7 @@ function SongDetails({ onExpand }) {
               </button>
               <img
                 className="w-full h-full object-cover transform transition-transform duration-500 ease-in-out group-hover:scale-110"
-                src={imageSrc}
+                src={getImageUrl(currentSong.image_url)}
                 alt={currentSong.title}
               />
             </div>
@@ -378,21 +423,54 @@ function SongDetails({ onExpand }) {
               </button>
 
               {showOptions && (
-                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48 bg-white rounded-lg shadow-lg py-2 z-10">
-                  <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                    Thêm vào playlist
-                  </button>
-                  <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                    Chia sẻ bài hát
-                  </button>
-                  <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                    Xem Album
-                  </button>
-                  <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                    Xem Nghệ Sĩ
-                  </button>
-                </div>
-              )}
+  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50">
+    <button
+      onClick={() => handleOpenAddModal(currentSong.id)}
+      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+    >
+      Thêm vào playlist
+    </button>
+    {/* <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+      Chia sẻ bài hát
+    </button>
+    <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+      Xem Album
+    </button> */}
+    <div className="relative group">
+      <button
+        onClick={() => setShowArtistSubmenu(!showArtistSubmenu)}
+        className="flex items-center justify-between w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+      >
+        <span>Xem Nghệ Sĩ</span>
+        <svg className="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20">
+          <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+        </svg>
+      </button>
+
+      {/* Submenu hiển thị danh sách nghệ sĩ */}
+      {showArtistSubmenu && (
+        <div className="absolute bottom-full left-0 mb-1 w-56 bg-white rounded-lg shadow-lg py-2 z-[60] border border-gray-100">
+          {currentSong.artists &&
+          currentSong.artists.length > 0 ? (
+            currentSong.artists.map((artist, index) => (
+              <button
+                key={index}
+                onClick={() => handleViewArtist(artist.name)}
+                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 truncate"
+              >
+                {artist.name}
+              </button>
+            ))
+          ) : (
+            <div className="px-4 py-2 text-sm text-gray-500">
+              Không có thông tin
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  </div>
+)}
             </div>
           </div>
         </div>

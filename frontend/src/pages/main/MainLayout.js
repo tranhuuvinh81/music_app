@@ -204,14 +204,12 @@ function MainLayout() {
         </div>
 
         {/* =================== RIGHT SIDEBAR =================== */}
-        {/* <aside className="w-96 bg-gradient-to-b from-white to-[#f0f9ff] shadow-lg flex-shrink-0">
-          <div className="h-full p-4 overflow-y-auto">
-            <SongDetails />
-          </div>
-        </aside> */}
         <aside className="w-80 bg-white shadow-md p-4 overflow-y-auto flex-shrink-0">
           {/* TRUYỀN CALLBACK onExpand CHO SONG DETAILS */}
-          <SongDetails onExpand={() => setIsFullScreen(true)} />
+          <SongDetails onExpand={() => setIsFullScreen(true)} 
+            openAddModal={openAddModal}
+            openArtistModal={openArtistModal}
+          />
         </aside>
       </main>
 
