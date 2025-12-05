@@ -212,96 +212,91 @@ function SongDetails({ onExpand }) {
         {/* Audio Controls */}
         <div className="audio-controls">
           {/* Control Buttons */}
-          {/* Audio Controls */}
-<div className="audio-controls">
-  <div className="flex justify-between items-center mb-6">
+          <div className="flex justify-between items-center mb-6">
+            <button
+              onClick={toggleShuffle}
+              className={`p-2 rounded-full transition-all duration-300 ${
+                shuffleMode
+                  ? "text-[#7Ab2D3] bg-[#7Ab2D3] bg-opacity-20"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+              title="Shuffle"
+            >
+              <FiShuffle className={shuffleMode ? "fill-current" : ""} />
+            </button>
 
-    {/* Shuffle */}
-    <button
-      onClick={toggleShuffle}
-      className={`p-2 rounded-full transition-all duration-300 ${
-        shuffleMode
-          ? "text-[#7Ab2D3] bg-[#7Ab2D3] bg-opacity-20"
-          : "text-gray-500 hover:text-gray-700"
-      }`}
-      title="Shuffle"
-    >
-      <svg
-        className="w-6 h-6"
-        fill="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path d="M4 4h2.586l3.707 3.707-1.414 1.414L5 6.414V9H3V4h1zm14 0h3v5h-2V6.414l-3.879 3.879-1.414-1.414L18.586 4H18zm-7.707 9.879L5 17.586V15H3v5h5v-2H5.414l5.293-5.293-1.414-1.414zm6.293-.879l1.414-1.414L22 15.586V13h2v5h-5v-2h1.586L16.586 13z" />
-      </svg>
-    </button>
+            <button
+              onClick={prevSong}
+              disabled={currentIndex <= 0}
+              className={`p-2 rounded-full transition-all duration-300 ${
+                currentIndex <= 0
+                  ? "text-gray-300 cursor-not-allowed"
+                  : "text-gray-700 hover:bg-gray-100 hover:scale-110"
+              }`}
+            >
+              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M8.445 14.832A1 1 0 0010 14v-8a1 1 0 00-1.555-.832L3 9.168V6a1 1 0 00-2 0v8a1 1 0 002 0v-3.168l5.445 4z" />
+              </svg>
+            </button>
 
-    {/* Prev */}
-    <button
-      onClick={prevSong}
-      disabled={currentIndex <= 0}
-      className={`p-2 rounded-full flex items-center justify-center transition-all duration-300 ${
-        currentIndex <= 0
-          ? "text-gray-300 cursor-not-allowed"
-          : "text-gray-700 hover:bg-gray-100 hover:scale-110"
-      }`}
-    >
-      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-        <path d="M16 4v12l-8-6 8-6zM6 4h2v12H6V4z" />
-      </svg>
-    </button>
+            <button
+              onClick={handlePlayPause}
+              className="p-4  bg-gradient-to-r from-[#7Ab2D3] to-[#4A90E2] text-white rounded-full hover:shadow-xl hover:scale-110 transition-all duration-300 relative overflow-hidden group"
+            >
+              <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+              {isPlaying ? (
+                <svg
+                  className="w-6 h-6 relative z-10"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              ) : (
+                <svg
+                  className="w-6 h-6 relative z-10"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              )}
+            </button>
 
-    {/* Play / Pause */}
-    <button
-      onClick={handlePlayPause}
-      className="p-4 bg-gradient-to-r from-[#7Ab2D3] to-[#4A90E2] text-white rounded-full hover:shadow-xl hover:scale-110 transition-all duration-300 relative overflow-hidden group"
-    >
-      <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+            <button
+              onClick={nextSong}
+              disabled={currentIndex >= currentPlaylist.length - 1}
+              className={`p-2 rounded-full flex items-center justify-center transition-all duration-300 ${
+                currentIndex >= currentPlaylist.length - 1
+                  ? "text-gray-300 cursor-not-allowed"
+                  : "text-gray-700 hover:bg-gray-100 hover:scale-110"
+              }`}
+            >
+              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M4.555 5.168A1 1 0 003 6v8a1 1 0 001.555.832L10 10.832V14a1 1 0 002 0V6a1 1 0 00-2 0v3.168L4.555 5.168z" />
+              </svg>
+            </button>
 
-      {isPlaying ? (
-        // Pause icon
-        <svg className="w-6 h-6 relative z-10" fill="currentColor" viewBox="0 0 20 20">
-          <path d="M6 4h3v12H6V4zm5 0h3v12h-3V4z" />
-        </svg>
-      ) : (
-        // Play icon
-        <svg className="w-6 h-6 relative z-10" fill="currentColor" viewBox="0 0 20 20">
-          <path d="M5 4l10 6-10 6V4z" />
-        </svg>
-      )}
-    </button>
-
-    {/* Next */}
-    <button
-      onClick={nextSong}
-      disabled={currentIndex >= currentPlaylist.length - 1}
-      className={`p-2 rounded-full flex items-center justify-center transition-all duration-300 ${
-        currentIndex >= currentPlaylist.length - 1
-          ? "text-gray-300 cursor-not-allowed"
-          : "text-gray-700 hover:bg-gray-100 hover:scale-110"
-      }`}
-    >
-      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-        <path d="M4 4l8 6-8 6V4zm9 0h2v12h-2V4z" />
-      </svg>
-    </button>
-
-    {/* Repeat */}
-    <button
-      onClick={toggleRepeat}
-      className={`p-2 rounded-full transition-all duration-300 ${
-        repeatMode
-          ? "text-[#7Ab2D3] bg-[#7Ab2D3] bg-opacity-20"
-          : "text-gray-500 hover:text-gray-700"
-      }`}
-      title="Repeat"
-    >
-      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-        <path d="M4 7h13.586l-2.293 2.293 1.414 1.414L21.414 6l-4.707-4.707-1.414 1.414L17.586 5H4v2zm16 10H6.414l2.293-2.293-1.414-1.414L2.586 18l4.707 4.707 1.414-1.414L6.414 19H20v-2z" />
-      </svg>
-    </button>
-  </div>
-</div>
-
+            <button
+              onClick={toggleRepeat}
+              className={`p-2 rounded-full transition-all duration-300 ${
+                repeatMode
+                  ? "text-[#7Ab2D3] bg-[#7Ab2D3] bg-opacity-20"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+              title="Repeat"
+            >
+              <FiRepeat className={repeatMode ? "fill-current" : ""} />
+            </button>
+          </div>
 
           {/* Progress Bar */}
           <div className="flex justify-between text-sm text-gray-600 mb-2">

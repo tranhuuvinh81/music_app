@@ -38,6 +38,12 @@ function AdminSongPage() {
 
   const totalPages = Math.ceil(filteredSongs.length / songsPerPage);
 
+  const getImageUrl = (url) => {
+    if (!url) return "https://via.placeholder.com/300";
+    if (url.startsWith("http")) return url;
+    return `${api.defaults.baseURL}${url}`;
+  };
+
   useEffect(() => {
     if (currentPage > totalPages && totalPages > 0) {
       setCurrentPage(totalPages);
@@ -96,6 +102,9 @@ function AdminSongPage() {
                 ID
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Image
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Title
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -114,6 +123,12 @@ function AdminSongPage() {
               <tr key={song.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {song.id}
+                </td>
+                <td className="w-6 h-6 px-6 py-4 whitespace-nowrap">
+                  <img
+                    src={getImageUrl(song.image_url)}
+                    alt={song.title}
+                    />
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {song.title}
