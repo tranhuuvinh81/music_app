@@ -1,4 +1,4 @@
-// frontend/src/components/layout/MainLayout.js
+// frontend/src/pages/main/MainLayout.js
 import React, { useState, useContext } from "react";
 import { Outlet, NavLink } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
@@ -8,12 +8,16 @@ import ArtistDetailsModal from "../../components/modals/ArtistDetailModal";
 import ChatbotModal from "../../components/modals/ChatbotModal";
 import { useNavigate } from "react-router-dom";
 
+import FullScreenPlayer from "../../components/layout/FullScreenPlayer";
+
 function MainLayout() {
-  // Logic Modal và Chatbot được giữ lại ở layout cha
   const { user, isAuthenticated, logout } = useContext(AuthContext);
   const [modalSongId, setModalSongId] = useState(null);
   const [artistModalData, setArtistModalData] = useState(null);
   const [showChatbot, setShowChatbot] = useState(false);
+
+  const [isFullScreen, setIsFullScreen] = useState(false);
+
   const navigate = useNavigate();
 
   // State cho AddToPlaylistModal
@@ -179,7 +183,7 @@ function MainLayout() {
           {/* NÚT CHATBOT */}
           <button
             onClick={openChatbot}
-            className="fixed bottom-6 right-6 bg-gradient-to-r from-[#7Ab2D3] to-[#4A90E2] text-white p-4 rounded-full shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#7Ab2D3] focus:ring-offset-2 z-50"
+            className="fixed bottom-[104px] right-6 bg-gradient-to-r from-[#7Ab2D3] to-[#4A90E2] text-white p-4 rounded-full shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#7Ab2D3] focus:ring-offset-2 z-50"
             title="Hỏi Chatbot"
           >
             <svg
@@ -200,11 +204,15 @@ function MainLayout() {
         </div>
 
         {/* =================== RIGHT SIDEBAR =================== */}
-        <aside className="w-96 bg-gradient-to-b from-white to-[#f0f9ff] shadow-lg flex-shrink-0">
+        {/* <aside className="w-96 bg-gradient-to-b from-white to-[#f0f9ff] shadow-lg flex-shrink-0">
           <div className="h-full p-4 overflow-y-auto">
             <SongDetails />
           </div>
-        </aside>
+        </aside> */}
+        <aside className="w-80 bg-white shadow-md p-4 overflow-y-auto flex-shrink-0">
+          {/* 👇 3. TRUYỀN CALLBACK onExpand CHO SONG DETAILS */}
+          <SongDetails onExpand={() => setIsFullScreen(true)} />
+        </aside>
       </main>
 
       {/* =================== MODALS =================== */}
@@ -218,6 +226,10 @@ function MainLayout() {
         />
       )}
       {showChatbot && <ChatbotModal onClose={closeChatbot} />}
+      {/* 👇 4. RENDER FULL SCREEN PLAYER */}
+      {isFullScreen && (
+        <FullScreenPlayer onClose={() => setIsFullScreen(false)} />
+      )}
     </div>
   );
 }

@@ -19,6 +19,12 @@ const displayArtistNames = (artistsArray) => {
   return artistsArray.map((artist) => artist.name).join(", ");
 };
 
+const getImageUrl = (url) => {
+  if (!url) return 'https://via.placeholder.com/300';
+  if (url.startsWith('http')) return url;
+  return `${api.defaults.baseURL}${url}`;
+};
+
 function AudioPlayer() {
   const {
     currentSong,
@@ -86,7 +92,7 @@ function AudioPlayer() {
         <div className="flex items-center space-x-3 w-1/4">
           {imageSrc ? (
             <img 
-              src={imageSrc} 
+              src={getImageUrl(currentSongObj.image_url)} 
               alt={songTitle}
               className="w-12 h-12 rounded-md object-cover shadow-md"
             />

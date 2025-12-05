@@ -16,6 +16,12 @@ function HistoryPage() {
   const { openAddModal } = useOutletContext();
   const { isAuthenticated } = useContext(AuthContext);
 
+  const getImageUrl = (url) => {
+    if (!url) return "https://via.placeholder.com/300";
+    if (url.startsWith("http")) return url;
+    return `${api.defaults.baseURL}${url}`;
+  };
+
   useEffect(() => {
     if (isAuthenticated) {
       api.get('/api/users/history')
@@ -77,7 +83,8 @@ function HistoryPage() {
                   id: song.id,
                   title: song.title,
                   artist: displayArtistNames(song.artists),
-                  coverImage: song.image_url ? `${api.defaults.baseURL}${song.image_url}` : null,
+                  // coverImage: song.image_url ? `${api.defaults.baseURL}${song.image_url}` : null,
+                  coverImage: getImageUrl(song.image_url),
                   listenCount: song.listen_count || 0
                 };
                 

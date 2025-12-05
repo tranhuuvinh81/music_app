@@ -3,7 +3,13 @@ import React, { useContext, useState, useRef, useEffect } from "react";
 import { AudioContext } from "../../context/AudioContext";
 import api from "../../api/api";
 import LyricsViewer from "../common/LyricsViewer";
-import { FiHeart, FiMoreHorizontal, FiRepeat, FiShuffle } from "react-icons/fi";
+import {
+  FiHeart,
+  FiMoreHorizontal,
+  FiRepeat,
+  FiShuffle,
+  FiMaximize2,
+} from "react-icons/fi";
 
 const formatTime = (seconds) => {
   const minutes = Math.floor(seconds / 60);
@@ -11,7 +17,7 @@ const formatTime = (seconds) => {
   return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
 };
 
-function SongDetails() {
+function SongDetails({ onExpand }) {
   const { currentPlaylist, currentIndex } = useContext(AudioContext);
   const currentSong = currentPlaylist[currentIndex];
   const [isFavorite, setIsFavorite] = useState(false);
@@ -19,7 +25,7 @@ function SongDetails() {
   const [lyricsHeight, setLyricsHeight] = useState(0);
   const optionsRef = useRef(null);
   const containerRef = useRef(null);
-  
+
   const {
     isPlaying,
     togglePlay,
@@ -54,10 +60,10 @@ function SongDetails() {
     };
 
     updateLyricsHeight();
-    window.addEventListener('resize', updateLyricsHeight);
-    
+    window.addEventListener("resize", updateLyricsHeight);
+
     return () => {
-      window.removeEventListener('resize', updateLyricsHeight);
+      window.removeEventListener("resize", updateLyricsHeight);
     };
   }, [showLyrics]);
 
@@ -65,7 +71,7 @@ function SongDetails() {
   useEffect(() => {
     if (isPlaying) {
       const animate = () => {
-        setAlbumRotation(prev => (prev + 0.5) % 360);
+        setAlbumRotation((prev) => (prev + 0.5) % 360);
         animationRef.current = requestAnimationFrame(animate);
       };
       animationRef.current = requestAnimationFrame(animate);
@@ -74,7 +80,7 @@ function SongDetails() {
         cancelAnimationFrame(animationRef.current);
       }
     }
-    
+
     return () => {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
@@ -89,10 +95,10 @@ function SongDetails() {
         setShowOptions(false);
       }
     };
-    
-    document.addEventListener('mousedown', handleClickOutside);
+
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -127,7 +133,9 @@ function SongDetails() {
             </svg>
           </div>
           <p className="text-gray-600 font-medium">Chưa có bài hát đang phát</p>
-          <p className="text-gray-500 text-sm mt-2">Hãy chọn một bài hát để bắt đầu</p>
+          <p className="text-gray-500 text-sm mt-2">
+            Hãy chọn một bài hát để bắt đầu
+          </p>
         </div>
       </div>
     );
@@ -142,16 +150,32 @@ function SongDetails() {
     }
     return artistsArray.map((artist) => artist.name).join(", ");
   };
-  
+
   return (
-    <div ref={containerRef} className="flex flex-col bg-gradient-to-b from-white to-[#f0f9ff] rounded-xl shadow-lg overflow-hidden h-full">
+    <div
+      ref={containerRef}
+      className="flex flex-col bg-gradient-to-b from-white to-[#f0f9ff] rounded-xl shadow-lg overflow-hidden h-full"
+    >
       {/* PHẦN THÔNG TIN BÀI HÁT & ĐIỀU KHIỂN */}
-      <div className={`p-6 transition-all duration-500 ${isAnimating ? 'opacity-0 transform scale-95' : 'opacity-100 transform scale-100'}`}>
+      <div
+        className={`p-6 transition-all duration-500 ${
+          isAnimating
+            ? "opacity-0 transform scale-95"
+            : "opacity-100 transform scale-100"
+        }`}
+      >
         {/* Album Art */}
         <div className="flex flex-col items-center mb-6">
           {imageSrc ? (
             <div className="w-56 h-56 overflow-hidden rounded-xl shadow-lg mb-4 group relative">
               <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-0 group-hover:opacity-70 transition-opacity duration-300"></div>
+              <button
+                onClick={onExpand}
+                className="absolute top-2 right-2 p-2 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-20 hover:bg-black/70"
+                title="Toàn màn hình"
+              >
+                <FiMaximize2 size={16} />
+              </button>
               <img
                 className="w-full h-full object-cover transform transition-transform duration-500 ease-in-out group-hover:scale-110"
                 src={imageSrc}
@@ -169,18 +193,7 @@ function SongDetails() {
               </svg>
             </div>
           )}
-          
-          {/* Playing indicator */}
-          {/* {isPlaying && (
-            <div className="absolute bottom-0 left-0 right-0 flex justify-center space-x-1 pb-2">
-              <div className="w-1 h-4 bg-[#7Ab2D3] rounded-full animate-pulse"></div>
-              <div className="w-1 h-6 bg-[#7Ab2D3] rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-              <div className="w-1 h-5 bg-[#7Ab2D3] rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
-              <div className="w-1 h-7 bg-[#7Ab2D3] rounded-full animate-pulse" style={{ animationDelay: '0.6s' }}></div>
-              <div className="w-1 h-4 bg-[#7Ab2D3] rounded-full animate-pulse" style={{ animationDelay: '0.8s' }}></div>
-            </div>
-          )} */}
-          
+
           <div className="text-center w-full">
             <h3 className="text-2xl font-bold text-gray-800 truncate w-full mb-1">
               {currentSong.title}
@@ -190,7 +203,7 @@ function SongDetails() {
             </p>
           </div>
         </div>
-        
+
         <div className="flex justify-between text-base text-gray-500 mb-4 px-2">
           <p>{currentSong.country}</p>
           <span>Phát hành: {currentSong.release_year}</span>
@@ -199,92 +212,97 @@ function SongDetails() {
         {/* Audio Controls */}
         <div className="audio-controls">
           {/* Control Buttons */}
-          <div className="flex justify-between items-center mb-6">
-            <button
-              onClick={toggleShuffle}
-              className={`p-2 rounded-full transition-all duration-300 ${
-                shuffleMode
-                  ? "text-[#7Ab2D3] bg-[#7Ab2D3] bg-opacity-20"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
-              title="Shuffle"
-            >
-              <FiShuffle className={shuffleMode ? "fill-current" : ""} />
-            </button>
-            
-            <button
-              onClick={prevSong}
-              disabled={currentIndex <= 0}
-              className={`p-3 rounded-full transition-all duration-300 ${
-                currentIndex <= 0
-                  ? "text-gray-300 cursor-not-allowed"
-                  : "text-gray-700 hover:bg-gray-100 hover:scale-110"
-              }`}
-            >
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 13 13">
-                <path d="M8.445 14.832A1 1 0 0010 14v-8a1 1 0 00-1.555-.832L3 9.168V6a1 1 0 00-2 0v8a1 1 0 002 0v-3.168l5.445 4z" />
-              </svg>
-            </button>
+          {/* Audio Controls */}
+<div className="audio-controls">
+  <div className="flex justify-between items-center mb-6">
 
-            <button
-              onClick={handlePlayPause}
-              className="p-4  bg-gradient-to-r from-[#7Ab2D3] to-[#4A90E2] text-white rounded-full hover:shadow-xl hover:scale-110 transition-all duration-300 relative overflow-hidden group"
-            >
-              <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
-              {isPlaying ? (
-                <svg
-                  className="w-8 h-8 relative z-10"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              ) : (
-                <svg
-                  className="w-8 h-8 relative z-10"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              )}
-            </button>
+    {/* Shuffle */}
+    <button
+      onClick={toggleShuffle}
+      className={`p-2 rounded-full transition-all duration-300 ${
+        shuffleMode
+          ? "text-[#7Ab2D3] bg-[#7Ab2D3] bg-opacity-20"
+          : "text-gray-500 hover:text-gray-700"
+      }`}
+      title="Shuffle"
+    >
+      <svg
+        className="w-6 h-6"
+        fill="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path d="M4 4h2.586l3.707 3.707-1.414 1.414L5 6.414V9H3V4h1zm14 0h3v5h-2V6.414l-3.879 3.879-1.414-1.414L18.586 4H18zm-7.707 9.879L5 17.586V15H3v5h5v-2H5.414l5.293-5.293-1.414-1.414zm6.293-.879l1.414-1.414L22 15.586V13h2v5h-5v-2h1.586L16.586 13z" />
+      </svg>
+    </button>
 
-            <button
-              onClick={nextSong}
-              disabled={currentIndex >= currentPlaylist.length - 1}
-              className={`p-3 rounded-full transition-all duration-300 ${
-                currentIndex >= currentPlaylist.length - 1
-                  ? "text-gray-300 cursor-not-allowed"
-                  : "text-gray-700 hover:bg-gray-100 hover:scale-110"
-              }`}
-            >
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 15 15">
-                <path d="M4.555 5.168A1 1 0 003 6v8a1 1 0 001.555.832L10 10.832V14a1 1 0 002 0V6a1 1 0 00-2 0v3.168L4.555 5.168z" />
-              </svg>
-            </button>
-            
-            <button
-              onClick={toggleRepeat}
-              className={`p-2 rounded-full transition-all duration-300 ${
-                repeatMode
-                  ? "text-[#7Ab2D3] bg-[#7Ab2D3] bg-opacity-20"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
-              title="Repeat"
-            >
-              <FiRepeat className={repeatMode ? "fill-current" : ""} />
-            </button>
-          </div>
-          
+    {/* Prev */}
+    <button
+      onClick={prevSong}
+      disabled={currentIndex <= 0}
+      className={`p-2 rounded-full flex items-center justify-center transition-all duration-300 ${
+        currentIndex <= 0
+          ? "text-gray-300 cursor-not-allowed"
+          : "text-gray-700 hover:bg-gray-100 hover:scale-110"
+      }`}
+    >
+      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+        <path d="M16 4v12l-8-6 8-6zM6 4h2v12H6V4z" />
+      </svg>
+    </button>
+
+    {/* Play / Pause */}
+    <button
+      onClick={handlePlayPause}
+      className="p-4 bg-gradient-to-r from-[#7Ab2D3] to-[#4A90E2] text-white rounded-full hover:shadow-xl hover:scale-110 transition-all duration-300 relative overflow-hidden group"
+    >
+      <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+
+      {isPlaying ? (
+        // Pause icon
+        <svg className="w-6 h-6 relative z-10" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M6 4h3v12H6V4zm5 0h3v12h-3V4z" />
+        </svg>
+      ) : (
+        // Play icon
+        <svg className="w-6 h-6 relative z-10" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M5 4l10 6-10 6V4z" />
+        </svg>
+      )}
+    </button>
+
+    {/* Next */}
+    <button
+      onClick={nextSong}
+      disabled={currentIndex >= currentPlaylist.length - 1}
+      className={`p-2 rounded-full flex items-center justify-center transition-all duration-300 ${
+        currentIndex >= currentPlaylist.length - 1
+          ? "text-gray-300 cursor-not-allowed"
+          : "text-gray-700 hover:bg-gray-100 hover:scale-110"
+      }`}
+    >
+      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+        <path d="M4 4l8 6-8 6V4zm9 0h2v12h-2V4z" />
+      </svg>
+    </button>
+
+    {/* Repeat */}
+    <button
+      onClick={toggleRepeat}
+      className={`p-2 rounded-full transition-all duration-300 ${
+        repeatMode
+          ? "text-[#7Ab2D3] bg-[#7Ab2D3] bg-opacity-20"
+          : "text-gray-500 hover:text-gray-700"
+      }`}
+      title="Repeat"
+    >
+      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M4 7h13.586l-2.293 2.293 1.414 1.414L21.414 6l-4.707-4.707-1.414 1.414L17.586 5H4v2zm16 10H6.414l2.293-2.293-1.414-1.414L2.586 18l4.707 4.707 1.414-1.414L6.414 19H20v-2z" />
+      </svg>
+    </button>
+  </div>
+</div>
+
+
           {/* Progress Bar */}
           <div className="flex justify-between text-sm text-gray-600 mb-2">
             <span>{formatTime(currentTime)}</span>
@@ -292,7 +310,7 @@ function SongDetails() {
           </div>
           <div className="mb-6 relative">
             <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-              <div 
+              <div
                 className="h-full bg-gradient-to-r from-[#7Ab2D3] to-[#4A90E2] rounded-full relative transition-all duration-100"
                 style={{ width: `${progress}%` }}
               >
@@ -308,7 +326,7 @@ function SongDetails() {
               className="absolute top-0 left-0 w-full h-2 opacity-0 cursor-pointer"
             />
           </div>
-          
+
           {/* Volume Control */}
           <div className="flex items-center mb-4">
             <svg
@@ -324,7 +342,7 @@ function SongDetails() {
             </svg>
             <div className="flex-1 relative">
               <div className="h-1 bg-gray-200 rounded-full overflow-hidden">
-                <div 
+                <div
                   className="h-full bg-gradient-to-r from-[#7Ab2D3] to-[#4A90E2] rounded-full transition-all duration-100"
                   style={{ width: `${volume * 100}%` }}
                 ></div>
@@ -340,7 +358,7 @@ function SongDetails() {
               />
             </div>
           </div>
-          
+
           {/* Action Buttons */}
           <div className="flex justify-center space-x-4">
             <button
@@ -354,7 +372,7 @@ function SongDetails() {
             >
               <FiHeart className={isFavorite ? "fill-current" : ""} />
             </button>
-            
+
             <div className="relative" ref={optionsRef}>
               <button
                 onClick={() => setShowOptions(!showOptions)}
@@ -363,20 +381,20 @@ function SongDetails() {
               >
                 <FiMoreHorizontal />
               </button>
-              
+
               {showOptions && (
                 <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48 bg-white rounded-lg shadow-lg py-2 z-10">
                   <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                    Add to Playlist
+                    Thêm vào playlist
                   </button>
                   <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                    Share
+                    Chia sẻ bài hát
                   </button>
                   <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                    View Album
+                    Xem Album
                   </button>
                   <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                    View Artist
+                    Xem Nghệ Sĩ
                   </button>
                 </div>
               )}
@@ -415,8 +433,12 @@ function SongDetails() {
 
       {/* Lyrics Viewer */}
       {showLyrics && (
-        <div 
-          className={`rounded-b-xl bg-gradient-to-b from-gray-900 to-black transition-all duration-500 ${isAnimating ? 'opacity-0 transform translate-y-4' : 'opacity-100 transform translate-y-0'}`}
+        <div
+          className={`rounded-b-xl bg-gradient-to-b from-gray-900 to-black transition-all duration-500 ${
+            isAnimating
+              ? "opacity-0 transform translate-y-4"
+              : "opacity-100 transform translate-y-0"
+          }`}
           style={{ height: `${lyricsHeight}px` }}
         >
           <LyricsViewer />
