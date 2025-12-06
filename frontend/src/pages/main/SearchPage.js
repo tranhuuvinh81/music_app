@@ -68,6 +68,12 @@ function SearchPage() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const getImageUrl = (url) => {
+  if (!url) return 'https://via.placeholder.com/40';
+  if (url.startsWith('http')) return url;
+  return `${api.defaults.baseURL}${url}`;
+};
+
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
     const searchParam = queryParams.get("q");
@@ -174,7 +180,8 @@ function SearchPage() {
                     id: song.id,
                     title: song.title,
                     artist: displayArtistNames(song.artists),
-                    coverImage: song.image_url ? `${api.defaults.baseURL}${song.image_url}` : null,
+                    // coverImage: song.image_url ? `${api.defaults.baseURL}${song.image_url}` : null,
+                    coverImage: getImageUrl(song.image_url),
                     listenCount: song.listen_count || 0
                   };
                   
