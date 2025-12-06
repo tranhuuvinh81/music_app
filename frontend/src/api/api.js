@@ -1,8 +1,31 @@
+// // frontend/src/api/api.js
+// import axios from 'axios';
+
+// const api = axios.create({
+//   baseURL: 'http://localhost:5000',
+// });
+
+// api.interceptors.request.use(config => {
+//   const token = localStorage.getItem('token');
+//   if (token) {
+//     config.headers.Authorization = `Bearer ${token}`;
+//   }
+//   return config;
+// });
+
+// export default api;
+
 // frontend/src/api/api.js
 import axios from 'axios';
 
+// Nếu có biến môi trường VITE_API_URL thì dùng, không thì dùng localhost
+// Lưu ý: Project React dùng Vite thì bắt buộc biến phải bắt đầu bằng VITE_
+const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 const api = axios.create({
-  baseURL: 'http://localhost:5000',
+  baseURL: baseURL,
+  // Thêm withCredentials nếu sau này bạn làm tính năng Cookie/Session
+  // withCredentials: true, 
 });
 
 api.interceptors.request.use(config => {
