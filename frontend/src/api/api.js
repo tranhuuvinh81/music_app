@@ -18,14 +18,12 @@
 // frontend/src/api/api.js
 import axios from 'axios';
 
-// Nếu có biến môi trường VITE_API_URL thì dùng, không thì dùng localhost
-// Lưu ý: Project React dùng Vite thì bắt buộc biến phải bắt đầu bằng VITE_
-const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+// SỬA LẠI: Dùng process.env.REACT_APP_... thay vì import.meta.env
+const baseURL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 const api = axios.create({
   baseURL: baseURL,
-  // Thêm withCredentials nếu sau này bạn làm tính năng Cookie/Session
-  // withCredentials: true, 
+  // withCredentials: true, // Bật lên nếu cần gửi cookie
 });
 
 api.interceptors.request.use(config => {
