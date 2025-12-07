@@ -98,90 +98,189 @@ export const incrementListenCount = (req, res) => {
   });
 };
 
-// Thêm bài hát mới (xử lý nhiều artistIds)
-export const addSong = (req, res) => {
-  const { title, artistIds, album, genre, release_year, country } = req.body;
+// // Thêm bài hát mới (xử lý nhiều artistIds)
+// export const addSong = (req, res) => {
+//   const { title, artistIds, album, genre, release_year, country } = req.body;
 
-  // Chuyển đổi chuỗi JSON thành mảng ID
-  let parsedArtistIds = [];
+//   // Chuyển đổi chuỗi JSON thành mảng ID
+//   let parsedArtistIds = [];
+//   try {
+//     parsedArtistIds = JSON.parse(artistIds || "[]");
+//     if (!Array.isArray(parsedArtistIds) || parsedArtistIds.length === 0) {
+//       return res.status(400).json({ error: "Cần chọn ít nhất một nghệ sĩ" });
+//     }
+//   } catch (parseError) {
+//     return res
+//       .status(400)
+//       .json({ error: "Định dạng artistIds không hợp lệ (cần là mảng ID)" });
+//   }
+
+//   if (!title) {
+//     return res.status(400).json({ error: "Thiếu tiêu đề" });
+//   }
+//   if (!req.files || !req.files.songFile) {
+//     return res.status(400).json({ error: "Vui lòng upload file nhạc" });
+//   }
+
+//   const file_url = `/uploads/songs/${req.files.songFile[0].filename}`;
+//   const image_url = req.files.imageFile
+//     ? `/uploads/images/${req.files.imageFile[0].filename}`
+//     : null;
+//   const lyrics_url = req.files.lyricFile
+//     ? `/uploads/lyrics/${req.files.lyricFile[0].filename}`
+//     : null;
+
+//   const query = `INSERT INTO songs (title, album, genre, release_year, country, file_url, image_url, lyrics_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+//   db.query(
+//     query,
+//     [
+//       title,
+//       album,
+//       genre,
+//       release_year,
+//       country || null,
+//       file_url,
+//       image_url,
+//       lyrics_url,
+//     ],
+//     (err, result) => {
+//       if (err)
+//         return res
+//           .status(500)
+//           .json({ error: "Lỗi khi thêm bài hát", details: err.message });
+
+//       const newSongId = result.insertId;
+
+//       // Thêm các liên kết vào bảng song_artists
+//       const artistLinks = parsedArtistIds.map((artistId) => [
+//         newSongId,
+//         artistId,
+//       ]);
+//       if (artistLinks.length > 0) {
+//         const linkQuery =
+//           "INSERT INTO song_artists (song_id, artist_id) VALUES ?";
+//         db.query(linkQuery, [artistLinks], (linkErr) => {
+//           if (linkErr) {
+//             // Cân nhắc xóa bài hát vừa tạo nếu liên kết thất bại (rollback)
+//             console.error("Lỗi khi liên kết nghệ sĩ:", linkErr);
+//             return res.status(500).json({
+//               error: "Lỗi khi liên kết nghệ sĩ",
+//               details: linkErr.message,
+//             });
+//           }
+//           res.status(201).json({
+//             message: "Thêm bài hát và liên kết nghệ sĩ thành công",
+//             id: newSongId,
+//           });
+//         });
+//       } else {
+//         // Trường hợp này không nên xảy ra do đã check ở trên
+//         res.status(201).json({
+//           message: "Thêm bài hát thành công (không có nghệ sĩ liên kết)",
+//           id: newSongId,
+//         });
+//       }
+//     }
+//   );
+// };
+
+// backend/controllers/songController.js
+
+export const addSong = async (req, res) => {
   try {
-    parsedArtistIds = JSON.parse(artistIds || "[]");
-    if (!Array.isArray(parsedArtistIds) || parsedArtistIds.length === 0) {
-      return res.status(400).json({ error: "Cần chọn ít nhất một nghệ sĩ" });
+    // 1. Lấy dữ liệu file từ Cloudinary trả về
+    // Lưu ý: Cloudinary trả về link file trong thuộc tính .path
+    const songUrl = req.files["songFile"]
+      ? req.files["songFile"][0].path
+      : null;
+    const imageUrl = req.files["imageFile"]
+      ? req.files["imageFile"][0].path
+      : null;
+    const lyricUrl = req.files["lyricFile"]
+      ? req.files["lyricFile"][0].path
+      : null;
+
+    if (!songUrl) {
+      return res
+        .status(400)
+        .json({ message: "Vui lòng upload file nhạc (songFile)" });
     }
-  } catch (parseError) {
-    return res
-      .status(400)
-      .json({ error: "Định dạng artistIds không hợp lệ (cần là mảng ID)" });
-  }
 
-  if (!title) {
-    return res.status(400).json({ error: "Thiếu tiêu đề" });
-  }
-  if (!req.files || !req.files.songFile) {
-    return res.status(400).json({ error: "Vui lòng upload file nhạc" });
-  }
+    // 2. Lấy thông tin text từ body
+    const { title, artist, album, genre, release_year, country } = req.body;
 
-  const file_url = `/uploads/songs/${req.files.songFile[0].filename}`;
-  const image_url = req.files.imageFile
-    ? `/uploads/images/${req.files.imageFile[0].filename}`
-    : null;
-  const lyrics_url = req.files.lyricFile
-    ? `/uploads/lyrics/${req.files.lyricFile[0].filename}`
-    : null;
+    // 3. Tạo câu lệnh SQL INSERT
+    // Lưu thẳng songUrl, imageUrl (đã là link https) vào database
+    const query = `
+      INSERT INTO songs 
+      (title, album, genre, release_year, country, file_url, image_url, lyrics_url, created_at) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())
+    `;
 
-  const query = `INSERT INTO songs (title, album, genre, release_year, country, file_url, image_url, lyrics_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
-  db.query(
-    query,
-    [
+    const [result] = await db.query(query, [
       title,
       album,
       genre,
       release_year,
-      country || null,
-      file_url,
-      image_url,
-      lyrics_url,
-    ],
-    (err, result) => {
-      if (err)
-        return res
-          .status(500)
-          .json({ error: "Lỗi khi thêm bài hát", details: err.message });
+      country,
+      songUrl, // Lưu link nhạc Cloudinary
+      imageUrl, // Lưu link ảnh Cloudinary
+      lyricUrl, // Lưu link lời bài hát
+    ]);
 
-      const newSongId = result.insertId;
+    const newSongId = result.insertId;
 
-      // Thêm các liên kết vào bảng song_artists
-      const artistLinks = parsedArtistIds.map((artistId) => [
-        newSongId,
-        artistId,
-      ]);
-      if (artistLinks.length > 0) {
-        const linkQuery =
-          "INSERT INTO song_artists (song_id, artist_id) VALUES ?";
-        db.query(linkQuery, [artistLinks], (linkErr) => {
-          if (linkErr) {
-            // Cân nhắc xóa bài hát vừa tạo nếu liên kết thất bại (rollback)
-            console.error("Lỗi khi liên kết nghệ sĩ:", linkErr);
-            return res.status(500).json({
-              error: "Lỗi khi liên kết nghệ sĩ",
-              details: linkErr.message,
-            });
-          }
-          res.status(201).json({
-            message: "Thêm bài hát và liên kết nghệ sĩ thành công",
-            id: newSongId,
+    // ... (Đoạn code xử lý thêm artist vào bảng song_artists giữ nguyên) ...
+
+    // Thêm các liên kết vào bảng song_artists
+
+    const artistLinks = parsedArtistIds.map((artistId) => [
+      newSongId,
+
+      artistId,
+    ]);
+
+    if (artistLinks.length > 0) {
+      const linkQuery =
+        "INSERT INTO song_artists (song_id, artist_id) VALUES ?";
+
+      db.query(linkQuery, [artistLinks], (linkErr) => {
+        if (linkErr) {
+          // Cân nhắc xóa bài hát vừa tạo nếu liên kết thất bại (rollback)
+
+          console.error("Lỗi khi liên kết nghệ sĩ:", linkErr);
+
+          return res.status(500).json({
+            error: "Lỗi khi liên kết nghệ sĩ",
+
+            details: linkErr.message,
           });
-        });
-      } else {
-        // Trường hợp này không nên xảy ra do đã check ở trên
+        }
+
         res.status(201).json({
-          message: "Thêm bài hát thành công (không có nghệ sĩ liên kết)",
+          message: "Thêm bài hát và liên kết nghệ sĩ thành công",
+
           id: newSongId,
         });
-      }
+      });
+    } else {
+      // Trường hợp này không nên xảy ra do đã check ở trên
+
+      res.status(201).json({
+        message: "Thêm bài hát thành công (không có nghệ sĩ liên kết)",
+
+        id: newSongId,
+      });
     }
-  );
+
+    res.status(201).json({
+      message: "Thêm bài hát thành công",
+      song: { id: newSongId, title, file_url: songUrl, image_url: imageUrl },
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Lỗi server", error: error.message });
+  }
 };
 
 // Cập nhật bài hát (xử lý nhiều artistIds)
@@ -461,13 +560,13 @@ export const getSongsByAlbum = (req, res) => {
     // Vì LEFT JOIN sẽ tạo ra nhiều dòng nếu 1 bài có nhiều ca sĩ
     const songsMap = new Map();
 
-    results.forEach(row => {
+    results.forEach((row) => {
       // Nếu bài hát chưa có trong Map, thêm vào
       if (!songsMap.has(row.id)) {
         const { artist_id, artist_name, ...songData } = row;
         songsMap.set(row.id, {
           ...songData,
-          artists: [] // Khởi tạo mảng nghệ sĩ
+          artists: [], // Khởi tạo mảng nghệ sĩ
         });
       }
 
@@ -475,7 +574,7 @@ export const getSongsByAlbum = (req, res) => {
       if (row.artist_id) {
         songsMap.get(row.id).artists.push({
           id: row.artist_id,
-          name: row.artist_name
+          name: row.artist_name,
         });
       }
     });
