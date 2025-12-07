@@ -439,3 +439,49 @@ export const getSongsByCountry = (req, res) => {
     }
   });
 };
+
+// Hàm lấy danh sách bài hát thuộc 1 Album cụ thể
+export const getSongsByAlbum = (req, res) => {
+  const { name } = req.params; // Lấy tên album từ URL
+
+  if (!name) return res.status(400).json({ error: "Thiếu tên album" });
+
+  const query = `
+    SELECT s.*, a.id as artist_id, a.name as artist_name
+    FROM songs s
+    LEFT JOIN song_artists sa ON s.id = sa.song_id
+    LEFT JOIN artists a ON sa.artist_id = a.id
+    WHERE s.album = ?
+  `;
+
+  db.query(query, [name], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+
+    // Xử lý dữ liệu: Gom nhóm nghệ sĩ vào mảng 'artists' cho từng bài hát
+    // Vì LEFT JOIN sẽ tạo ra nhiều dòng nếu 1 bài có nhiều ca sĩ
+    const songsMap = new Map();
+
+    results.forEach(row => {
+      // Nếu bài hát chưa có trong Map, thêm vào
+      if (!songsMap.has(row.id)) {
+        const { artist_id, artist_name, ...songData } = row;
+        songsMap.set(row.id, {
+          ...songData,
+          artists: [] // Khởi tạo mảng nghệ sĩ
+        });
+      }
+
+      // Nếu có thông tin nghệ sĩ, push vào mảng artists
+      if (row.artist_id) {
+        songsMap.get(row.id).artists.push({
+          id: row.artist_id,
+          name: row.artist_name
+        });
+      }
+    });
+
+    // Chuyển Map thành Array để trả về
+    const songs = Array.from(songsMap.values());
+    res.json(songs);
+  });
+};

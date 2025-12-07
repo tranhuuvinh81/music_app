@@ -77,3 +77,49 @@ export const getTopArtistStats = (req, res) => {
     res.status(500).json({ error: "Lỗi máy chủ không xác định", details: error.message });
   }
 };
+
+// Lấy danh sách Album nổi bật (Top listened) và Album mới
+export const getAlbumStats = (req, res) => {
+  // Query 1: Top 5 Album có tổng lượt nghe cao nhất
+  // Logic: Gom nhóm theo tên album, tính tổng listen_count, lấy ảnh của bài hát đầu tiên trong album làm ảnh bìa
+  const topAlbumsQuery = `
+    SELECT 
+      album as name, 
+      SUM(listen_count) as total_listens,
+      COUNT(id) as song_count,
+      (SELECT image_url FROM songs s2 WHERE s2.album = s1.album AND s2.image_url IS NOT NULL LIMIT 1) as cover_image
+    FROM songs s1
+    WHERE album IS NOT NULL AND album != ''
+    GROUP BY album
+    ORDER BY total_listens DESC
+    LIMIT 5
+  `;
+
+  // Query 2: Lấy tất cả album (để hiển thị danh sách bên dưới, sắp xếp theo tên hoặc ngày thêm mới nhất)
+  const allAlbumsQuery = `
+     SELECT 
+      album as name, 
+      SUM(listen_count) as total_listens,
+      COUNT(id) as song_count,
+      (SELECT image_url FROM songs s2 WHERE s2.album = s1.album AND s2.image_url IS NOT NULL LIMIT 1) as cover_image,
+      MAX(created_at) as last_updated
+    FROM songs s1
+    WHERE album IS NOT NULL AND album != ''
+    GROUP BY album
+    ORDER BY last_updated DESC
+    LIMIT 20
+  `;
+
+  db.query(topAlbumsQuery, (err, topAlbums) => {
+    if (err) return res.status(500).json({ error: err.message });
+
+    db.query(allAlbumsQuery, (err, recentAlbums) => {
+      if (err) return res.status(500).json({ error: err.message });
+      
+      res.json({
+        top_albums: topAlbums,
+        recent_albums: recentAlbums
+      });
+    });
+  });
+};
