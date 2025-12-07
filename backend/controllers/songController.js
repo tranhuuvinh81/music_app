@@ -1,5 +1,6 @@
 // backend/controllers/songController.js
 import db from "../config/db.js";
+const promiseDb = db.promise();
 
 // lấy danh sách nghệ sĩ đầy đủ cho một danh sách bài hát
 const fetchArtistsForSongs = (songs) => {
