@@ -93,7 +93,7 @@ function AdminArtistPage() {
                 Birth Year
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Tổng lượt nghe
+                Streams
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                 Actions

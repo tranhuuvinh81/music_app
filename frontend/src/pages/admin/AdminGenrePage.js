@@ -194,17 +194,17 @@ function AdminGenrePage() {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                STT
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                ID
               </th>
-              <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                Tên Thể loại
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Title
               </th>
-              <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                Số lượng bài hát
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Number of Songs
               </th>
-              <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                Hành động
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Action
               </th>
             </tr>
           </thead>
@@ -230,14 +230,14 @@ function AdminGenrePage() {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    {g.count} bài
+                    {g.count}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <button
                       onClick={() => handleViewSongs(g)}
                       className="text-blue-600 hover:text-blue-900 mr-4 font-semibold hover:underline"
                     >
-                      Xem danh sách
+                      View Songs
                     </button>
                     {/* Nút đổi tên tạm ẩn vì lý do logic backend */}
                     <button
@@ -245,7 +245,7 @@ function AdminGenrePage() {
                       className="text-gray-400 cursor-not-allowed"
                       title="Tính năng đang bảo trì"
                     >
-                      Đổi tên
+                      Rename
                     </button>
                   </td>
                 </tr>
@@ -262,21 +262,31 @@ function AdminGenrePage() {
       </div>
 
       {totalPages > 1 && (
-        <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-center space-x-2 bg-gray-50">
+        <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-center space-x-2">
           <button
             onClick={() => paginate(currentPage - 1)}
             disabled={currentPage === 1}
-            className="px-3 py-1 text-sm font-medium text-gray-600 bg-white rounded-md border border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+            className="px-3 py-1 text-sm font-medium text-gray-600 bg-white rounded-md border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Trước
           </button>
-          <span className="text-sm text-gray-600 px-4 font-medium">
-            Trang {currentPage} / {totalPages}
-          </span>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((number) => (
+            <button
+              key={number}
+              onClick={() => paginate(number)}
+              className={`px-3 py-1 text-sm font-medium rounded-md border ${
+                currentPage === number
+                  ? "bg-gray-600 text-white border-gray-600"
+                  : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"
+              }`}
+            >
+              {number}
+            </button>
+          ))}
           <button
             onClick={() => paginate(currentPage + 1)}
             disabled={currentPage === totalPages}
-            className="px-3 py-1 text-sm font-medium text-gray-600 bg-white rounded-md border border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+            className="px-3 py-1 text-sm font-medium text-gray-600 bg-white rounded-md border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Sau
           </button>
