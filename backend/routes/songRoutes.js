@@ -11,7 +11,8 @@ import {
   getSongsByGenre,
   incrementListenCount,
   getUniqueCountries,
-  getSongsByCountry 
+  getSongsByCountry,
+  getSongsByAlbum
 } from "../controllers/songController.js";
 import { verifyToken, isAdmin } from "../middleware/authMiddleware.js";
 import upload from "../middleware/upload.js";
@@ -28,7 +29,7 @@ router.post("/:id/listen", incrementListenCount); // Tăng lượt nghe bài há
 
 router.get("/countries", getUniqueCountries); // Lấy danh sách quốc gia
 router.get("/country/:countryName", getSongsByCountry); // Lấy bài hát theo quốc gia
-
+router.get("/album/:name", getSongsByAlbum); // Lấy bài hát theo tên album
 
 router.get("/:id", getSongById); // Lấy chi tiết bài hát (đã bao gồm nghệ sĩ)
 // Admin only Routes
