@@ -33,6 +33,7 @@ import ArtistsPage from "./pages/main/ArtistsPage";
 import GenresPage from "./pages/main/GenresPage";
 import HistoryPage from "./pages/main/HistoryPage";
 import CountryPage from "./pages/main/CountryPage";
+import AlbumsPage from "./pages/main/AlbumPage";
 
 import "../src/styles/App.css";
 
@@ -96,6 +97,7 @@ function App() {
                     <ProtectedRoute><HistoryPage /></ProtectedRoute>
                   } />
                   <Route path="search" element={<SearchPage />} />
+                  <Route path="albums" element={<AlbumsPage />} />
                 <Route
                   path="playlists"
                   element={
