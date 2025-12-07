@@ -130,6 +130,21 @@ function MainLayout() {
                 Thư viện
               </NavLink>
               <NavLink
+                to="albums"
+                className={({ isActive }) =>
+                  `flex items-center px-4 py-3 rounded-lg text-xl font-bold transition-all duration-300 ${
+                    isActive
+                      ? "bg-white bg-opacity-90 text-[#7Ab2D3] shadow-md transform scale-105"
+                      : "text-white hover:bg-white hover:bg-opacity-20"
+                  }`
+                }
+              >
+                <svg className="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm0 2h12v3H4V5zm0 5h12v5H4v-5z"></path>
+                </svg>
+                Album
+              </NavLink>
+              <NavLink
                 to="/history"
                 className={({ isActive }) =>
                   `flex items-center px-4 py-3 rounded-lg text-xl font-bold transition-all duration-300 ${

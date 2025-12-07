@@ -512,9 +512,8 @@ function PlaylistPage() {
             {/* Khu vực Đề xuất bài hát */}
             {recommendations.length > 0 && !searchAddQuery && (
               <div className="mt-4">
-                <p className="text-sm text-gray-500 mb-2 font-medium flex items-center">
-                  <span className="mr-1">✨</span>
-                  Có thể bạn sẽ thích (dựa trên bài hát vừa thêm):
+                <p className="text-sm mb-2 font-medium flex items-center">
+                  Có thể bạn sẽ thích 
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                   {recommendations.map(rec => (
