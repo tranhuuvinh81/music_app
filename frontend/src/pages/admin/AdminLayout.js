@@ -207,6 +207,20 @@ const processChartData = (apiData = []) => {
                     Artist Management
                   </NavLink>
                 </li>
+                <li>
+                  <NavLink
+                    to="/admin/genres"
+                    className={({ isActive }) =>
+                      `w-full text-left px-4 py-3 rounded-lg font-medium transition-colors block ${
+                        isActive
+                          ? 'bg-gray-600 text-white'
+                          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                      }`
+                    }
+                  >
+                    Genre Management
+                  </NavLink>
+                </li>
               </ul>
             </nav>
           </div>
