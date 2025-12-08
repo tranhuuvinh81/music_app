@@ -98,7 +98,7 @@ function FullScreenPlayer({ onClose }) {
                     : 'border-transparent text-gray-500 hover:text-gray-300'
                 }`}
              >
-                <FiMusic /> Lời bài hát
+                <FiMusic /> Nghe
              </button>
              <button 
                 onClick={() => setActiveTab('comments')}
@@ -108,7 +108,7 @@ function FullScreenPlayer({ onClose }) {
                     : 'border-transparent text-gray-500 hover:text-gray-300'
                 }`}
              >
-                <FiMessageSquare /> Bình luận
+                <FiMessageSquare /> Khen
              </button>
           </div>
 

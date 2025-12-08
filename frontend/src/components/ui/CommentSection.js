@@ -1,170 +1,278 @@
+// frontend/src/components/ui/CommentSection.js
 import React, { useState, useEffect, useContext } from 'react';
 import api from '../../api/api';
 import { AuthContext } from '../../context/AuthContext';
-import { FaStar, FaRegStar, FaPaperPlane, FaUserCircle } from 'react-icons/fa';
+import { FiUser, FiCalendar, FiStar, FiSend, FiEdit2, FiTrash2 } from 'react-icons/fi';
 
 const CommentSection = ({ songId }) => {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
-  const [rating, setRating] = useState(5); // Mặc định 5 sao
-  const [hoverRating, setHoverRating] = useState(0); // Hiệu ứng hover sao
-  const [loading, setLoading] = useState(false);
-
+  const [rating, setRating] = useState(5);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [editingId, setEditingId] = useState(null);
+  const [editContent, setEditContent] = useState("");
+  const [editRating, setEditRating] = useState(5);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const { isAuthenticated, user } = useContext(AuthContext);
 
-  // Helper xử lý URL ảnh
   const getImageUrl = (url) => {
     if (!url) return null;
     if (url.startsWith('http')) return url;
     return `${api.defaults.baseURL}${url}`;
   };
 
-  // 1. Fetch Comments
+  // Fetch comments
   useEffect(() => {
     if (songId) {
       api.get(`/api/comments/${songId}`)
-        .then(res => setComments(res.data))
+        .then(res => setComments(res.data || []))
         .catch(err => console.error(err));
     }
   }, [songId]);
 
-  // 2. Submit Comment
+  // Submit new comment
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!newComment.trim()) return;
 
-    if (!isAuthenticated) {
-      alert("Bạn cần đăng nhập để bình luận!");
-      return;
-    }
+    if (!isAuthenticated) return alert("Bạn cần đăng nhập để bình luận!");
 
+    setIsSubmitting(true);
     try {
-      const res = await api.post('/api/comments', {
-        songId,
-        content: newComment,
-        rating
-      });
-      
-      // Thêm comment mới vào đầu danh sách ngay lập tức
+      const res = await api.post('/api/comments', { songId, content: newComment, rating });
       setComments([res.data, ...comments]);
       setNewComment("");
       setRating(5);
     } catch (err) {
-      alert("Lỗi gửi bình luận");
       console.error(err);
+      alert("Đã có lỗi xảy ra. Vui lòng thử lại sau.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  // Render số sao (cho phần hiển thị)
-  const renderStars = (score) => {
-    return [...Array(5)].map((_, i) => (
-      <span key={i} className={`text-sm ${i < score ? "text-yellow-400" : "text-gray-300"}`}>
-        ★
-      </span>
-    ));
+  // Delete comment
+  const handleDelete = async (commentId) => {
+    if (!window.confirm("Bạn chắc chắn muốn xóa bình luận này?")) return;
+    
+    try {
+      await api.delete(`/api/comments/${commentId}`);
+      setComments(comments.filter(c => c.id !== commentId));
+    } catch (err) {
+      console.error(err);
+      alert("Đã có lỗi xảy ra. Vui lòng thử lại sau.");
+    }
   };
 
+  // Start editing
+  const startEditing = (comment) => {
+    setEditingId(comment.id);
+    setEditContent(comment.content);
+    setEditRating(comment.rating);
+  };
+
+  // Save edit
+  const handleUpdate = async (commentId) => {
+    if (!editContent.trim()) return;
+    
+    try {
+      await api.put(`/api/comments/${commentId}`, {
+        content: editContent,
+        rating: editRating
+      });
+      
+      setComments(comments.map(c => 
+        c.id === commentId ? { ...c, content: editContent, rating: editRating } : c
+      ));
+      
+      setEditingId(null);
+    } catch (err) {
+      console.error(err);
+      alert("Đã có lỗi xảy ra. Vui lòng thử lại sau.");
+    }
+  };
+
+  // Render stars for display
+  const renderStars = (score) => [...Array(5)].map((_, i) => (
+    <span key={i} className={`text-sm ${i < score ? "text-yellow-400" : "text-gray-300"}`}>★</span>
+  ));
+
+  // Render interactive stars for rating
+  const renderRatingStars = () => (
+    <div className="flex">
+      {[...Array(5)].map((_, index) => (
+        <button
+          key={index}
+          type="button"
+          onClick={() => setRating(index + 1)}
+          onMouseEnter={() => setHoverRating(index + 1)}
+          onMouseLeave={() => setHoverRating(0)}
+          className="text-xl focus:outline-none transition-colors duration-200"
+        >
+          <span className={index + 1 <= (hoverRating || rating) ? "text-yellow-400" : "text-gray-300"}>★</span>
+        </button>
+      ))}
+    </div>
+  );
+
+  // Render stars for editing
+  const renderEditStars = () => (
+    <div className="flex">
+      {[...Array(5)].map((_, index) => (
+        <button
+          key={index}
+          type="button"
+          onClick={() => setEditRating(index + 1)}
+          className="text-xl focus:outline-none transition-colors duration-200"
+        >
+          <span className={index + 1 <= editRating ? "text-yellow-400" : "text-gray-300"}>★</span>
+        </button>
+      ))}
+    </div>
+  );
+
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mt-6">
+    <div className="bg-gradient-to-b from-[#f0f9ff] to-white p-6 rounded-2xl shadow-lg">
       <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center">
-        💬 Bình luận & Đánh giá <span className="text-sm font-normal text-gray-500 ml-2">({comments.length})</span>
+        <span className="mr-2">💬</span>
+        Bình luận & Đánh giá
+        <span className="ml-2 text-sm font-normal text-gray-500">({comments.length})</span>
       </h3>
 
-      {/* FORM NHẬP LIỆU */}
+      {/* Comment form */}
       {isAuthenticated ? (
-        <form onSubmit={handleSubmit} className="mb-8 bg-gray-50 p-4 rounded-lg">
-          <div className="flex items-start gap-3">
-             {/* Avatar User hiện tại */}
-             {user?.avatar_url ? (
-                <img src={getImageUrl(user.avatar_url)} alt="me" className="w-10 h-10 rounded-full object-cover"/>
-             ) : (
-                <FaUserCircle className="w-10 h-10 text-gray-400" />
-             )}
-             
-             <div className="flex-1">
-                {/* Chọn sao */}
-                <div className="flex items-center mb-2">
-                  <span className="text-sm text-gray-600 mr-2 font-medium">Đánh giá:</span>
-                  {[...Array(5)].map((_, index) => {
-                    const starValue = index + 1;
-                    return (
-                      <button
-                        type="button"
-                        key={index}
-                        className="text-xl focus:outline-none transition-transform hover:scale-110"
-                        onClick={() => setRating(starValue)}
-                        onMouseEnter={() => setHoverRating(starValue)}
-                        onMouseLeave={() => setHoverRating(0)}
-                      >
-                        {starValue <= (hoverRating || rating) ? (
-                          <FaStar className="text-yellow-400" />
-                        ) : (
-                          <FaRegStar className="text-gray-300" />
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* Ô nhập text */}
-                <div className="relative">
-                    <textarea
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    placeholder="Bạn nghĩ gì về bài hát này? (Khen một câu đi nào...)"
-                    className="w-full p-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent outline-none resize-none h-24"
-                    />
-                    <button 
-                        type="submit"
-                        className="absolute bottom-3 right-3 p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors disabled:opacity-50"
-                        disabled={!newComment.trim()}
-                    >
-                        <FaPaperPlane />
-                    </button>
-                </div>
-             </div>
+        <form onSubmit={handleSubmit} className="mb-8 bg-white p-4 rounded-xl shadow-md">
+          <div className="flex items-start gap-4">
+            {user?.avatar_url ? (
+              <img src={getImageUrl(user.avatar_url)} alt="me" className="w-10 h-10 rounded-full object-cover border-2 border-[#7Ab2D3]" />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#7Ab2D3] to-[#4A90E2] flex items-center justify-center text-white font-bold">
+                {user?.full_name?.charAt(0).toUpperCase() || 'U'}
+              </div>
+            )}
+            <div className="flex-1">
+              <div className="flex items-center mb-2">
+                <span className="text-sm text-gray-600 mr-2 font-medium">Đánh giá:</span>
+                {renderRatingStars()}
+              </div>
+              <div className="relative">
+                <textarea
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  placeholder="Bạn nghĩ gì về bài hát này?"
+                  className="w-full p-3 pr-12 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7Ab2D3] focus:border-transparent resize-none h-24"
+                />
+                <button
+                  type="submit"
+                  disabled={isSubmitting || !newComment.trim()}
+                  className="absolute bottom-3 right-3 p-2 bg-gradient-to-r from-[#7Ab2D3] to-[#4A90E2] text-white rounded-full hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSubmitting ? (
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <FiSend size={16} />
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
         </form>
       ) : (
-        <div className="mb-8 p-4 bg-yellow-50 text-yellow-800 rounded-lg text-center border border-yellow-200">
-           Vui lòng <a href="/login" className="font-bold underline">đăng nhập</a> để để lại lời khen!
+        <div className="mb-8 p-4 bg-yellow-50 rounded-xl border border-yellow-200 text-center">
+          <p className="text-yellow-800">Vui lòng đăng nhập để bình luận!</p>
+          <a href="/login" className="inline-block mt-2 px-4 py-2 bg-gradient-to-r from-[#7Ab2D3] to-[#4A90E2] text-white rounded-lg hover:shadow-lg transition-all duration-300">
+            Đăng nhập
+          </a>
         </div>
       )}
 
-      {/* DANH SÁCH COMMENTS */}
-      <div className="space-y-6 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+      {/* Comments list */}
+      <div className="space-y-4 max-h-96 overflow-y-auto">
         {comments.length > 0 ? (
-          comments.map((cmt) => (
-            <div key={cmt.id} className="flex gap-4 animate-fade-in">
-              {/* Avatar người comment */}
-              <div className="flex-shrink-0">
-                  {cmt.avatar_url ? (
-                    <img src={getImageUrl(cmt.avatar_url)} alt={cmt.username} className="w-10 h-10 rounded-full object-cover border border-gray-200" />
+          comments.map((comment) => (
+            <div key={comment.id} className="bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition-all duration-300">
+              <div className="flex items-start gap-3">
+                {comment.avatar_url ? (
+                  <img src={getImageUrl(comment.avatar_url)} alt={comment.username} className="w-10 h-10 rounded-full object-cover border border-gray-200" />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#7Ab2D3] to-[#4A90E2] flex items-center justify-center text-white font-bold">
+                    {comment.username?.charAt(0).toUpperCase() || 'U'}
+                  </div>
+                )}
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-1">
+                    <h4 className="font-medium text-gray-800">{comment.username}</h4>
+                    <div className="flex items-center">
+                      {renderStars(comment.rating)}
+                    </div>
+                  </div>
+                  
+                  {editingId === comment.id ? (
+                    <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-sm font-medium text-gray-700">Đang sửa bình luận...</span>
+                        {renderEditStars()}
+                      </div>
+                      <textarea
+                        value={editContent}
+                        onChange={(e) => setEditContent(e.target.value)}
+                        className="w-full p-2 border border-gray-200 rounded-lg focus:outline-none focus:border-[#7Ab2D3] resize-none"
+                        rows="2"
+                      />
+                      <div className="flex justify-end gap-2 mt-2">
+                        <button
+                          onClick={() => setEditingId(null)}
+                          className="px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                        >
+                          Hủy
+                        </button>
+                        <button
+                          onClick={() => handleUpdate(comment.id)}
+                          className="px-3 py-1 text-sm bg-gradient-to-r from-[#7Ab2D3] to-[#4A90E2] text-white rounded-lg hover:shadow-md transition-all duration-300"
+                        >
+                          Lưu
+                        </button>
+                      </div>
+                    </div>
                   ) : (
-                    <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white font-bold">
-                        {cmt.username?.charAt(0).toUpperCase()}
-                    </div>
+                    <p className="text-gray-700 whitespace-pre-wrap">{comment.content}</p>
                   )}
-              </div>
-
-              {/* Nội dung */}
-              <div className="flex-1">
-                <div className="bg-gray-50 p-3 rounded-lg rounded-tl-none">
-                    <div className="flex justify-between items-start mb-1">
-                        <span className="font-bold text-gray-800">{cmt.username}</span>
-                        <div className="flex">{renderStars(cmt.rating)}</div>
-                    </div>
-                    <p className="text-gray-700 text-sm whitespace-pre-wrap">{cmt.content}</p>
-                </div>
-                <div className="mt-1 text-xs text-gray-400 ml-1">
-                    {new Date(cmt.created_at).toLocaleString('vi-VN')}
+                  
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="text-xs text-gray-400">
+                      {new Date(comment.created_at).toLocaleString('vi-VN')}
+                    </span>
+                    
+                    {isAuthenticated && user && user.id === comment.user_id && (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => startEditing(comment)}
+                          className="p-1 text-gray-400 hover:text-[#7Ab2D3] hover:bg-[#7Ab2D3] hover:bg-opacity-10 rounded-full transition-all duration-300"
+                          title="Sửa"
+                        >
+                          <FiEdit2 size={14} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(comment.id)}
+                          className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all duration-300"
+                          title="Xóa"
+                        >
+                          <FiTrash2 size={14} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
           ))
         ) : (
-          <div className="text-center text-gray-400 py-8 italic">
-             Chưa có lời khen nào. Hãy là người đầu tiên! 🏆
+          <div className="text-center py-12 bg-gray-50 rounded-xl">
+            <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center mx-auto mb-4">
+              <FiUser className="text-gray-400 text-2xl" />
+            </div>
+            <p className="text-gray-500">Chưa có bình luận nào.</p>
           </div>
         )}
       </div>
