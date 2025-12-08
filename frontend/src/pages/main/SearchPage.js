@@ -9,6 +9,8 @@ import ArtistDetailsModal from "../../components/modals/ArtistDetailModal";
 import SongCard from "../../components/ui/SongCard";
 import { FiHeart, FiMoreHorizontal } from "react-icons/fi";
 import api from "../../api/api";
+import SongInfoModal from "../../components/modals/SongInforModal";
+
 
 const displayArtistNames = (artistsArray) => {
   if (!artistsArray || artistsArray.length === 0) {
@@ -64,6 +66,8 @@ function SearchPage() {
   const [modalSongId, setModalSongId] = useState(null);
   const [artistModalData, setArtistModalData] = useState(null);
   const [favoriteSongs, setFavoriteSongs] = useState(new Set());
+  const [showInfoModal, setShowInfoModal] = useState(false);
+  
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -213,12 +217,24 @@ function SearchPage() {
                               >
                                 Thêm vào playlist
                               </button>
-                              <button 
+                              {/* <button 
                                 onClick={() => toggleFavorite(song.id)}
                                 className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                               >
                                 {isFavorite ? "Xóa khỏi yêu thích" : "Thêm vào yêu thích"}
-                              </button>
+                              </button> */}
+                              <button
+                            onClick={() => setShowInfoModal(true)}
+                            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          >
+                            Xem thông tin
+                          </button>
+                          {showInfoModal && (
+                            <SongInfoModal
+                              song={song}
+                              onClose={() => setShowInfoModal(false)}
+                            />
+                          )}
                               <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                 Chia sẻ
                               </button>

@@ -3,10 +3,12 @@ import React, { useState, useEffect, useContext, useMemo } from "react";
 import api from "../../api/api";
 import { AuthContext } from "../../context/AuthContext";
 import { AudioContext } from "../../context/AudioContext";
-import { FiPlus, FiEdit2, FiTrash2, FiSearch, FiFilter, FiX, FiMusic, FiUser, FiPlay } from "react-icons/fi";
+import { FiPlus, FiEdit2, FiTrash2, FiSearch, FiFilter, FiX, FiMusic, FiUser, FiPlay, FiMoreHorizontal } from "react-icons/fi";
 import PlaylistForm from "../../components/forms/PlaylistForm";
 import EditPlaylistModal from "../../components/forms/EditPlaylistModal";
 import SongCard from "../../components/ui/SongCard";
+import SongInfoModal from "../../components/modals/SongInforModal";
+
 
 // --- HELPERS ---
 const getImageUrl = (url) => {
@@ -138,6 +140,9 @@ function PlaylistPage() {
 
   const { user, isAuthenticated } = useContext(AuthContext);
   const { currentSong, isPlaying, playSong } = useContext(AudioContext);
+
+  const [showInfoModal, setShowInfoModal] = useState(false);
+  
 
   // Fetch danh sách Playlist
   const fetchPlaylists = () => {
@@ -629,7 +634,7 @@ const shuffleArray = (array) => {
                         onClick={() => toggleMenu(song.id)} 
                         className="p-2 bg-white bg-opacity-80 rounded-full text-gray-700 hover:bg-opacity-100 transition-all duration-200"
                       >
-                        <FiX />
+                        <FiMoreHorizontal />
                       </button>
                       {menuOpenSongId === song.id && (
                         <div className="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg z-20">
@@ -639,12 +644,24 @@ const shuffleArray = (array) => {
                           >
                             Xóa khỏi playlist
                           </button>
-                          <button 
+                          {/* <button 
                             onClick={() => toggleFavorite(song.id)}
                             className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                           >
                             {isFavorite ? "Xóa khỏi yêu thích" : "Thêm vào yêu thích"}
+                          </button> */}
+                          <button
+                            onClick={() => setShowInfoModal(true)}
+                            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          >
+                            Xem thông tin
                           </button>
+                          {showInfoModal && (
+                            <SongInfoModal
+                              song={song}
+                              onClose={() => setShowInfoModal(false)}
+                            />
+                          )}
                           <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                             Chia sẻ
                           </button>

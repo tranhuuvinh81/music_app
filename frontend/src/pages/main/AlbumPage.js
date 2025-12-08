@@ -5,6 +5,8 @@ import { AudioContext } from '../../context/AudioContext';
 import { AuthContext } from '../../context/AuthContext';
 import SongCard from '../../components/ui/SongCard';
 import { FiMoreHorizontal, FiDisc, FiClock } from 'react-icons/fi';
+import SongInfoModal from "../../components/modals/SongInforModal";
+
 
 // 1. Component Card hiển thị Album
 const AlbumCard = ({ album, onClick, badge }) => {
@@ -64,6 +66,9 @@ function AlbumsPage() {
   const { currentSong, isPlaying, playSong } = useContext(AudioContext);
   const { openAddModal } = useOutletContext();
   const { isAuthenticated } = useContext(AuthContext);
+
+  const [showInfoModal, setShowInfoModal] = useState(false);
+  
 
   const getImageUrl = (url) => {
     if (!url) return "https://via.placeholder.com/300";
@@ -245,7 +250,7 @@ function AlbumsPage() {
                     
                     {/* Menu Option */}
                     {isAuthenticated && (
-                        <div className="absolute top-2 right-2 z-10">
+                        <div className="absolute top-2 right-2 z-1000">
                         <button 
                             onClick={() => toggleMenu(song.id)} 
                             className="p-2 bg-white bg-opacity-80 rounded-full text-gray-700 hover:bg-opacity-100 shadow-sm"
@@ -260,9 +265,18 @@ function AlbumsPage() {
                             >
                                 Thêm vào playlist
                             </button>
-                            <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                Chia sẻ
-                            </button>
+                            <button
+                            onClick={() => setShowInfoModal(true)}
+                            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          >
+                            Xem thông tin
+                          </button>
+                          {showInfoModal && (
+                            <SongInfoModal
+                              song={song}
+                              onClose={() => setShowInfoModal(false)}
+                            />
+                          )}
                             </div>
                         )}
                         </div>

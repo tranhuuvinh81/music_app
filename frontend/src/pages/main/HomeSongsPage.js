@@ -9,6 +9,7 @@ import SongCard from "../../components/ui/SongCard";
 import bannerImg from "../../assets/images/116d710d1e61b0cc8debc32470695fff.jpg";
 import listenIcon from "../../assets/icon/listen-1.png";
 import { FiHeart, FiMoreHorizontal } from "react-icons/fi";
+import SongInfoModal from "../../components/modals/SongInforModal";
 
 // Component trang chủ chính
 function HomeSongsPage() {
@@ -19,6 +20,7 @@ function HomeSongsPage() {
   const { currentSong, isPlaying, playSong } = useContext(AudioContext);
   const { openAddModal } = useOutletContext(); // Lấy hàm từ MainLayout
   const { isAuthenticated } = useContext(AuthContext);
+  const [showInfoModal, setShowInfoModal] = useState(false);
 
   useEffect(() => {
     // Chỉ fetch các bài hát nổi bật
@@ -124,7 +126,7 @@ function HomeSongsPage() {
 
                   {/* Custom Options Menu */}
                   {isAuthenticated && (
-                    <div className="absolute top-2 right-2 z-10">
+                    <div className="absolute top-2 right-2 z-1000">
                       <button
                         onClick={() => toggleMenu(song.id)}
                         className="p-2 bg-white bg-opacity-80 rounded-full text-gray-700 hover:bg-opacity-100 transition-all duration-200"
@@ -139,14 +141,26 @@ function HomeSongsPage() {
                           >
                             Thêm vào playlist
                           </button>
-                          <button
+                          {/* <button
                             onClick={() => toggleFavorite(song.id)}
                             className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                           >
                             {isFavorite
                               ? "Xóa khỏi yêu thích"
                               : "Thêm vào yêu thích"}
+                          </button> */}
+                          <button
+                            onClick={() => setShowInfoModal(true)}
+                            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          >
+                            Xem thông tin
                           </button>
+                          {showInfoModal && (
+                            <SongInfoModal
+                              song={song}
+                              onClose={() => setShowInfoModal(false)}
+                            />
+                          )}
                           <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                             Chia sẻ
                           </button>
