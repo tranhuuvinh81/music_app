@@ -16,7 +16,7 @@ const ArtistCard = ({ artist, onClick, onViewDetails }) => {
       <div className="relative aspect-square group" onClick={() => onClick(artist.name)}>
         {artist.image_url ? (
           <img
-            src={getImageUrl(artist.image_url)}
+            src={artist.image_url}
             alt={artist.name}
             className="w-full h-full object-cover"
           />
