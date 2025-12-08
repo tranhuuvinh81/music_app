@@ -63,3 +63,56 @@ export const addComment = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+// 3. Xóa bình luận
+export const deleteComment = async (req, res) => {
+  const { id } = req.params;
+  const userId = req.user.id; // Lấy ID người đang đăng nhập
+
+  try {
+    // Kiểm tra xem comment có tồn tại và có phải của user này không
+    const [existing] = await promiseDb.query("SELECT user_id FROM comments WHERE id = ?", [id]);
+    
+    if (existing.length === 0) return res.status(404).json({ message: "Bình luận không tồn tại" });
+    
+    if (existing[0].user_id !== userId) {
+      return res.status(403).json({ message: "Bạn không có quyền xóa bình luận này" });
+    }
+
+    await promiseDb.query("DELETE FROM comments WHERE id = ?", [id]);
+    res.json({ message: "Đã xóa bình luận" });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// 4. Sửa bình luận
+export const updateComment = async (req, res) => {
+  const { id } = req.params;
+  const userId = req.user.id;
+  const { content, rating } = req.body;
+
+  try {
+    // Kiểm tra quyền sở hữu
+    const [existing] = await promiseDb.query("SELECT user_id FROM comments WHERE id = ?", [id]);
+    
+    if (existing.length === 0) return res.status(404).json({ message: "Bình luận không tồn tại" });
+    
+    if (existing[0].user_id !== userId) {
+      return res.status(403).json({ message: "Bạn không có quyền sửa bình luận này" });
+    }
+
+    // Update
+    await promiseDb.query(
+      "UPDATE comments SET content = ?, rating = ?, created_at = NOW() WHERE id = ?", 
+      [content, rating, id]
+    );
+
+    // Trả về dữ liệu mới
+    res.json({ id, content, rating, updated: true });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

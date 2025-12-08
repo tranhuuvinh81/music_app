@@ -40,6 +40,17 @@ export const getAllArtists = (req, res) => {
   });
 };
 
+export const getArtistById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const [rows] = await db.promise().query("SELECT * FROM artists WHERE id = ?", [id]);
+    if (rows.length === 0) return res.status(404).json({ message: "Artist not found" });
+    res.json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 // (Admin) Thêm nghệ sĩ mới
 export const createArtist = (req, res) => {
   const { name, birth_year, field, description } = req.body;
