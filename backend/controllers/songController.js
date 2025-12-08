@@ -111,9 +111,9 @@ export const addSong = async (req, res) => {
     const { title, artistIds, album, genre, release_year, country } = req.body;
 
     // 1. Lấy URL từ Cloudinary (thuộc tính .path) - Đã sửa logic này
-    const songUrl = req.files['songFile'] ? req.files['songFile'][0].path : null;
-    const imageUrl = req.files['imageFile'] ? req.files['imageFile'][0].path : null;
-    const lyricUrl = req.files['lyricFile'] ? req.files['lyricFile'][0].path : null;
+    const songUrl = req.files?.['songFile']?.[0]?.path || currentSong.file_url;
+    const imageUrl = req.files?.['imageFile']?.[0]?.path || currentSong.image_url;
+    const lyricUrl = req.files?.['lyricFile']?.[0]?.path || currentSong.lyrics_url;
 
     if (!title) {
       return res.status(400).json({ error: "Thiếu tiêu đề" });
