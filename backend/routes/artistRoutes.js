@@ -5,6 +5,7 @@ import {
   createArtist,
   updateArtist,
   deleteArtist,
+  getArtistById
 } from "../controllers/artistController.js";
 import { verifyToken, isAdmin } from "../middleware/authMiddleware.js";
 import upload from '../middleware/upload.js';
@@ -13,6 +14,7 @@ const router = express.Router();
 
 // Public
 router.get("/", getAllArtists);
+router.get("/:id", getArtistById);
 
 // Admin only
 router.post(
