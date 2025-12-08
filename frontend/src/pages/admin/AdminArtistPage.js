@@ -53,6 +53,11 @@ function AdminArtistPage() {
         .catch(console.error);
     }
   };
+  const getImageUrl = (url) => {
+    if (!url) return "https://via.placeholder.com/300";
+    if (url.startsWith("http")) return url;
+    return `${api.defaults.baseURL}${url}`;
+  };
 
   return (
     <section className="bg-white rounded-lg shadow-md overflow-hidden">
@@ -108,11 +113,7 @@ function AdminArtistPage() {
                 </td>
                 <td className="px-6 py-4">
                   <img
-                    src={
-                      artist.image_url
-                        ? `${api.defaults.baseURL}${artist.image_url}`
-                        : "https://via.placeholder.com/40"
-                    }
+                    src={getImageUrl(artist.image_url)}
                     alt={artist.name}
                     className="w-10 h-10 object-cover rounded-full"
                   />
