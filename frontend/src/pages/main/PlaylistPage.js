@@ -248,6 +248,27 @@ function PlaylistPage() {
     }
   };
 
+  // Hàm xáo trộn mảng (Fisher-Yates)
+const shuffleArray = (array) => {
+  const newArray = [...array]; // Tạo bản sao để không ảnh hưởng mảng gốc
+  for (let i = newArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+  }
+  return newArray;
+};
+  const handlePlayPlaylist = () => {
+    if (playlistSongs.length === 0) return;
+
+    // 1. Xáo trộn danh sách hiện tại
+    const shuffledSongs = shuffleArray(playlistSongs);
+
+    // 2. Phát bài đầu tiên trong danh sách ĐÃ XÁO TRỘN
+    // Tham số playSong thường là: (bài_hát_hiện_tại, danh_sách_đang_phát, index)
+    // Lúc này index luôn là 0 vì ta phát bài đầu của list mới
+    playSong(shuffledSongs[0], shuffledSongs, 0);
+  };
+
   // Các hàm xử lý sự kiện chính
   const viewPlaylist = (playlistId) => {
     setCurrentPlaylistId(playlistId);
@@ -411,7 +432,7 @@ function PlaylistPage() {
               onClick={viewPlaylist}
               onEdit={handleOpenEditModal}
               onDelete={deletePlaylist}
-              onPlayRandom={playRandomSongFromPlaylist}
+              onPlayRandom={handlePlayPlaylist}
               songCount={playlistSongsCount[playlist.id] || 0}
             />
           ))}
