@@ -12,6 +12,7 @@
 // import { fileURLToPath } from "url";
 // import statsRoutes from "./routes/statsRoutes.js";
 // import chatbotRoutes from "./routes/chatbotRoutes.js";
+// import commentRoutes from "./routes/commentRoutes.js";
 
 // // Cần thiết cho __dirname trong ES Modules
 // const __filename = fileURLToPath(import.meta.url);
@@ -35,6 +36,7 @@
 // app.use('/api/search', searchRoutes);
 // app.use("/api/stats", statsRoutes);
 // app.use("/api/chatbot", chatbotRoutes);
+// app.use("/api/comments", commentRoutes);
 
 // // Test route
 // app.get("/", (req, res) => {
@@ -63,6 +65,8 @@ import path from "path";
 import { fileURLToPath } from "url";
 import statsRoutes from "./routes/statsRoutes.js";
 import chatbotRoutes from "./routes/chatbotRoutes.js";
+import commentRoutes from "./routes/commentRoutes.js";
+
 
 // Cần thiết cho __dirname trong ES Modules
 const __filename = fileURLToPath(import.meta.url);
@@ -92,6 +96,7 @@ app.use("/api/artists", artistRoutes);
 app.use('/api/search', searchRoutes);
 app.use("/api/stats", statsRoutes);
 app.use("/api/chatbot", chatbotRoutes);
+app.use("/api/comments", commentRoutes);
 
 // Test route
 app.get("/", (req, res) => {

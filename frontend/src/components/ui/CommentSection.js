@@ -135,7 +135,6 @@ const CommentSection = ({ songId }) => {
   return (
     <div className="bg-gradient-to-b from-[#f0f9ff] to-white p-6 rounded-2xl shadow-lg">
       <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center">
-        <span className="mr-2">💬</span>
         Bình luận & Đánh giá
         <span className="ml-2 text-sm font-normal text-gray-500">({comments.length})</span>
       </h3>
