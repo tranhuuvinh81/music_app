@@ -40,7 +40,7 @@
 import express from "express";
 import {
   getAllArtists,
-  addArtist,
+  createArtist,
   updateArtist,
   deleteArtist,
   getArtistById
@@ -61,7 +61,7 @@ router.post(
   verifyToken,
   isAdmin,
   uploadCloud.single("artistImage"),
-  addArtist
+  createArtist
 );
 router.put(
   "/:id",
