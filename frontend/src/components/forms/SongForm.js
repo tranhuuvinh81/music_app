@@ -24,6 +24,8 @@ function SongForm({ songToEdit, onFormSubmit, onCancel }) {
   const [allGenres, setAllGenres] = useState([]); // Danh sách tất cả thể loại
   const [selectedGenres, setSelectedGenres] = useState(null); // Thể loại đã chọn
 
+  const [isLoading, setIsLoading] = useState(false);
+
   useEffect(() => {
     const fetchArtists = async () => {
       try {
@@ -55,8 +57,6 @@ function SongForm({ songToEdit, onFormSubmit, onCancel }) {
     fetchGenres();
   }, []);
 
-
-
   // Set giá trị mặc định khi edit
   useEffect(() => {
     if (isEditing && songToEdit) {
@@ -76,13 +76,20 @@ function SongForm({ songToEdit, onFormSubmit, onCancel }) {
 
       // Chuyển "Pop,K-Pop" thành [{ value: 'Pop', label: 'Pop' }, { value: 'K-Pop', label: 'K-Pop' }]
       const currentGenreOptions = songToEdit.genre
-        ? songToEdit.genre.split(',').map(g => ({ value: g.trim(), label: g.trim() }))
+        ? songToEdit.genre
+            .split(",")
+            .map((g) => ({ value: g.trim(), label: g.trim() }))
         : [];
       setSelectedGenres(currentGenreOptions);
-
     } else {
       // Reset khi mở form thêm mới
-      setFormData({ title: "", album: "", genre: "", release_year: "", country: "" });
+      setFormData({
+        title: "",
+        album: "",
+        genre: "",
+        release_year: "",
+        country: "",
+      });
       setSelectedArtists([]);
       setSongFile(null);
       setImageFile(null);
@@ -100,7 +107,7 @@ function SongForm({ songToEdit, onFormSubmit, onCancel }) {
   };
   const handleGenreChange = (selectedOptions) => {
     setSelectedGenres(selectedOptions || []);
-  }
+  };
 
   const handleSongFileChange = (e) => {
     setSongFile(e.target.files[0]);
@@ -129,7 +136,7 @@ function SongForm({ songToEdit, onFormSubmit, onCancel }) {
     data.append("artistIds", JSON.stringify(artistIds)); // Gửi dưới dạng chuỗi JSON
 
     // Chuyển [{ value: 'Pop', label: 'Pop' }] thành "Pop,K-Pop"
-    const genreString = selectedGenres.map(g => g.value).join(',');
+    const genreString = selectedGenres.map((g) => g.value).join(",");
     data.append("genre", genreString);
 
     if (songFile) data.append("songFile", songFile);
@@ -149,6 +156,8 @@ function SongForm({ songToEdit, onFormSubmit, onCancel }) {
       onFormSubmit();
     } catch (err) {
       setError(err.response?.data?.error || "Có lỗi xảy ra");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -281,7 +290,7 @@ function SongForm({ songToEdit, onFormSubmit, onCancel }) {
             </div>
 
             {/* File Inputs (Song, Image, Lyric) */}
-            <div>
+            {/* <div>
               <label className="block text-sm font-medium text-gray-700">
                 File bài hát (MP3)
               </label>
@@ -316,6 +325,57 @@ function SongForm({ songToEdit, onFormSubmit, onCancel }) {
                 accept=".lrc, text/plain"
                 className="mt-1 w-full text-sm"
               />
+            </div> */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                File bài hát (MP3)
+              </label>
+              {isEditing && songToEdit.file_url && (
+                <p className="text-xs text-gray-500 mb-1">
+                  Hiện tại: {songToEdit.file_url.split("/").pop()}
+                </p> // Hoặc hiển thị link rút gọn
+              )}
+              <input
+                type="file"
+                name="songFile"
+                onChange={handleSongFileChange}
+                accept="audio/*"
+                className="mt-1 w-full text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Ảnh bìa
+              </label>
+              {isEditing && songToEdit.image_url && (
+                <p className="text-xs text-gray-500 mb-1">
+                  Hiện tại: {songToEdit.image_url.split("/").pop()}
+                </p>
+              )}
+              <input
+                type="file"
+                name="imageFile"
+                onChange={handleImageFileChange}
+                accept="image/*"
+                className="mt-1 w-full text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                File Lyric (.lrc)
+              </label>
+              {isEditing && songToEdit.lyric_url && (
+                <p className="text-xs text-gray-500 mb-1">
+                  Hiện tại: {songToEdit.lyric_url.split("/").pop()}
+                </p>
+              )}
+              <input
+                type="file"
+                name="lyricFile"
+                onChange={handleLyricFileChange}
+                accept=".lrc, text/plain"
+                className="mt-1 w-full text-sm"
+              />
             </div>
           </div>
           {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
@@ -329,9 +389,10 @@ function SongForm({ songToEdit, onFormSubmit, onCancel }) {
             </button>
             <button
               type="submit"
+              disabled={isLoading}
               className="px-4 py-2 bg-gray-600 text-white rounded-md"
             >
-              {isEditing ? "Lưu" : "Thêm"}
+              {isLoading ? "Đang xử lý..." : (isEditing ? "Lưu" : "Thêm")}
             </button>
           </div>
         </form>
