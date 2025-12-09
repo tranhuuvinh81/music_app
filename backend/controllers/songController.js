@@ -105,16 +105,18 @@ export const incrementListenCount = async (req, res) => {
   }
 };
 
-// Thêm bài hát mới (xử lý nhiều artistIds và Cloudinary)
+// Thêm bài hát mới
 export const addSong = async (req, res) => {
   try {
     const { title, artistIds, album, genre, release_year, country } = req.body;
 
-    // 1. Lấy URL từ Cloudinary (thuộc tính .path) - Đã sửa logic này
-    const songUrl = req.files?.['songFile']?.[0]?.path || currentSong.file_url;
-    const imageUrl = req.files?.['imageFile']?.[0]?.path || currentSong.image_url;
-    const lyricUrl = req.files?.['lyricFile']?.[0]?.path || currentSong.lyrics_url;
+    // [FIX] Sửa lỗi tại đây:
+    // Khi thêm mới, nếu không có file thì gán là null, KHÔNG dùng currentSong
+    const songUrl = req.files?.['songFile']?.[0]?.path || null;
+    const imageUrl = req.files?.['imageFile']?.[0]?.path || null;
+    const lyricUrl = req.files?.['lyricFile']?.[0]?.path || null;
 
+    // Validate bắt buộc
     if (!title) {
       return res.status(400).json({ error: "Thiếu tiêu đề" });
     }
@@ -125,16 +127,13 @@ export const addSong = async (req, res) => {
     // Chuyển đổi chuỗi JSON artistIds thành mảng ID
     let parsedArtistIds = [];
     try {
-      // artistIds gửi lên dạng string JSON "[1, 2]" hoặc một ID đơn lẻ
       parsedArtistIds = JSON.parse(artistIds || "[]");
-      // Nếu parse ra số đơn (không phải mảng), bọc nó vào mảng
       if (typeof parsedArtistIds === 'number') parsedArtistIds = [parsedArtistIds];
       
       if (!Array.isArray(parsedArtistIds) || parsedArtistIds.length === 0) {
         return res.status(400).json({ error: "Cần chọn ít nhất một nghệ sĩ" });
       }
     } catch (parseError) {
-       // Fallback nếu gửi lên dạng string "1,2" thay vì JSON
        if (typeof artistIds === 'string') {
           parsedArtistIds = artistIds.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
        }
@@ -163,7 +162,7 @@ export const addSong = async (req, res) => {
 
     const newSongId = result.insertId;
 
-    // 3. Liên kết nghệ sĩ (Bảng song_artists)
+    // 3. Liên kết nghệ sĩ
     const artistLinks = parsedArtistIds.map((artistId) => [newSongId, artistId]);
     
     if (artistLinks.length > 0) {
