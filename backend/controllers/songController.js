@@ -159,16 +159,14 @@ export const addSong = async (req, res) => {
       listen_count: 0
     };
 
-    // [MAGIC SQL]: Tự động sinh câu lệnh INSERT từ Object songData
-    // Điều này đảm bảo số lượng cột và giá trị LUÔN LUÔN khớp nhau 100%
-    const columns = Object.keys(songData).join(', ');
-    const placeholders = Object.keys(songData).map(() => '?').join(', ');
-    const values = Object.values(songData);
-
-    const query = `INSERT INTO songs (${columns}) VALUES (${placeholders})`;
+    // [FIX LỖI COLUMN COUNT] 
+    // Thay vì viết VALUES (?,?,...), ta dùng cú pháp SET ?
+    // MySQL sẽ tự động map: title -> songData.title, album -> songData.album...
+    // Đảm bảo không bao giờ bị lệch cột
+    const query = "INSERT INTO songs SET ?";
 
     // Thực thi
-    const [result] = await promiseDb.query(query, values);
+    const [result] = await promiseDb.query(query, songData);
     const newSongId = result.insertId;
 
     // 4. Liên kết nghệ sĩ vào bảng trung gian
