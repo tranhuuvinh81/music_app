@@ -10,6 +10,13 @@ function Navigation() {
   const { user, fullUser, logout } = useContext(AuthContext);
   const { searchQuery, setSearchQuery, performSearch } = useContext(SongContext);
   const navigate = useNavigate();
+  
+  // Helper để hiển thị ảnh
+const getImageUrl = (url) => {
+  if (!url) return null;
+  if (url.startsWith('http')) return url;
+  return `${api.defaults.baseURL}${url}`;
+};
 
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
@@ -133,7 +140,7 @@ function Navigation() {
                   {avatarSrc ? (
                     <img
                       className="h-10 w-10 rounded-full object-cover border-2 border-white shadow-md"
-                      src={avatarSrc}
+                      src={getImageUrl(fullUser.avatar_url)}
                       alt="User Avatar"
                     />
                   ) : (
