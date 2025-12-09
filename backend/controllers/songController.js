@@ -111,24 +111,30 @@ export const addSong = async (req, res) => {
     const { title, artistIds, album, genre, release_year, country } = req.body;
 
     // 1. Lấy URL file từ Cloudinary (Dùng optional chaining an toàn)
+    // Nếu không có file, gán null
     const songUrl = req.files?.['songFile']?.[0]?.path || null;
     const imageUrl = req.files?.['imageFile']?.[0]?.path || null;
     const lyricUrl = req.files?.['lyricFile']?.[0]?.path || null;
 
+    // Validate dữ liệu bắt buộc
     if (!title) return res.status(400).json({ error: "Thiếu tiêu đề" });
     if (!songUrl) return res.status(400).json({ error: "Vui lòng upload file nhạc (songFile)" });
 
-    // 2. Xử lý nghệ sĩ (Artist IDs)
+    // 2. Xử lý nghệ sĩ (Artist IDs) - Hỗ trợ cả JSON mảng lẫn chuỗi
     let parsedArtistIds = [];
     try {
       if (typeof artistIds === 'string') {
-          // Xử lý cả dạng JSON "[1,2]" lẫn dạng chuỗi "1,2"
-          parsedArtistIds = artistIds.trim().startsWith('[') 
-            ? JSON.parse(artistIds) 
-            : artistIds.split(',').map(Number);
+          // Nếu là chuỗi JSON "[1,2]" -> Parse JSON
+          if (artistIds.trim().startsWith('[')) {
+             parsedArtistIds = JSON.parse(artistIds);
+          } else {
+             // Nếu là chuỗi thường "1,2" -> Split
+             parsedArtistIds = artistIds.split(',').map(Number);
+          }
       } else if (typeof artistIds === 'number') {
           parsedArtistIds = [artistIds];
       }
+      // Lọc bỏ các giá trị không phải số (NaN)
       parsedArtistIds = parsedArtistIds.filter(id => !isNaN(id));
 
       if (parsedArtistIds.length === 0) {
@@ -138,7 +144,8 @@ export const addSong = async (req, res) => {
        return res.status(400).json({ error: "Định dạng artistIds không hợp lệ" });
     }
 
-    // 3. Chuẩn bị dữ liệu Insert (Dạng Object)
+    // 3. Chuẩn bị dữ liệu để Insert
+    // [KỸ THUẬT QUAN TRỌNG]: Gom tất cả vào 1 object
     const songData = {
       title: title,
       album: album || null,
@@ -152,8 +159,8 @@ export const addSong = async (req, res) => {
       listen_count: 0
     };
 
-    // [FIX] Tự động sinh câu lệnh SQL chuẩn từ Object
-    // Cách này đảm bảo keys và values luôn khớp 1:1, không bao giờ bị lệch cột
+    // [MAGIC SQL]: Tự động sinh câu lệnh INSERT từ Object songData
+    // Điều này đảm bảo số lượng cột và giá trị LUÔN LUÔN khớp nhau 100%
     const columns = Object.keys(songData).join(', ');
     const placeholders = Object.keys(songData).map(() => '?').join(', ');
     const values = Object.values(songData);
@@ -164,9 +171,12 @@ export const addSong = async (req, res) => {
     const [result] = await promiseDb.query(query, values);
     const newSongId = result.insertId;
 
-    // 4. Liên kết nghệ sĩ
+    // 4. Liên kết nghệ sĩ vào bảng trung gian
     if (parsedArtistIds.length > 0) {
+      // Tạo mảng lồng nhau: [[songId, artistId1], [songId, artistId2]]
       const artistLinks = parsedArtistIds.map((artistId) => [newSongId, artistId]);
+      
+      // Dùng cú pháp bulk insert của MySQL: VALUES ?
       await promiseDb.query("INSERT INTO song_artists (song_id, artist_id) VALUES ?", [artistLinks]);
     }
 
