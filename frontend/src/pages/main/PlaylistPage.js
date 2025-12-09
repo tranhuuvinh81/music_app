@@ -10,12 +10,7 @@ import SongCard from "../../components/ui/SongCard";
 import SongInfoModal from "../../components/modals/SongInforModal";
 
 
-// --- HELPERS ---
-const getImageUrl = (url) => {
-  if (!url) return 'https://via.placeholder.com/150';
-  if (url.startsWith('http')) return url;
-  return `${api.defaults.baseURL}${url}`;
-};
+
 
 const displayArtistNames = (artistsArray) => {
   if (!Array.isArray(artistsArray) || artistsArray.length === 0) {
@@ -143,7 +138,13 @@ function PlaylistPage() {
 
   const [showInfoModal, setShowInfoModal] = useState(false);
   
-
+  // --- HELPERS ---
+  const getImageUrl = (url) => {
+    if (!url) return 'https://via.placeholder.com/150';
+    if (url.startsWith('http')) return url;
+    return `${api.defaults.baseURL}${url}`;
+  };
+  
   // Fetch danh sách Playlist
   const fetchPlaylists = () => {
     if (isAuthenticated) {
