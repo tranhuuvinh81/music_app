@@ -229,9 +229,9 @@
 //====================================================================
 
 // backend/controllers/playlistController.js
-import db from "../config/db.js"; 
+import connection from "../config/db.js"; 
 
-const promiseDb = db.promise(); // Sử dụng phiên bản promise của mysql2
+const promiseDb = connection.promise(); // Sử dụng phiên bản promise của mysql2
 
 // --- HÀM HELPER: Lấy nghệ sĩ cho danh sách bài hát ---
 const fetchArtistsForSongs = (songs) => {
