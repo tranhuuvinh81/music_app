@@ -1,157 +1,242 @@
 // backend/controllers/songController.js
 import db from "../config/db.js";
 
-const promiseDb = db.promise();
+// [CRITICAL FIX] Ensure we have a promise-based wrapper
+// If db is already a promise pool, this might be redundant but safe. 
+// If db is a callback connection, this is required.
+const promiseDb = db.promise ? db.promise() : db; 
 
-// lấy danh sách nghệ sĩ đầy đủ cho một danh sách bài hát
-const fetchArtistsForSongs = (songs) => {
-  return new Promise((resolve, reject) => {
-    if (!songs || songs.length === 0) {
-      return resolve([]); // Trả về mảng rỗng nếu không có bài hát
-    }
+// ==========================================
+// HELPER FUNCTIONS
+// ==========================================
 
-    const songIds = songs.map((song) => song.id);
-    const query = `
-      SELECT sa.song_id, a.id, a.name, a.image_url 
-      FROM song_artists sa
-      JOIN artists a ON sa.artist_id = a.id
-      WHERE sa.song_id IN (?)
-    `;
+const fetchArtistsForSongs = async (songs) => {
+  if (!songs || songs.length === 0) return [];
 
-    db.query(query, [songIds], (err, artistLinks) => {
-      if (err) return reject(err);
+  const songIds = songs.map((song) => song.id);
+  const query = `
+    SELECT sa.song_id, a.id, a.name, a.image_url 
+    FROM song_artists sa
+    JOIN artists a ON sa.artist_id = a.id
+    WHERE sa.song_id IN (?)
+  `;
 
-      // Nhóm nghệ sĩ theo song_id
-      const songsWithArtists = songs.map((song) => {
-        const artists = artistLinks
-          .filter((link) => link.song_id === song.id)
-          .map((link) => ({
-            id: link.id,
-            name: link.name,
-            image_url: link.image_url,
-          }));
-        return { ...song, artists: artists };
-      });
-      resolve(songsWithArtists);
-    });
+  // Use promiseDb here
+  const [artistLinks] = await promiseDb.query(query, [songIds]);
+
+  return songs.map((song) => {
+    const artists = artistLinks
+      .filter((link) => link.song_id === song.id)
+      .map((link) => ({
+        id: link.id,
+        name: link.name,
+        image_url: link.image_url,
+      }));
+    return { ...song, artists };
   });
 };
 
-// Lấy tất cả bài hát (có kèm nghệ sĩ)
+// ==========================================
+// READ OPERATIONS (GET)
+// ==========================================
+
 export const getAllSongs = async (req, res) => {
-  const query =
-    "SELECT id, title, album, genre, release_year, country, file_url, image_url, lyrics_url, listen_count, created_at FROM songs ORDER BY listen_count DESC";
-  db.query(query, async (err, songs) => {
-    // Thêm async
-    if (err) return res.status(500).json({ error: "Lỗi khi truy vấn bài hát" });
-    try {
-      // Lấy thêm thông tin nghệ sĩ cho các bài hát này
-      const songsWithArtists = await fetchArtistsForSongs(songs);
-      res.json(songsWithArtists);
-    } catch (fetchErr) {
-      res.status(500).json({
-        error: "Lỗi khi lấy thông tin nghệ sĩ",
-        details: fetchErr.message,
-      });
-    }
-  });
-};
-
-// Lấy bài hát theo ID (có kèm nghệ sĩ)
-export const getSongById = async (req, res) => {
-  const { id } = req.params;
-  const query =
-    "SELECT id, title, album, genre, release_year, country, file_url, image_url, lyrics_url, listen_count, created_at FROM songs WHERE id = ?";
-  db.query(query, [id], async (err, results) => {
-    // Thêm async
-    if (err) return res.status(500).json({ error: "Lỗi khi truy vấn bài hát" });
-    if (results.length === 0)
-      return res.status(404).json({ message: "Không tìm thấy bài hát" });
-
-    try {
-      const song = results[0];
-      const songWithArtists = await fetchArtistsForSongs([song]); // fetchArtistsForSongs nhận mảng
-      res.json(songWithArtists[0]); // Trả về object bài hát duy nhất
-    } catch (fetchErr) {
-      res.status(500).json({
-        error: "Lỗi khi lấy thông tin nghệ sĩ",
-        details: fetchErr.message,
-      });
-    }
-  });
-};
-
-
-// ==========================================
-// CÁC HÀM LOGIC XỬ LÝ (ADD/UPDATE/DELETE/ETC)
-// ==========================================
-
-// Tăng lượt nghe
-export const incrementListenCount = async (req, res) => {
-  const { id } = req.params;
-  const query = "UPDATE songs SET listen_count = listen_count + 1 WHERE id = ?";
-
   try {
-    const [result] = await promiseDb.query(query, [id]);
-    
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: "Không tìm thấy bài hát" });
-    }
-    // Gửi 204 No Content, client không cần dữ liệu trả về
-    res.sendStatus(204);
+    const query = "SELECT id, title, album, genre, release_year, country, file_url, image_url, lyrics_url, listen_count, created_at FROM songs ORDER BY listen_count DESC";
+    const [songs] = await promiseDb.query(query);
+    const songsWithArtists = await fetchArtistsForSongs(songs);
+    res.json(songsWithArtists);
   } catch (err) {
-    console.error(`Lỗi khi tăng lượt nghe cho song ${id}:`, err.message);
-    return res.status(500).json({ error: "Lỗi server" });
+    res.status(500).json({ error: "Lỗi khi truy vấn bài hát", details: err.message });
   }
 };
 
-// Thêm bài hát mới (xử lý nhiều artistIds và Cloudinary)
+export const getSongById = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const query = "SELECT id, title, album, genre, release_year, country, file_url, image_url, lyrics_url, listen_count, created_at FROM songs WHERE id = ?";
+    const [results] = await promiseDb.query(query, [id]);
+    
+    if (results.length === 0) return res.status(404).json({ message: "Không tìm thấy bài hát" });
+
+    const songsWithArtists = await fetchArtistsForSongs(results);
+    res.json(songsWithArtists[0]);
+  } catch (err) {
+    res.status(500).json({ error: "Lỗi khi lấy thông tin bài hát", details: err.message });
+  }
+};
+
+// ... (Keep getGenres, getUniqueCountries, getSongsByCountry, getSongsByArtist, getSongsByAlbum as they were or convert them similarly if needed. The provided code below focuses on the CRUD that was failing) ...
+
+export const getGenres = async (req, res) => {
+  try {
+    const query = "SELECT genre FROM songs WHERE genre IS NOT NULL AND genre != ''";
+    const [results] = await promiseDb.query(query);
+    const allGenres = new Set();
+    results.forEach((row) => {
+      if(row.genre) row.genre.split(',').forEach(g => allGenres.add(g.trim()));
+    });
+    res.json(Array.from(allGenres).sort());
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const getUniqueCountries = async (req, res) => {
+    try {
+        const query = "SELECT country FROM songs WHERE country IS NOT NULL AND country != ''";
+        const [results] = await promiseDb.query(query);
+        const allCountries = new Set();
+        results.forEach((row) => {
+            if (row.country) {
+                row.country.split(',').map(c => c.trim()).filter(c => c).forEach(c => allCountries.add(c));
+            }
+        });
+        res.json(Array.from(allCountries).sort());
+    } catch (err) {
+        res.status(500).json({ error: "Lỗi khi lấy danh sách quốc gia" });
+    }
+};
+
+export const getSongsByArtist = async (req, res) => {
+    const { artistName } = req.params;
+    const decodedArtistName = decodeURIComponent(artistName);
+    try {
+        const [artistResults] = await promiseDb.query("SELECT id FROM artists WHERE name = ?", [decodedArtistName]);
+        if (artistResults.length === 0) return res.json([]);
+        
+        const artistId = artistResults[0].id;
+        const [songLinks] = await promiseDb.query("SELECT song_id FROM song_artists WHERE artist_id = ?", [artistId]);
+        if (songLinks.length === 0) return res.json([]);
+
+        const songIds = songLinks.map(link => link.song_id);
+        const [songs] = await promiseDb.query("SELECT * FROM songs WHERE id IN (?) ORDER BY title", [songIds]);
+        const finalSongs = await fetchArtistsForSongs(songs);
+        res.json(finalSongs);
+    } catch (err) {
+        res.status(500).json({ error: "Lỗi server", details: err.message });
+    }
+};
+
+export const getSongsByGenre = async (req, res) => {
+    const { genre } = req.params;
+    const decodedGenre = decodeURIComponent(genre);
+    const searchTerm = `%${decodedGenre}%`;
+    try {
+        const [songs] = await promiseDb.query("SELECT * FROM songs WHERE genre LIKE ? ORDER BY title", [searchTerm]);
+        const finalSongs = await fetchArtistsForSongs(songs);
+        res.json(finalSongs);
+    } catch (err) {
+        res.status(500).json({ error: "Lỗi server", details: err.message });
+    }
+};
+
+export const getSongsByCountry = async (req, res) => {
+    const { countryName } = req.params;
+    const decodedCountry = decodeURIComponent(countryName);
+    const searchTerm = `%${decodedCountry}%`;
+    try {
+        const [songs] = await promiseDb.query("SELECT * FROM songs WHERE country LIKE ? ORDER BY title", [searchTerm]);
+        const finalSongs = await fetchArtistsForSongs(songs);
+        res.json(finalSongs);
+    } catch (err) {
+        res.status(500).json({ error: "Lỗi server", details: err.message });
+    }
+};
+
+export const getSongsByAlbum = async (req, res) => {
+    const { name } = req.params;
+    if (!name) return res.status(400).json({ error: "Thiếu tên album" });
+    try {
+        const query = `
+            SELECT s.*, a.id as artist_id, a.name as artist_name
+            FROM songs s
+            LEFT JOIN song_artists sa ON s.id = sa.song_id
+            LEFT JOIN artists a ON sa.artist_id = a.id
+            WHERE s.album = ?
+        `;
+        const [results] = await promiseDb.query(query, [name]);
+        
+        const songsMap = new Map();
+        results.forEach(row => {
+            if (!songsMap.has(row.id)) {
+                const { artist_id, artist_name, ...songData } = row;
+                songsMap.set(row.id, { ...songData, artists: [] });
+            }
+            if (row.artist_id) {
+                songsMap.get(row.id).artists.push({ id: row.artist_id, name: row.artist_name });
+            }
+        });
+        res.json(Array.from(songsMap.values()));
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+
+// ==========================================
+// WRITE OPERATIONS (ADD/UPDATE/DELETE)
+// ==========================================
+
+export const incrementListenCount = async (req, res) => {
+  const { id } = req.params;
+  try {
+    await promiseDb.query("UPDATE songs SET listen_count = listen_count + 1 WHERE id = ?", [id]);
+    res.sendStatus(204);
+  } catch (err) {
+    console.error(`Lỗi listen count song ${id}:`, err.message);
+    // Don't crash client for this
+    res.sendStatus(500); 
+  }
+};
+
 export const addSong = async (req, res) => {
   try {
     const { title, artistIds, album, genre, release_year, country } = req.body;
 
-    // [FIX] Sửa logic lấy URL: Nếu không có file upload thì gán là null
-    // Không được dùng currentSong ở đây vì đây là thêm mới
+    // [FIX] Handling Cloudinary Files
+    // Using optional chaining to safely access files
     const songUrl = req.files?.['songFile']?.[0]?.path || null;
     const imageUrl = req.files?.['imageFile']?.[0]?.path || null;
     const lyricUrl = req.files?.['lyricFile']?.[0]?.path || null;
 
-    if (!title) {
-      return res.status(400).json({ error: "Thiếu tiêu đề" });
-    }
-    // Bắt buộc phải có file nhạc khi thêm mới
-    if (!songUrl) {
-      return res.status(400).json({ error: "Vui lòng upload file nhạc (songFile)" });
-    }
+    if (!title) return res.status(400).json({ error: "Thiếu tiêu đề" });
+    if (!songUrl) return res.status(400).json({ error: "Vui lòng upload file nhạc (songFile)" });
 
-    // Chuyển đổi chuỗi JSON artistIds thành mảng ID
+    // [FIX] Parse artistIds safely
     let parsedArtistIds = [];
     try {
-      // artistIds gửi lên dạng string JSON "[1, 2]" hoặc một ID đơn lẻ
-      parsedArtistIds = JSON.parse(artistIds || "[]");
-      // Nếu parse ra số đơn (không phải mảng), bọc nó vào mảng
-      if (typeof parsedArtistIds === 'number') parsedArtistIds = [parsedArtistIds];
+      // If it's a JSON string, parse it. If it's already an array/number (unlikely with FormData), handle it.
+      if (typeof artistIds === 'string') {
+          if (artistIds.trim().startsWith('[')) {
+              parsedArtistIds = JSON.parse(artistIds);
+          } else {
+              // Handle comma-separated string "1,2"
+              parsedArtistIds = artistIds.split(',').map(Number);
+          }
+      } else if (typeof artistIds === 'number') {
+          parsedArtistIds = [artistIds];
+      }
       
-      if (!Array.isArray(parsedArtistIds) || parsedArtistIds.length === 0) {
+      // Filter out invalid IDs (NaN)
+      parsedArtistIds = parsedArtistIds.filter(id => !isNaN(id));
+
+      if (parsedArtistIds.length === 0) {
         return res.status(400).json({ error: "Cần chọn ít nhất một nghệ sĩ" });
       }
     } catch (parseError) {
-       // Fallback nếu gửi lên dạng string "1,2" thay vì JSON
-       if (typeof artistIds === 'string') {
-          parsedArtistIds = artistIds.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
-       }
-       if (parsedArtistIds.length === 0) {
-          return res.status(400).json({ error: "Định dạng artistIds không hợp lệ" });
-       }
+       return res.status(400).json({ error: "Định dạng artistIds không hợp lệ" });
     }
 
-    // 2. Insert vào bảng songs
+    // [FIX] SQL Query - Explicitly listing columns to match values
+    // Using default 0 for listen_count if not provided
     const query = `
       INSERT INTO songs 
       (title, album, genre, release_year, country, file_url, image_url, lyrics_url, created_at, listen_count) 
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), 0)
     `;
 
+    // Values array must have EXACTLY 8 items + NOW() + 0 = 10 columns total
     const [result] = await promiseDb.query(query, [
       title,
       album || null,
@@ -165,10 +250,9 @@ export const addSong = async (req, res) => {
 
     const newSongId = result.insertId;
 
-    // 3. Liên kết nghệ sĩ (Bảng song_artists)
-    const artistLinks = parsedArtistIds.map((artistId) => [newSongId, artistId]);
-    
-    if (artistLinks.length > 0) {
+    // Insert Song-Artist Links
+    if (parsedArtistIds.length > 0) {
+      const artistLinks = parsedArtistIds.map((artistId) => [newSongId, artistId]);
       const linkQuery = "INSERT INTO song_artists (song_id, artist_id) VALUES ?";
       await promiseDb.query(linkQuery, [artistLinks]);
     }
@@ -184,37 +268,37 @@ export const addSong = async (req, res) => {
   }
 };
 
-// Cập nhật bài hát (xử lý nhiều artistIds và Cloudinary)
 export const updateSong = async (req, res) => {
   const { id } = req.params;
   try {
-    // 1. Kiểm tra bài hát tồn tại & Lấy thông tin cũ
     const [existingSongs] = await promiseDb.query("SELECT * FROM songs WHERE id = ?", [id]);
     if (existingSongs.length === 0) return res.status(404).json({ message: "Song not found" });
     const currentSong = existingSongs[0];
 
-    // 2. Lấy URL mới từ Cloudinary (nếu có upload), ngược lại giữ nguyên URL cũ
-    // Sử dụng optional chaining (?.) để tránh lỗi nếu req.files undefined
-    const songUrl = req.files?.['songFile'] ? req.files['songFile'][0].path : currentSong.file_url;
-    const imageUrl = req.files?.['imageFile'] ? req.files['imageFile'][0].path : currentSong.image_url;
-    const lyricUrl = req.files?.['lyricFile'] ? req.files['lyricFile'][0].path : currentSong.lyrics_url;
+    // Handle Files: New file path OR existing file path
+    const songUrl = req.files?.['songFile']?.[0]?.path || currentSong.file_url;
+    const imageUrl = req.files?.['imageFile']?.[0]?.path || currentSong.image_url;
+    const lyricUrl = req.files?.['lyricFile']?.[0]?.path || currentSong.lyrics_url;
 
     const { title, artistIds, album, genre, release_year, country } = req.body;
 
-    // Xử lý artistIds tương tự hàm addSong
+    // Parse Artist IDs
     let parsedArtistIds = [];
     try {
-      parsedArtistIds = JSON.parse(artistIds || "[]");
-      if (typeof parsedArtistIds === 'number') parsedArtistIds = [parsedArtistIds];
-      // Nếu không có artistIds trong body (người dùng không sửa nghệ sĩ), ta có thể bỏ qua bước update nghệ sĩ
-      // Nhưng logic ở đây giả định form luôn gửi artistIds lên
-    } catch (parseError) {
-       if (typeof artistIds === 'string') {
-          parsedArtistIds = artistIds.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
-       }
+        if (typeof artistIds === 'string') {
+            if (artistIds.trim().startsWith('[')) {
+                parsedArtistIds = JSON.parse(artistIds);
+            } else {
+                parsedArtistIds = artistIds.split(',').map(Number);
+            }
+        } else if (typeof artistIds === 'number') {
+            parsedArtistIds = [artistIds];
+        }
+        parsedArtistIds = parsedArtistIds.filter(id => !isNaN(id));
+    } catch (e) {
+        console.log("Error parsing artistIds in update", e);
     }
 
-    // 3. Update bảng songs
     const updateQuery = `
         UPDATE songs 
         SET title = ?, album = ?, genre = ?, release_year = ?, country = ?, 
@@ -234,15 +318,11 @@ export const updateSong = async (req, res) => {
         id
     ]);
 
-    // 4. Update liên kết nghệ sĩ (Xóa cũ -> Thêm mới)
+    // Update Artists if provided
     if (parsedArtistIds.length > 0) {
-        // Xóa liên kết cũ
         await promiseDb.query("DELETE FROM song_artists WHERE song_id = ?", [id]);
-        
-        // Thêm liên kết mới
         const newArtistLinks = parsedArtistIds.map((artistId) => [id, artistId]);
-        const insertLinksQuery = "INSERT INTO song_artists (song_id, artist_id) VALUES ?";
-        await promiseDb.query(insertLinksQuery, [newArtistLinks]);
+        await promiseDb.query("INSERT INTO song_artists (song_id, artist_id) VALUES ?", [newArtistLinks]);
     }
 
     res.json({ message: "Cập nhật thành công!" });
@@ -253,24 +333,16 @@ export const updateSong = async (req, res) => {
   }
 };
 
-// Xóa bài hát
 export const deleteSong = async (req, res) => {
   const { id } = req.params;
   try {
-    // Xóa liên kết trong bảng phụ trước (song_artists, comments, playlists_songs...)
-    // Lưu ý: Nếu DB đã set ON DELETE CASCADE thì chỉ cần xóa bảng songs là đủ.
-    // Nếu chưa set cascade, cần xóa thủ công:
     await promiseDb.query("DELETE FROM song_artists WHERE song_id = ?", [id]);
+    // Optional: Delete comments if you have that table
+    // await promiseDb.query("DELETE FROM comments WHERE song_id = ?", [id]);
     
-    // Nếu có bảng comments hoặc playlist_songs thì xóa thêm ở đây
-    // await promiseDb.query("DELETE FROM comments WHERE song_id = ?", [id]); 
-    
-    // Xóa bài hát
     const [result] = await promiseDb.query("DELETE FROM songs WHERE id = ?", [id]);
     
-    if (result.affectedRows === 0) {
-        return res.status(404).json({ message: "Không tìm thấy bài hát" });
-    }
+    if (result.affectedRows === 0) return res.status(404).json({ message: "Không tìm thấy bài hát" });
     
     res.json({ message: "Xóa bài hát thành công" });
   } catch (err) {
@@ -278,196 +350,6 @@ export const deleteSong = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
-
-// Lấy danh sách thể loại unique
-export const getGenres = async (req, res) => {
-  try {
-    const query = "SELECT genre FROM songs WHERE genre IS NOT NULL AND genre != ''";
-    const [results] = await promiseDb.query(query);
-
-    const allGenres = new Set();
-    results.forEach((row) => {
-      // Tách chuỗi "Pop, K-Pop" thành từng phần tử
-      if(row.genre) {
-          row.genre.split(',').forEach(g => allGenres.add(g.trim()));
-      }
-    });
-
-    res.json(Array.from(allGenres).sort());
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
-// Lấy bài hát theo nghệ sĩ
-export const getSongsByArtist = (req, res) => {
-  const { artistName } = req.params; // Nhận tên nghệ sĩ
-  const decodedArtistName = decodeURIComponent(artistName);
-
-  // Tìm artist_id từ tên
-  const findArtistIdQuery = "SELECT id FROM artists WHERE name = ?";
-  db.query(findArtistIdQuery, [decodedArtistName], (err, artistResults) => {
-    if (err) return res.status(500).json({ error: "Lỗi tìm ID nghệ sĩ" });
-    if (artistResults.length === 0) {
-      return res.json([]); // Không tìm thấy nghệ sĩ -> trả về mảng rỗng
-    }
-    const artistId = artistResults[0].id;
-
-    // Tìm song_id từ artist_id trong bảng trung gian
-    const findSongIdsQuery =
-      "SELECT song_id FROM song_artists WHERE artist_id = ?";
-    db.query(findSongIdsQuery, [artistId], (err, songLinks) => {
-      if (err)
-        return res.status(500).json({ error: "Lỗi tìm bài hát của nghệ sĩ" });
-      if (songLinks.length === 0) {
-        return res.json([]); // Nghệ sĩ này không có bài hát nào
-      }
-      const songIds = songLinks.map((link) => link.song_id);
-
-      // lấy thông tin bài hát từ song_id
-      const getSongsQuery =
-        "SELECT id, title, album, genre, release_year, country, file_url, image_url, lyrics_url, listen_count, created_at FROM songs WHERE id IN (?) ORDER BY title";
-      db.query(getSongsQuery, [songIds], async (err, songs) => {
-        // Thêm async
-        if (err)
-          return res.status(500).json({ error: "Lỗi lấy thông tin bài hát" });
-        try {
-          // Lấy đầy đủ thông tin nghệ sĩ cho các bài hát này
-          const songsWithArtists = await fetchArtistsForSongs(songs);
-          res.json(songsWithArtists);
-        } catch (fetchErr) {
-          res.status(500).json({
-            error: "Lỗi khi lấy thông tin nghệ sĩ",
-            details: fetchErr.message,
-          });
-        }
-      });
-    });
-  });
-};
-
-// Lấy bài hát theo thể loại
-export const getSongsByGenre = (req, res) => {
-  const { genre } = req.params;
-  const decodedGenre = decodeURIComponent(genre);
-
-  // 1. Thay vì "genre = ?", dùng "FIND_IN_SET" hoặc "LIKE"
-  // FIND_IN_SET chính xác hơn LIKE
-  // Nó sẽ tìm 'Pop' trong 'Pop,K-Pop' nhưng không tìm 'Pop' trong 'K-Pop'
-  // Chúng ta phải xóa khoảng trắng nếu có: 'Pop, K-Pop' -> 'Pop,K-Pop'
-  // Cách đơn giản và hiệu quả nhất vẫn là LIKE
-  const searchTerm = `%${decodedGenre}%`;
-  // 2. Cập nhật query (thêm listen_count và dùng LIKE)
-  const query =
-    "SELECT id, title, album, genre, release_year, country, file_url, image_url, lyrics_url, listen_count, created_at FROM songs WHERE genre LIKE ? ORDER BY title";
-  db.query(query, [searchTerm], async (err, songs) => {
-    // 3. Đổi tham số
-    if (err)
-      return res
-        .status(500)
-        .json({ error: "Lỗi khi lấy bài hát theo thể loại" });
-    try {
-      const songsWithArtists = await fetchArtistsForSongs(songs);
-      res.json(songsWithArtists);
-    } catch (fetchErr) {
-      res.status(500).json({
-        error: "Lỗi khi lấy thông tin nghệ sĩ",
-        details: fetchErr.message,
-      });
-    }
-  });
-};
-
-// --- Lấy danh sách quốc gia unique ---
-export const getUniqueCountries = (req, res) => {
-  const query =
-    "SELECT country FROM songs WHERE country IS NOT NULL AND country != ''";
-  db.query(query, (err, results) => {
-    if (err)
-      return res.status(500).json({ error: "Lỗi khi lấy danh sách quốc gia" });
-
-    const allCountries = new Set();
-    results.forEach((row) => {
-      const countries = row.country
-        .split(",")
-        .map((c) => c.trim())
-        .filter((c) => c);
-      countries.forEach((c) => allCountries.add(c));
-    });
-    res.json(Array.from(allCountries).sort());
-  });
-};
-
-// Lấy bài hát theo quốc gia ---
-export const getSongsByCountry = (req, res) => {
-  const { countryName } = req.params;
-  const decodedCountry = decodeURIComponent(countryName);
-  const searchTerm = `%${decodedCountry}%`;
-  const query =
-    "SELECT id, title, album, genre, release_year, country, file_url, image_url, lyrics_url, listen_count, created_at FROM songs WHERE country LIKE ? ORDER BY title";
-  db.query(query, [searchTerm], async (err, songs) => {
-    if (err)
-      return res
-        .status(500)
-        .json({ error: "Lỗi khi lấy bài hát theo quốc gia" });
-    try {
-      const songsWithArtists = await fetchArtistsForSongs(songs);
-      res.json(songsWithArtists);
-    } catch (fetchErr) {
-      res.status(500).json({
-        error: "Lỗi khi lấy thông tin nghệ sĩ",
-        details: fetchErr.message,
-      });
-    }
-  });
-};
-
-// Hàm lấy danh sách bài hát thuộc 1 Album cụ thể
-export const getSongsByAlbum = (req, res) => {
-  const { name } = req.params; // Lấy tên album từ URL
-
-  if (!name) return res.status(400).json({ error: "Thiếu tên album" });
-
-  const query = `
-    SELECT s.*, a.id as artist_id, a.name as artist_name
-    FROM songs s
-    LEFT JOIN song_artists sa ON s.id = sa.song_id
-    LEFT JOIN artists a ON sa.artist_id = a.id
-    WHERE s.album = ?
-  `;
-
-  db.query(query, [name], (err, results) => {
-    if (err) return res.status(500).json({ error: err.message });
-
-    // Xử lý dữ liệu: Gom nhóm nghệ sĩ vào mảng 'artists' cho từng bài hát
-    // Vì LEFT JOIN sẽ tạo ra nhiều dòng nếu 1 bài có nhiều ca sĩ
-    const songsMap = new Map();
-
-    results.forEach(row => {
-      // Nếu bài hát chưa có trong Map, thêm vào
-      if (!songsMap.has(row.id)) {
-        const { artist_id, artist_name, ...songData } = row;
-        songsMap.set(row.id, {
-          ...songData,
-          artists: [] // Khởi tạo mảng nghệ sĩ
-        });
-      }
-
-      // Nếu có thông tin nghệ sĩ, push vào mảng artists
-      if (row.artist_id) {
-        songsMap.get(row.id).artists.push({
-          id: row.artist_id,
-          name: row.artist_name
-        });
-      }
-    });
-
-    // Chuyển Map thành Array để trả về
-    const songs = Array.from(songsMap.values());
-    res.json(songs);
-  });
-};
-
 
 // ------------------
 
