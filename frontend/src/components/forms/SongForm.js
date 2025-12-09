@@ -129,21 +129,28 @@ function SongForm({ songToEdit, onFormSubmit, onCancel }) {
     }
 
     const data = new FormData();
-    Object.keys(formData).forEach((key) => data.append(key, formData[key]));
+    
+    // [FIX LỖI] Loại bỏ 'genre' khỏi vòng lặp này vì ta sẽ xử lý riêng bên dưới
+    Object.keys(formData).forEach((key) => {
+        if (key !== 'genre') { 
+            data.append(key, formData[key]);
+        }
+    });
 
-    // GỬI MẢNG ID NGHỆ SĨ LÊN SERVER
+    // GỬI MẢNG ID NGHỆ SĨ
     const artistIds = selectedArtists.map((option) => option.value);
-    data.append("artistIds", JSON.stringify(artistIds)); // Gửi dưới dạng chuỗi JSON
+    data.append("artistIds", JSON.stringify(artistIds));
 
-    // Chuyển [{ value: 'Pop', label: 'Pop' }] thành "Pop,K-Pop"
-    // const genreString = selectedGenres.map((g) => g.value).join(",");
-    // data.append("genre", genreString);
+    // [QUAN TRỌNG] Xử lý Genre thủ công (để đảm bảo chỉ gửi 1 lần)
+    // Chuyển mảng object thành chuỗi: "Pop,Chill"
     const genreString = selectedGenres ? selectedGenres.map((g) => g.value).join(",") : "";
     data.append("genre", genreString);
 
     if (songFile) data.append("songFile", songFile);
     if (imageFile) data.append("imageFile", imageFile);
     if (lyricFile) data.append("lyricFile", lyricFile);
+
+    setIsLoading(true); // Bắt đầu loading
 
     try {
       if (isEditing) {
@@ -157,6 +164,7 @@ function SongForm({ songToEdit, onFormSubmit, onCancel }) {
       }
       onFormSubmit();
     } catch (err) {
+      console.error(err);
       setError(err.response?.data?.error || "Có lỗi xảy ra");
     } finally {
       setIsLoading(false);
