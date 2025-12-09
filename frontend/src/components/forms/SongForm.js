@@ -136,7 +136,9 @@ function SongForm({ songToEdit, onFormSubmit, onCancel }) {
     data.append("artistIds", JSON.stringify(artistIds)); // Gửi dưới dạng chuỗi JSON
 
     // Chuyển [{ value: 'Pop', label: 'Pop' }] thành "Pop,K-Pop"
-    const genreString = selectedGenres.map((g) => g.value).join(",");
+    // const genreString = selectedGenres.map((g) => g.value).join(",");
+    // data.append("genre", genreString);
+    const genreString = selectedGenres ? selectedGenres.map((g) => g.value).join(",") : "";
     data.append("genre", genreString);
 
     if (songFile) data.append("songFile", songFile);
@@ -373,7 +375,7 @@ function SongForm({ songToEdit, onFormSubmit, onCancel }) {
                 type="file"
                 name="lyricFile"
                 onChange={handleLyricFileChange}
-                accept=".lrc, text/plain"
+                accept=".lrc, .txt, text/plain"
                 className="mt-1 w-full text-sm"
               />
             </div>
