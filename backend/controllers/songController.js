@@ -110,7 +110,7 @@ export const addSong = async (req, res) => {
   try {
     const { title, artistIds, album, genre, release_year, country } = req.body;
 
-    // 1. Lấy URL file
+    // 1. Lấy URL file từ Cloudinary (Dùng optional chaining an toàn)
     const songUrl = req.files?.['songFile']?.[0]?.path || null;
     const imageUrl = req.files?.['imageFile']?.[0]?.path || null;
     const lyricUrl = req.files?.['lyricFile']?.[0]?.path || null;
@@ -118,7 +118,7 @@ export const addSong = async (req, res) => {
     if (!title) return res.status(400).json({ error: "Thiếu tiêu đề" });
     if (!songUrl) return res.status(400).json({ error: "Vui lòng upload file nhạc (songFile)" });
 
-    // 2. Xử lý nghệ sĩ
+    // 2. Xử lý nghệ sĩ (Artist IDs)
     let parsedArtistIds = [];
     try {
       if (typeof artistIds === 'string') {
@@ -129,7 +129,6 @@ export const addSong = async (req, res) => {
       } else if (typeof artistIds === 'number') {
           parsedArtistIds = [artistIds];
       }
-      // Lọc bỏ giá trị rác
       parsedArtistIds = parsedArtistIds.filter(id => !isNaN(id));
 
       if (parsedArtistIds.length === 0) {
@@ -139,10 +138,9 @@ export const addSong = async (req, res) => {
        return res.status(400).json({ error: "Định dạng artistIds không hợp lệ" });
     }
 
-    // 3. Insert vào bảng songs (DÙNG CÁCH MỚI: OBJECT SYNTAX)
-    // Cách này giúp tránh lỗi "Column count doesn't match" tuyệt đối
+    // 3. Chuẩn bị dữ liệu Insert (Dạng Object)
     const songData = {
-      title,
+      title: title,
       album: album || null,
       genre: genre || null,
       release_year: release_year || null,
@@ -150,19 +148,25 @@ export const addSong = async (req, res) => {
       file_url: songUrl,
       image_url: imageUrl,
       lyrics_url: lyricUrl,
-      created_at: new Date(), // Tự tạo thời gian hiện tại
+      created_at: new Date(),
       listen_count: 0
     };
 
-    // SQL sẽ tự biến thành: INSERT INTO songs SET `title`='...', `album`='...' ...
-    const [result] = await promiseDb.query("INSERT INTO songs SET ?", songData);
-    
+    // [FIX] Tự động sinh câu lệnh SQL chuẩn từ Object
+    // Cách này đảm bảo keys và values luôn khớp 1:1, không bao giờ bị lệch cột
+    const columns = Object.keys(songData).join(', ');
+    const placeholders = Object.keys(songData).map(() => '?').join(', ');
+    const values = Object.values(songData);
+
+    const query = `INSERT INTO songs (${columns}) VALUES (${placeholders})`;
+
+    // Thực thi
+    const [result] = await promiseDb.query(query, values);
     const newSongId = result.insertId;
 
     // 4. Liên kết nghệ sĩ
     if (parsedArtistIds.length > 0) {
       const artistLinks = parsedArtistIds.map((artistId) => [newSongId, artistId]);
-      // Bulk insert vẫn dùng cách cũ vì nó tối ưu cho mảng lồng nhau
       await promiseDb.query("INSERT INTO song_artists (song_id, artist_id) VALUES ?", [artistLinks]);
     }
 
