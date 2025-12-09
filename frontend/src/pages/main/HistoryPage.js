@@ -134,7 +134,7 @@ function HistoryPage() {
                           </button>
                           {showInfoModal && (
                             <SongInfoModal
-                              song={recentSongs}
+                              song={song}
                               onClose={() => setShowInfoModal(false)}
                             />
                           )}
