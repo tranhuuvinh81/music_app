@@ -3,12 +3,11 @@ import React, { useContext, useState } from "react";
 import { AudioContext } from "../../context/AudioContext";
 import api from "../../api/api";
 import LyricsViewer from "../common/LyricsViewer";
-// [NEW] Import CommentSection
 import CommentSection from "../ui/CommentSection"; 
 import { 
   FiHeart, FiMoreHorizontal, FiRepeat, FiShuffle, 
   FiMinimize2, FiSkipBack, FiSkipForward, FiPlay, FiPause,
-  FiMusic, FiMessageSquare // [NEW] Icon cho tabs
+  FiMusic, FiMessageSquare, FiList, FiMenu // [NEW] Thêm icon List và Menu
 } from "react-icons/fi";
 
 const formatTime = (seconds) => {
@@ -34,14 +33,49 @@ function FullScreenPlayer({ onClose }) {
   const {
     currentPlaylist, currentIndex, isPlaying, togglePlay, nextSong, prevSong,
     volume, handleVolumeChange, progress, handleSeek, currentTime, duration,
-    repeatMode, toggleRepeat, shuffleMode, toggleShuffle
+    repeatMode, toggleRepeat, shuffleMode, toggleShuffle,
+    // [NEW] Lấy thêm hàm để xử lý queue
+    playSong, updatePlaylist
   } = useContext(AudioContext);
 
-  // [NEW] State quản lý Tab: 'lyrics' hoặc 'comments'
+  // State quản lý Tab: 'lyrics' | 'comments' | 'queue'
   const [activeTab, setActiveTab] = useState('lyrics');
+  
+  // [NEW] State cho Drag & Drop
+  const [draggedItemIndex, setDraggedItemIndex] = useState(null);
 
   const currentSong = currentPlaylist[currentIndex];
-  const bgGradient = "bg-gradient-to-b from-gray-900 via-gray-800 to-black"; // [MODIFIED] Làm tối hơn chút để nổi bật nội dung
+  const bgGradient = "bg-gradient-to-b from-gray-900 via-gray-800 to-black";
+
+  // --- LOGIC KÉO THẢ ---
+  const onDragStart = (e, index) => {
+    setDraggedItemIndex(index);
+    e.dataTransfer.effectAllowed = "move";
+    // Ẩn hình ảnh ghost mặc định của trình duyệt nếu muốn (tùy chọn)
+  };
+
+  const onDragOver = (e, index) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const onDrop = (e, dropIndex) => {
+    e.preventDefault();
+    if (draggedItemIndex === null || draggedItemIndex === dropIndex) return;
+
+    const newPlaylist = [...currentPlaylist];
+    const draggedItem = newPlaylist[draggedItemIndex];
+    
+    // Di chuyển item
+    newPlaylist.splice(draggedItemIndex, 1);
+    newPlaylist.splice(dropIndex, 0, draggedItem);
+
+    // Cập nhật Context
+    if (updatePlaylist) {
+        updatePlaylist(newPlaylist);
+    }
+    setDraggedItemIndex(null);
+  };
 
   if (!currentSong) return null;
 
@@ -66,7 +100,7 @@ function FullScreenPlayer({ onClose }) {
       {/* MAIN BODY */}
       <div className="flex-1 flex flex-col md:flex-row overflow-hidden pb-4 md:pb-0">
         
-        {/* CỘT TRÁI: Ảnh bìa (Giữ nguyên) */}
+        {/* CỘT TRÁI: Ảnh bìa */}
         <div className="flex-1 flex items-center justify-center p-8 min-h-[40vh] md:min-h-auto">
           <div className="w-full max-w-sm md:max-w-md aspect-square shadow-2xl rounded-xl overflow-hidden relative group border border-white/10">
              <img 
@@ -74,12 +108,11 @@ function FullScreenPlayer({ onClose }) {
               alt={currentSong.title} 
               className={`w-full h-full object-cover transition-transform duration-[20s] ease-linear ${isPlaying ? 'scale-110' : 'scale-100'}`}
             />
-            {/* Hiệu ứng bóng mờ đĩa nhạc */}
             <div className="absolute inset-0 bg-gradient-to-tr from-black/40 to-transparent pointer-events-none"></div>
           </div>
         </div>
 
-        {/* CỘT PHẢI: Thông tin & Tabs (Lyrics/Comments) */}
+        {/* CỘT PHẢI: Thông tin & Tabs */}
         <div className="flex-1 flex flex-col px-6 md:pr-12 md:pl-0 overflow-hidden">
           
           {/* Thông tin bài hát */}
@@ -88,14 +121,12 @@ function FullScreenPlayer({ onClose }) {
             <p className="text-lg md:text-xl text-gray-400 truncate">{displayArtistNames(currentSong.artists)}</p>
           </div>
 
-          {/* [NEW] Tab Navigation */}
+          {/* [UPDATED] Tab Navigation (3 Tabs) */}
           <div className="flex items-center justify-center md:justify-start gap-6 mb-4 border-b border-white/10 shrink-0">
              <button 
                 onClick={() => setActiveTab('lyrics')}
                 className={`pb-2 px-2 flex items-center gap-2 text-sm font-bold uppercase transition-all border-b-2 ${
-                    activeTab === 'lyrics' 
-                    ? 'border-green-500 text-white' 
-                    : 'border-transparent text-gray-500 hover:text-gray-300'
+                    activeTab === 'lyrics' ? 'border-green-500 text-white' : 'border-transparent text-gray-500 hover:text-gray-300'
                 }`}
              >
                 <FiMusic /> Nghe
@@ -103,16 +134,22 @@ function FullScreenPlayer({ onClose }) {
              <button 
                 onClick={() => setActiveTab('comments')}
                 className={`pb-2 px-2 flex items-center gap-2 text-sm font-bold uppercase transition-all border-b-2 ${
-                    activeTab === 'comments' 
-                    ? 'border-green-500 text-white' 
-                    : 'border-transparent text-gray-500 hover:text-gray-300'
+                    activeTab === 'comments' ? 'border-green-500 text-white' : 'border-transparent text-gray-500 hover:text-gray-300'
                 }`}
              >
                 <FiMessageSquare /> Khen
              </button>
+             <button 
+                onClick={() => setActiveTab('queue')}
+                className={`pb-2 px-2 flex items-center gap-2 text-sm font-bold uppercase transition-all border-b-2 ${
+                    activeTab === 'queue' ? 'border-green-500 text-white' : 'border-transparent text-gray-500 hover:text-gray-300'
+                }`}
+             >
+                <FiList /> Danh sách phát
+             </button>
           </div>
 
-          {/* [NEW] Content Container (Lyrics hoặc Comments) */}
+          {/* Content Container */}
           <div className="flex-1 relative bg-white/5 rounded-xl overflow-hidden border border-white/5 shadow-inner">
              
              {/* Tab 1: Lyrics */}
@@ -125,41 +162,95 @@ function FullScreenPlayer({ onClose }) {
              {/* Tab 2: Comments */}
              {activeTab === 'comments' && (
                 <div className="absolute inset-0 overflow-y-auto bg-gray-50 scrollbar-thin scrollbar-thumb-gray-300">
-                    {/* Lưu ý: Component CommentSection của chúng ta có background trắng (bg-white).
-                       Nên ở đây mình đặt nền container là bg-gray-50 để nó trông như một trang giấy/ứng dụng tách biệt.
-                       Đồng thời truyền prop songId để nó fetch đúng comment.
-                    */}
                     <div className="p-4 md:p-6 text-gray-800">
                         <CommentSection songId={currentSong.id} />
                     </div>
                 </div>
              )}
+
+             {/* Tab 3: Queue (Danh sách phát) */}
+             {activeTab === 'queue' && (
+                <div className="absolute inset-0 overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent">
+                    <div className="space-y-1">
+                        {currentPlaylist.map((song, index) => {
+                            const isActive = index === currentIndex;
+                            return (
+                                <div 
+                                    key={song.id || index}
+                                    draggable
+                                    onDragStart={(e) => onDragStart(e, index)}
+                                    onDragOver={(e) => onDragOver(e, index)}
+                                    onDrop={(e) => onDrop(e, index)}
+                                    className={`flex items-center p-3 rounded-lg group transition-all cursor-pointer border ${
+                                        isActive 
+                                        ? 'bg-green-500/20 border-green-500/50' 
+                                        : 'hover:bg-white/10 border-transparent hover:border-white/5'
+                                    } ${draggedItemIndex === index ? 'opacity-50 border-dashed border-gray-400' : ''}`}
+                                    onClick={() => playSong(song, currentPlaylist, index)}
+                                >
+                                    {/* Drag Handle */}
+                                    <div 
+                                        className="mr-3 text-gray-500 cursor-grab hover:text-white"
+                                        onClick={(e) => e.stopPropagation()} // Chặn click play khi đang kéo
+                                    >
+                                        <FiMenu size={18} />
+                                    </div>
+
+                                    {/* Info */}
+                                    <div className="flex-1 min-w-0">
+                                        <p className={`text-sm font-bold truncate ${isActive ? 'text-green-400' : 'text-gray-200'}`}>
+                                            {song.title}
+                                        </p>
+                                        <p className="text-xs text-gray-500 truncate">
+                                            {displayArtistNames(song.artists)}
+                                        </p>
+                                    </div>
+
+                                    {/* Playing Indicator / Duration */}
+                                    <div className="ml-3">
+                                        {isActive && isPlaying ? (
+                                            <div className="flex gap-1 items-end h-4">
+                                                <span className="w-1 h-2 bg-green-500 animate-bounce"></span>
+                                                <span className="w-1 h-4 bg-green-500 animate-bounce delay-75"></span>
+                                                <span className="w-1 h-3 bg-green-500 animate-bounce delay-150"></span>
+                                            </div>
+                                        ) : (
+                                            <button className="opacity-0 group-hover:opacity-100 p-2 text-white hover:text-green-400 transition">
+                                                <FiPlay size={16} fill="currentColor"/>
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+             )}
+
+             
           </div>
         </div>
       </div>
 
-      {/* FOOTER: Controls (Giữ nguyên logic) */}
+      {/* FOOTER: Controls */}
       <div className="h-24 bg-black/40 backdrop-blur-xl border-t border-white/10 px-4 md:px-8 flex items-center justify-between shrink-0">
-        
-        {/* Left: Info nhỏ (ẩn trên mobile) */}
+        {/* Left */}
         <div className="hidden md:flex flex-col w-1/4">
            <span className="font-bold truncate text-gray-100">{currentSong.title}</span>
            <span className="text-xs text-gray-400 truncate">{displayArtistNames(currentSong.artists)}</span>
         </div>
 
-        {/* Center: Main Controls */}
+        {/* Center */}
         <div className="flex-1 max-w-2xl flex flex-col items-center">
            <div className="flex items-center gap-6 mb-2">
               <button onClick={toggleShuffle} className={`${shuffleMode ? 'text-green-500' : 'text-gray-400'} hover:text-white transition`}><FiShuffle size={20}/></button>
               <button onClick={prevSong} className="text-gray-300 hover:text-white transition"><FiSkipBack size={26}/></button>
-              
               <button 
                 onClick={togglePlay} 
                 className="w-12 h-12 rounded-full bg-white text-black flex items-center justify-center hover:scale-110 hover:shadow-lg hover:shadow-white/20 transition-all"
               >
                 {isPlaying ? <FiPause size={24} fill="black" /> : <FiPlay size={24} fill="black" className="ml-1"/>}
               </button>
-              
               <button onClick={nextSong} className="text-gray-300 hover:text-white transition"><FiSkipForward size={26}/></button>
               <button onClick={toggleRepeat} className={`${repeatMode ? 'text-green-500' : 'text-gray-400'} hover:text-white transition`}><FiRepeat size={20}/></button>
            </div>
@@ -167,32 +258,22 @@ function FullScreenPlayer({ onClose }) {
            <div className="w-full flex items-center gap-3 text-xs font-medium text-gray-400">
               <span className="min-w-[40px] text-right">{formatTime(currentTime)}</span>
               <div className="flex-1 h-1 bg-gray-600 rounded-full relative group cursor-pointer">
-                 <div 
-                    className="absolute top-0 left-0 h-full bg-white rounded-full group-hover:bg-green-500 transition-colors" 
-                    style={{ width: `${progress}%` }}
-                 ></div>
-                 <input 
-                    type="range" min="0" max="100" value={progress} onChange={handleSeek}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                 />
+                 <div className="absolute top-0 left-0 h-full bg-white rounded-full group-hover:bg-green-500 transition-colors" style={{ width: `${progress}%` }}></div>
+                 <input type="range" min="0" max="100" value={progress} onChange={handleSeek} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"/>
               </div>
               <span className="min-w-[40px]">{formatTime(duration)}</span>
            </div>
         </div>
 
-        {/* Right: Volume */}
+        {/* Right */}
         <div className="hidden md:flex w-1/4 justify-end items-center gap-4">
            <button className="text-gray-400 hover:text-red-500 transition"><FiHeart size={20}/></button>
            <button className="text-gray-400 hover:text-white transition"><FiMoreHorizontal size={20}/></button>
-           
            <div className="w-24 flex items-center gap-2 group ml-2">
               <div className="h-1 flex-1 bg-gray-600 rounded-full overflow-hidden">
                  <div className="h-full bg-white group-hover:bg-green-500 transition-colors" style={{ width: `${volume * 100}%` }}></div>
               </div>
-              <input 
-                type="range" min="0" max="1" step="0.01" value={volume} onChange={handleVolumeChange}
-                className="w-24 h-4 opacity-0 absolute cursor-pointer" 
-              />
+              <input type="range" min="0" max="1" step="0.01" value={volume} onChange={handleVolumeChange} className="w-24 h-4 opacity-0 absolute cursor-pointer" />
            </div>
         </div>
       </div>

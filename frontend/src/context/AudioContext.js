@@ -354,6 +354,20 @@ export const AudioProvider = ({ children }) => {
     }
   }, []);
 
+  const updatePlaylist = (newPlaylist) => {
+    // 1. Cập nhật danh sách mới
+    setCurrentPlaylist(newPlaylist);
+    
+    // 2. (Quan trọng) Tìm lại index của bài hát đang phát trong danh sách mới
+    // để tránh việc nhạc bị ngắt hoặc nhảy sai bài
+    if (currentSong) {
+        const newIndex = newPlaylist.findIndex(s => s.id === currentSong.id); // Giả sử so sánh bằng ID
+        if (newIndex !== -1) {
+            setCurrentIndex(newIndex);
+        }
+    }
+};
+
   // Cập nhật useEffect 'onended'
   useEffect(() => {
     const audio = audioRef.current;
@@ -383,6 +397,7 @@ export const AudioProvider = ({ children }) => {
         prevSong,
         handleSeek,
         handleVolumeChange,
+        updatePlaylist,
         currentPlaylist,
         currentIndex,
       }}
