@@ -1,4 +1,3 @@
-// frontend/src/pages/main/HomeSongsPage.js
 import React, { useState, useEffect, useContext } from "react";
 import { useOutletContext } from "react-router-dom";
 import api from "../../api/api";
@@ -74,29 +73,29 @@ function HomeSongsPage() {
   return (
     <>
       {/* BANNER */}
-      <div className="relative h-64 md:h-80 lg:h-96 flex-shrink-0">
+      <div className="relative h-48 md:h-64 lg:h-80 flex-shrink-0">
         <img
           src={bannerImg}
           alt="Music Banner"
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
-        <div className="absolute bottom-0 left-0 p-6 md:p-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
+        <div className="absolute bottom-0 left-0 p-4 md:p-6 lg:p-8">
+          <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-2">
             Khám phá âm nhạc
           </h1>
-          <p className="text-white/80 text-lg">Tìm kiếm và thưởng thức</p>
+          <p className="text-white/80 text-sm md:text-lg lg:text-lg">Tìm kiếm và thưởng thức</p>
         </div>
       </div>
 
       {/* CONTENT AREA */}
-      <div className="p-6 flex-grow">
-        <h2 className="text-2xl font-bold mb-6 text-gray-800">
+      <div className="p-4 md:p-6 flex-grow">
+        <h2 className="text-xl md:text-2xl font-bold mb-4 md:mb-6 text-gray-800">
           Bài hát nổi bật
         </h2>
 
         {/* Grid of Song Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4 mb-6">
           {(isListExpanded ? displaySongs : displaySongs.slice(0, 10)).map(
             (song, index) => {
               // Check if this song is currently playing
@@ -141,14 +140,6 @@ function HomeSongsPage() {
                           >
                             Thêm vào playlist
                           </button>
-                          {/* <button
-                            onClick={() => toggleFavorite(song.id)}
-                            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                          >
-                            {isFavorite
-                              ? "Xóa khỏi yêu thích"
-                              : "Thêm vào yêu thích"}
-                          </button> */}
                           <button
                             onClick={() => setShowInfoModal(true)}
                             className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"

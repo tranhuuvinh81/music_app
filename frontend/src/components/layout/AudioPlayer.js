@@ -228,30 +228,6 @@ function AudioPlayer() {
           </button>
           
           <div className="relative" ref={optionsRef}>
-            {/* <button
-              onClick={() => setShowOptions(!showOptions)}
-              className="p-1 rounded-full text-white text-opacity-70 hover:text-opacity-100 transition-all duration-300"
-              title="More Options"
-            >
-              <FiMoreHorizontal />
-            </button>
-            
-            {showOptions && (
-              <div className="absolute bottom-full right-0 mb-2 w-48 bg-white rounded-lg shadow-lg py-2 z-10">
-                <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                  Thêm vào Playlist
-                </button>
-                <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                  Chia sẻ
-                </button>
-                <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                  Xem Album
-                </button>
-                <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                  Xem Nghệ Sĩ
-                </button>
-              </div>
-            )} */}
           </div>
           
           <div className="flex items-center space-x-2">

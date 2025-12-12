@@ -1,13 +1,10 @@
-// frontend/src/pages/main/MainLayout.js
 import React, { useState, useContext } from "react";
-import { Outlet, NavLink } from "react-router-dom";
+import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import SongDetails from "../../components/layout/SongDetails";
 import AddToPlaylistModal from "../../components/modals/AddToPlaylistModal";
 import ArtistDetailsModal from "../../components/modals/ArtistDetailModal";
 import ChatbotModal from "../../components/modals/ChatbotModal";
-import { useNavigate } from "react-router-dom";
-
 import FullScreenPlayer from "../../components/layout/FullScreenPlayer";
 
 function MainLayout() {
@@ -15,7 +12,7 @@ function MainLayout() {
   const [modalSongId, setModalSongId] = useState(null);
   const [artistModalData, setArtistModalData] = useState(null);
   const [showChatbot, setShowChatbot] = useState(false);
-
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
 
   const navigate = useNavigate();
@@ -47,10 +44,167 @@ function MainLayout() {
 
   return (
     <div className="font-genos text-xl flex flex-col min-h-screen bg-gradient-to-br from-[#f0f9ff] to-white">
+      {/* =================== MOBILE HEADER =================== */}
+      <div className="md:hidden bg-gradient-to-r from-[#7Ab2D3] to-white shadow-md p-4 flex items-center justify-between">
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="text-white p-2"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+      </div>
+
       {/* =================== MAIN CONTENT =================== */}
       <main className="flex flex-1 overflow-hidden">
-        {/* =================== SIDEBAR =================== */}
-        <aside className="w-64 bg-gradient-to-b from-[#7Ab2D3] to-white shadow-lg flex-shrink-0">
+        {/* =================== MOBILE OVERLAY MENU =================== */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-50" onClick={() => setIsMobileMenuOpen(false)}>
+            <aside className="w-64 bg-gradient-to-b from-[#7Ab2D3] to-white shadow-lg h-full">
+              <nav className="flex flex-col h-full">
+                <div className="flex-1 px-4 pb-4 space-y-2">
+                  <NavLink
+                    to="/"
+                    end
+                    className={({ isActive }) =>
+                      `flex items-center mt-3 px-4 py-3 rounded-lg text-xl font-bold transition-all duration-300 ${
+                        isActive
+                          ? "bg-white bg-opacity-90 text-[#7Ab2D3] shadow-md transform scale-105"
+                          : "text-white hover:bg-white hover:bg-opacity-20"
+                      }`
+                    }
+                  >
+                    <svg className="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
+                    </svg>
+                    Trang chủ
+                  </NavLink>
+                  <NavLink
+                    to="/artists"
+                    className={({ isActive }) =>
+                      `flex items-center px-4 py-3 rounded-lg text-xl font-bold transition-all duration-300 ${
+                        isActive
+                          ? "bg-white bg-opacity-90 text-[#7Ab2D3] shadow-md transform scale-105"
+                          : "text-white hover:bg-white hover:bg-opacity-20"
+                      }`
+                    }
+                  >
+                    <svg className="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"></path>
+                    </svg>
+                    Ca sĩ
+                  </NavLink>
+                  <NavLink
+                    to="/genres"
+                    className={({ isActive }) =>
+                      `flex items-center px-4 py-3 rounded-lg text-xl font-bold transition-all duration-300 ${
+                        isActive
+                          ? "bg-white bg-opacity-90 text-[#7Ab2D3] shadow-md transform scale-105"
+                          : "text-white hover:bg-white hover:bg-opacity-20"
+                      }`
+                    }
+                  >
+                    <svg className="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"></path>
+                    </svg>
+                    Thể loại
+                  </NavLink>
+                  <NavLink
+                    to="/countries"
+                    className={({ isActive }) =>
+                      `flex items-center px-4 py-3 rounded-lg text-xl font-bold transition-all duration-300 ${
+                        isActive
+                          ? "bg-white bg-opacity-90 text-[#7Ab2D3] shadow-md transform scale-105"
+                          : "text-white hover:bg-white hover:bg-opacity-20"
+                      }`
+                    }
+                  >
+                    <svg className="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"></path>
+                    </svg>
+                    Quốc gia
+                  </NavLink>
+                  <NavLink
+                    to="/playlists"
+                    className={({ isActive }) =>
+                      `flex items-center px-4 py-3 rounded-lg text-xl font-bold transition-all duration-300 ${
+                        isActive
+                          ? "bg-white bg-opacity-90 text-[#7Ab2D3] shadow-md transform scale-105"
+                          : "text-white hover:bg-white hover:bg-opacity-20"
+                      }`
+                    }
+                  >
+                    <svg className="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"></path>
+                    </svg>
+                    Thư viện
+                  </NavLink>
+                  <NavLink
+                    to="albums"
+                    className={({ isActive }) =>
+                      `flex items-center px-4 py-3 rounded-lg text-xl font-bold transition-all duration-300 ${
+                        isActive
+                          ? "bg-white bg-opacity-90 text-[#7Ab2D3] shadow-md transform scale-105"
+                          : "text-white hover:bg-white hover:bg-opacity-20"
+                      }`
+                    }
+                  >
+                    <svg className="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm0 2h12v3H4V5zm0 5h12v5H4v-5z"></path>
+                    </svg>
+                    Album
+                  </NavLink>
+                  <NavLink
+                    to="/history"
+                    className={({ isActive }) =>
+                      `flex items-center px-4 py-3 rounded-lg text-xl font-bold transition-all duration-300 ${
+                        isActive
+                          ? "bg-white bg-opacity-90 text-[#7Ab2D3] shadow-md transform scale-105"
+                          : "text-white hover:bg-white hover:bg-opacity-20"
+                      }`
+                    }
+                  >
+                    <svg className="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd"></path>
+                    </svg>
+                    Lịch sử nghe
+                  </NavLink>
+                </div>
+                
+                {/* Footer của sidebar */}
+                <div className="p-4 border-t border-white border-opacity-20">
+                  {user ? (
+                    <div className="flex items-center">
+                      <div className="w-10 h-10 rounded-full bg-white bg-opacity-30 flex items-center justify-center text-white font-semibold">
+                        {user.full_name ? user.full_name.charAt(0).toUpperCase() : 'U'}
+                      </div>
+                      <div className="ml-3">
+                        <p className="text-white font-medium">{user.full_name || 'User'}</p>
+                        <button
+                          onClick={handleLogout}
+                          className="text-white text-opacity-70 text-xl hover:text-opacity-100 transition-opacity"
+                        >
+                          Đăng xuất
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <NavLink
+                      to="/login"
+                      className="block w-full py-2 px-4 text-center bg-white bg-opacity-20 text-white rounded-lg hover:bg-opacity-30 transition-all duration-300"
+                    >
+                      Đăng nhập
+                    </NavLink>
+                  )}
+                </div>
+              </nav>
+            </aside>
+          </div>
+        )}
+
+        {/* =================== DESKTOP SIDEBAR =================== */}
+        <aside className="hidden md:block w-64 bg-gradient-to-b from-[#7Ab2D3] to-white shadow-lg flex-shrink-0">
           <nav className="flex flex-col h-full">
             <div className="flex-1 px-4 pb-4 space-y-2">
               <NavLink
@@ -219,13 +373,13 @@ function MainLayout() {
         </div>
 
         {/* =================== RIGHT SIDEBAR =================== */}
-        <aside className="w-80 bg-white shadow-md p-4 overflow-y-auto flex-shrink-0">
+        <aside className="hidden lg:block w-80 bg-white shadow-md p-4 overflow-y-auto flex-shrink-0">
           {/* TRUYỀN CALLBACK onExpand CHO SONG DETAILS */}
-          <SongDetails onExpand={() => setIsFullScreen(true)} 
+          <SongDetails onExpand={() => setIsFullScreen(true)} 
             openAddModal={openAddModal}
             openArtistModal={openArtistModal}
           />
-        </aside>
+        </aside>
       </main>
 
       {/* =================== MODALS =================== */}
