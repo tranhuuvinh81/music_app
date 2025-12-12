@@ -334,7 +334,7 @@ async function importSpotifyData(keyword = "pop", manualGenre = null) {
       const file_url = track.preview_url;
 
       // Xử lý Quốc gia
-      let country = "Âu Mỹ"; // Mặc định
+      let country = "Việt Nam"; // Mặc định
       // Nếu genre hoặc keyword có chứa từ khóa Việt Nam
       const checkStr = (keyword + " " + genre).toLowerCase();
       if (checkStr.includes('viet') || checkStr.includes('v-pop')) country = 'Việt Nam';
@@ -387,7 +387,7 @@ async function importSpotifyData(keyword = "pop", manualGenre = null) {
   // await importSpotifyData("Mono"); 
 
   // CÁCH DÙNG 2: Ép cứng genre mong muốn (Khuyên dùng để dữ liệu sạch)
-  await importSpotifyData("Top 10 bảng xếp hạng 2025 US-UK", "US-UK");
+  await importSpotifyData("Khuôn mặt đáng thương", "Vpop");
 
 
   // Đóng kết nối
