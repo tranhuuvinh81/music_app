@@ -123,8 +123,8 @@ function FullScreenPlayer({ onClose }) {
           {/* Tab Navigation */}
           <div className="flex items-center justify-center md:justify-start gap-6 mb-4 border-b border-white/10 shrink-0">
              <button onClick={() => setActiveTab('lyrics')} className={`pb-2 px-2 flex items-center gap-2 text-sm font-bold uppercase transition-all border-b-2 ${activeTab === 'lyrics' ? 'border-green-500 text-white' : 'border-transparent text-gray-500 hover:text-gray-300'}`}><FiMusic /> Nghe</button>
-             <button onClick={() => setActiveTab('queue')} className={`pb-2 px-2 flex items-center gap-2 text-sm font-bold uppercase transition-all border-b-2 ${activeTab === 'queue' ? 'border-green-500 text-white' : 'border-transparent text-gray-500 hover:text-gray-300'}`}><FiList /> Danh sách phát</button>
              <button onClick={() => setActiveTab('comments')} className={`pb-2 px-2 flex items-center gap-2 text-sm font-bold uppercase transition-all border-b-2 ${activeTab === 'comments' ? 'border-green-500 text-white' : 'border-transparent text-gray-500 hover:text-gray-300'}`}><FiMessageSquare /> Khen</button>
+             <button onClick={() => setActiveTab('queue')} className={`pb-2 px-2 flex items-center gap-2 text-sm font-bold uppercase transition-all border-b-2 ${activeTab === 'queue' ? 'border-green-500 text-white' : 'border-transparent text-gray-500 hover:text-gray-300'}`}><FiList /> Danh sách phát</button>          
           </div>
 
           {/* Content Container */}
@@ -163,15 +163,6 @@ function FullScreenPlayer({ onClose }) {
                         {/* 2. CURRENT (Bài đang phát) */}
                         <div ref={queueScrollRef} className="sticky top-0 z-10 bg-black/40 backdrop-blur-md border-y border-green-500/30 my-2">
                             <div className="flex items-center p-4 rounded-lg bg-green-500/10">
-                                <div className="mr-3 text-green-400">
-                                    {isPlaying ? (
-                                        <div className="flex gap-1 items-end h-4">
-                                            <span className="w-1 h-2 bg-green-500 animate-bounce"></span>
-                                            <span className="w-1 h-4 bg-green-500 animate-bounce delay-75"></span>
-                                            <span className="w-1 h-3 bg-green-500 animate-bounce delay-150"></span>
-                                        </div>
-                                    ) : <FiPlay className="fill-current"/>}
-                                </div>
                                 <div className="flex-1 min-w-0">
                                     <p className="text-base font-bold truncate text-green-400">{currentSong.title}</p>
                                     <p className="text-xs text-green-300/70 truncate">{displayArtistNames(currentSong.artists)}</p>
