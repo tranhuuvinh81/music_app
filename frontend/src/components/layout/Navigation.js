@@ -99,7 +99,7 @@ function Navigation() {
                   onClick={toggleUserDropdown}
                 >
                   {avatarSrc ? (
-                    <img className="h-10 w-10 rounded-full object-cover border-2 border-white shadow-md" src={avatarSrc} alt="User Avatar" />
+                    <img className="h-10 w-10 rounded-full object-cover border-2 border-white shadow-md" src={getImageUrl(fullUser.avatar_url)} alt="User Avatar" />
                   ) : (
                     <div className="h-10 w-10 rounded-full bg-gradient-to-r from-[#7Ab2D3] to-[#4A90E2] flex items-center justify-center shadow-md">
                       <span className="text-white font-bold">{fullUser ? fullUser.full_name.charAt(0).toUpperCase() : "U"}</span>
