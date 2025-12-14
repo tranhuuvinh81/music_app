@@ -186,89 +186,51 @@
 import fetch from 'node-fetch';
 import db from "../config/db.js";
 
-// [QUAN TRỌNG] Dùng promiseDb để đồng bộ async/await
 const promiseDb = db.promise();
 
-// --- HÀM HELPER: LẤY VÀ FORMAT TẤT CẢ BÀI HÁT ---
+// --- HÀM HELPER: LẤY DANH SÁCH BÀI HÁT ---
 const getFormattedSongList = async () => {
   try {
     const query = `
-      SELECT 
-        s.id, s.title, s.genre, s.country,
-        GROUP_CONCAT(a.name SEPARATOR ', ') AS artists
+      SELECT s.id, s.title, s.genre, s.country, GROUP_CONCAT(a.name SEPARATOR ', ') AS artists
       FROM songs s
       LEFT JOIN song_artists sa ON s.id = sa.song_id
       LEFT JOIN artists a ON sa.artist_id = a.id
       GROUP BY s.id;
     `;
     const [songs] = await promiseDb.query(query);
+    // Giới hạn số lượng bài hát gửi đi để tránh quá tải token (khoảng 100 bài mới nhất hoặc hot nhất)
+    // Nếu database quá lớn, Gemini sẽ bị lỗi quá tải context
+    const limitedSongs = songs.slice(0, 150); 
     
-    // Format thành chuỗi để gửi cho Gemini
-    return songs.map(song => 
-      `ID ${song.id}: ${song.title} - ${song.artists || 'N/A'} (Genre: ${song.genre || 'N/A'}, Country: ${song.country || 'N/A'})`
+    return limitedSongs.map(song => 
+      `ID:${song.id}|${song.title}|${song.artists}|${song.genre}`
     ).join('\n');
   } catch (err) {
-    console.error("Lỗi lấy danh sách bài hát:", err);
-    throw new Error("Lỗi đọc database");
-  }
-};
-
-// --- HÀM HELPER: LẤY ARTIST CHO BÀI HÁT ---
-const fetchArtistsForSongs = async (songs) => {
-  if (!songs || songs.length === 0) return [];
-  
-  const songIds = songs.map((song) => song.id);
-  const query = `
-    SELECT sa.song_id, a.id, a.name, a.image_url 
-    FROM song_artists sa
-    JOIN artists a ON sa.artist_id = a.id
-    WHERE sa.song_id IN (?)
-  `;
-  
-  try {
-    const [artistLinks] = await promiseDb.query(query, [songIds]);
-    
-    return songs.map((song) => {
-      const artists = artistLinks
-        .filter((link) => link.song_id === song.id)
-        .map((link) => ({
-          id: link.id,
-          name: link.name,
-          image_url: link.image_url,
-        }));
-      return { ...song, artists: artists };
-    });
-  } catch (err) {
-    console.error("Lỗi fetch artist:", err);
-    return songs; // Trả về songs gốc nếu lỗi
+    console.error("❌ Lỗi DB (getFormattedSongList):", err.message);
+    throw err;
   }
 };
 
 // --- HÀM GỌI GEMINI ---
 const fetchGeminiSuggestionsFromApi = async (userPrompt, songListString) => {
-  const apiKey = process.env.GOOGLE_GEMINI_API_KEY; // Hoặc process.env.GEMINI_API_KEY tùy bạn đặt tên
-  if (!apiKey) {
-    console.error("Thiếu biến môi trường GOOGLE_GEMINI_API_KEY");
-    throw new Error("Server chưa cấu hình API Key");
-  }
-  
-  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
-  const systemPrompt = `
-    Bạn là một DJ chuyên nghiệp. Nhiệm vụ của bạn là xem DANH SÁCH BÀI HÁT bên dưới và chọn ra tối đa 5 ID phù hợp nhất với yêu cầu: "${userPrompt}".
-    
-    QUY TẮC BẮT BUỘC:
-    1. CHỈ trả về các con số ID, cách nhau bởi dấu phẩy (Ví dụ: "10, 25, 3").
-    2. KHÔNG được viết thêm bất kỳ chữ nào khác (Không chào, không giải thích).
-    3. Nếu không tìm thấy bài nào phù hợp, hãy chọn 3 bài ngẫu nhiên và trả về ID của chúng.
-  `;
-  
+  const apiKey = process.env.GOOGLE_GEMINI_API_KEY;
+  if (!apiKey) throw new Error("Thiếu biến môi trường GOOGLE_GEMINI_API_KEY");
+
+  // [FIX CHÍNH XÁC] Sử dụng endpoint 'v1' và model 'gemini-1.5-flash'
+  // Đây là cấu hình ổn định nhất hiện tại cho tài khoản Free
+  const apiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
   const payload = {
-    contents: [{ 
-        parts: [{ text: `DANH SÁCH BÀI HÁT:\n${songListString}\n\n${systemPrompt}` }] 
+    contents: [{
+      parts: [{
+        text: `Bạn là DJ. Hãy chọn 5 bài hát phù hợp nhất với yêu cầu: "${userPrompt}" từ danh sách sau:\n${songListString}\n\nQuy tắc: Chỉ trả về các ID bài hát cách nhau bằng dấu phẩy (Ví dụ: 10, 22, 5). Không giải thích.`
+      }]
     }]
   };
 
   try {
+    console.log(`📡 Đang gửi request tới Gemini (v1/gemini-1.5-flash)...`);
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -277,17 +239,20 @@ const fetchGeminiSuggestionsFromApi = async (userPrompt, songListString) => {
 
     if (!response.ok) {
       const errText = await response.text();
-      console.error("Gemini API Error:", errText);
-      throw new Error(`Gemini API lỗi: ${response.status}`);
+      console.error("❌ Gemini API Error Body:", errText);
+      
+      // Nếu lỗi 404 vẫn xảy ra, khả năng cao do Key chưa bật Google AI Studio
+      if (response.status === 404) {
+          throw new Error("Lỗi 404: Model không tìm thấy. Vui lòng kiểm tra lại API Key.");
+      }
+      throw new Error(`Gemini API trả về lỗi: ${response.status}`);
     }
 
     const result = await response.json();
-    const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
-    
-    return (text || "").trim();
+    return result.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
   } catch (error) {
-    console.error("Lỗi gọi Gemini:", error);
+    console.error("❌ Lỗi trong fetchGeminiSuggestionsFromApi:", error.message);
     throw error;
   }
 };
@@ -298,44 +263,35 @@ export const getChatbotSuggestion = async (req, res) => {
   if (!prompt) return res.status(400).json({ error: "Thiếu prompt" });
 
   try {
-    // 1. Lấy danh sách bài hát (String)
     const songString = await getFormattedSongList();
     if (!songString) return res.json({ songs: [] });
 
-    // 2. Gọi Gemini để lấy ID
-    let idString = await fetchGeminiSuggestionsFromApi(prompt, songString);
-    console.log("Gemini Suggestion IDs:", idString); // Log để debug
+    const idString = await fetchGeminiSuggestionsFromApi(prompt, songString);
+    console.log("🤖 Gemini IDs:", idString);
 
-    // 3. Parse ID (Lọc bỏ chữ cái nếu Gemini lỡ trả về text)
-    // Regex này sẽ tìm tất cả các số trong chuỗi
     const matches = idString.match(/\d+/g);
     const suggestedIds = matches ? matches.map(Number) : [];
 
-    if (suggestedIds.length === 0) {
-      return res.json({ songs: [] });
-    }
+    if (suggestedIds.length === 0) return res.json({ songs: [] });
 
-    // 4. Lấy thông tin chi tiết từ DB
-    const getFullSongsQuery = `
-      SELECT id, title, album, genre, release_year, country, file_url, image_url, lyrics_url, listen_count, created_at
-      FROM songs 
-      WHERE id IN (?)
-    `;
-    
-    const [songResults] = await promiseDb.query(getFullSongsQuery, [suggestedIds]);
+    const [songs] = await promiseDb.query(`
+      SELECT s.*, GROUP_CONCAT(a.name SEPARATOR ', ') as artist_names
+      FROM songs s
+      LEFT JOIN song_artists sa ON s.id = sa.song_id
+      LEFT JOIN artists a ON sa.artist_id = a.id
+      WHERE s.id IN (?)
+      GROUP BY s.id
+    `, [suggestedIds]);
 
-    // 5. Gắn thông tin Artist
-    const songsWithArtists = await fetchArtistsForSongs(songResults);
+    const formattedSongs = songs.map(s => ({
+        ...s,
+        artists: s.artist_names ? s.artist_names.split(', ').map(name => ({ name })) : []
+    }));
 
-    // 6. Sắp xếp lại theo đúng thứ tự gợi ý của Gemini
-    const sortedSongs = suggestedIds
-        .map(id => songsWithArtists.find(s => s.id === id))
-        .filter(Boolean);
-
-    res.json({ songs: sortedSongs });
+    res.json({ songs: formattedSongs });
 
   } catch (error) {
-    console.error("Lỗi Controller Chatbot:", error.message);
-    res.status(500).json({ error: "Lỗi xử lý chatbot" });
+    console.error("🔥 Server Error:", error.message);
+    res.status(500).json({ error: "Lỗi xử lý Chatbot", details: error.message });
   }
 };
