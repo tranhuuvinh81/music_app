@@ -73,6 +73,13 @@ function LoginPage() {
           {error && (
             <p className="mt-4 text-red-500 text-center text-sm">{error}</p>
           )}
+          <button
+            type="button"
+            onClick={() => navigate("/register")}
+            className="w-full mt-4 bg-white border border-gray-500 text-gray-500 font-bold py-2 px-4 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 transition-colors"
+          >
+            Đăng ký tài khoản mới
+          </button>
         </form>
       </div>
     </div>
