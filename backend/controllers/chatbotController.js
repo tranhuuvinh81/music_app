@@ -244,32 +244,35 @@ const fetchArtistsForSongs = async (songs) => {
   }
 };
 
-// --- HÀM GỌI GEMINI ---
 const fetchGeminiSuggestionsFromApi = async (userPrompt, songListString) => {
-  const apiKey = process.env.GOOGLE_GEMINI_API_KEY; // Hoặc process.env.GEMINI_API_KEY tùy bạn đặt tên
-  if (!apiKey) {
-    console.error("Thiếu biến môi trường GOOGLE_GEMINI_API_KEY");
-    throw new Error("Server chưa cấu hình API Key");
-  }
+  const apiKey = process.env.GOOGLE_GEMINI_API_KEY; // Hoặc GEMINI_API_KEY tùy bạn đặt
   
-  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+  if (!apiKey) throw new Error("Thiếu biến môi trường GOOGLE_GEMINI_API_KEY");
 
-  const systemPrompt = `
-    Bạn là một DJ chuyên nghiệp. Nhiệm vụ của bạn là xem DANH SÁCH BÀI HÁT bên dưới và chọn ra tối đa 5 ID phù hợp nhất với yêu cầu: "${userPrompt}".
-    
-    QUY TẮC BẮT BUỘC:
-    1. CHỈ trả về các con số ID, cách nhau bởi dấu phẩy (Ví dụ: "10, 25, 3").
-    2. KHÔNG được viết thêm bất kỳ chữ nào khác (Không chào, không giải thích).
-    3. Nếu không tìm thấy bài nào phù hợp, hãy chọn 3 bài ngẫu nhiên và trả về ID của chúng.
-  `;
-  
+  // [FIX LỖI 404] CHUYỂN SANG DÙNG MODEL 'gemini-pro' (ỔN ĐỊNH NHẤT)
+  // Thay vì 'gemini-1.5-flash', ta dùng 'gemini-pro'
+  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
+
   const payload = {
-    contents: [{ 
-        parts: [{ text: `DANH SÁCH BÀI HÁT:\n${songListString}\n\n${systemPrompt}` }] 
+    contents: [{
+      parts: [{
+        // Prompt giữ nguyên
+        text: `Bạn là một DJ chuyên nghiệp. Nhiệm vụ của bạn là chọn ra tối đa 5 bài hát từ danh sách bên dưới phù hợp nhất với yêu cầu: "${userPrompt}".
+        
+        DANH SÁCH BÀI HÁT:
+        ${songListString}
+
+        QUY TẮC BẮT BUỘC:
+        1. CHỈ trả về các con số ID của bài hát, cách nhau bởi dấu phẩy (Ví dụ: "10, 25, 3").
+        2. KHÔNG được viết thêm bất kỳ chữ nào khác (Không chào, không giải thích).
+        3. Nếu không tìm thấy bài nào phù hợp, hãy chọn ngẫu nhiên 3 bài và trả về ID.
+        4. Trả lời cực ngắn gọn.`
+      }]
     }]
   };
 
   try {
+    console.log("📡 Đang gửi request tới Gemini (Model: gemini-pro)...");
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -278,17 +281,16 @@ const fetchGeminiSuggestionsFromApi = async (userPrompt, songListString) => {
 
     if (!response.ok) {
       const errText = await response.text();
-      console.error("Gemini API Error:", errText);
-      throw new Error(`Gemini API lỗi: ${response.status}`);
+      console.error("❌ Gemini API Error Body:", errText);
+      throw new Error(`Gemini API trả về lỗi: ${response.status} - ${response.statusText}`);
     }
 
     const result = await response.json();
-    const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
-    
-    return (text || "").trim();
+    console.log("✅ Gemini Response OK");
+    return result.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
   } catch (error) {
-    console.error("Lỗi gọi Gemini:", error);
+    console.error("❌ Lỗi trong fetchGeminiSuggestionsFromApi:", error.message);
     throw error;
   }
 };
