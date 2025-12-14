@@ -220,8 +220,7 @@ const fetchGeminiDirect = async (userPrompt, songListString) => {
   }
 
   // [FIX] SỬ DỤNG MODEL 'gemini-1.5-flash-latest' ĐỂ TRÁNH LỖI 404
-  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
-
+const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
   const payload = {
     contents: [{
       parts: [{
