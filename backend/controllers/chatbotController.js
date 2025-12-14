@@ -183,10 +183,9 @@
 // };
 
 // backend/controllers/chatbotController.js
-import fetch from 'node-fetch'; // Đảm bảo đã cài: npm install node-fetch
+import fetch from 'node-fetch'; 
 import db from "../config/db.js";
 
-// Wrapper Promise cho DB
 const promiseDb = db.promise();
 
 // --- 1. HÀM HELPER: LẤY DANH SÁCH BÀI HÁT ---
@@ -203,7 +202,6 @@ const getFormattedSongList = async () => {
     
     if (!songs || songs.length === 0) return null;
 
-    // Format dữ liệu text để gửi cho AI
     return songs.map(song => 
       `ID:${song.id}|${song.title}|${song.artists}|${song.genre}`
     ).join('\n');
@@ -213,19 +211,16 @@ const getFormattedSongList = async () => {
   }
 };
 
-// --- 2. HÀM GỌI GEMINI (DIRECT REST API) ---
-// Cách này không dùng SDK, tránh được lỗi version mapping
+// --- 2. HÀM GỌI GEMINI (REST API - Cập nhật URL) ---
 const fetchGeminiDirect = async (userPrompt, songListString) => {
   const apiKey = process.env.GOOGLE_GEMINI_API_KEY;
   
   if (!apiKey) {
-    console.error("❌ Thiếu API Key");
     throw new Error("Server chưa cấu hình API Key");
   }
 
-  // [QUAN TRỌNG] URL Cứng của Google (v1beta + model 1.5-flash)
-  // Đây là endpoint chuẩn nhất hiện tại cho tài khoản Free
-  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+  // [FIX] SỬ DỤNG MODEL 'gemini-1.5-flash-latest' ĐỂ TRÁNH LỖI 404
+  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
 
   const payload = {
     contents: [{
@@ -243,15 +238,11 @@ const fetchGeminiDirect = async (userPrompt, songListString) => {
           3. Nếu không tìm thấy, chọn ngẫu nhiên 3 ID.
         `
       }]
-    }],
-    generationConfig: {
-        temperature: 0.5,
-        maxOutputTokens: 100,
-    }
+    }]
   };
 
   try {
-    console.log(`📡 Đang gửi request tới URL: .../models/gemini-1.5-flash:generateContent`);
+    console.log(`📡 Đang gửi request tới Gemini...`);
     
     const response = await fetch(API_URL, {
       method: 'POST',
@@ -261,13 +252,15 @@ const fetchGeminiDirect = async (userPrompt, songListString) => {
 
     const data = await response.json();
 
-    // Xử lý lỗi từ Google trả về
     if (!response.ok) {
-      console.error("❌ Google API Error Detail:", JSON.stringify(data, null, 2));
+      console.error("❌ Google API Error:", JSON.stringify(data));
+      // Nếu vẫn lỗi 404 với 1.5-flash, thử fallback sang gemini-pro (model 1.0 cũ nhưng siêu ổn định)
+      if (response.status === 404) {
+         throw new Error("Model not found. Hãy thử đổi sang gemini-pro trong code.");
+      }
       throw new Error(`Google API lỗi: ${data.error?.message || response.statusText}`);
     }
 
-    // Lấy text trả về an toàn
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
     console.log("✅ Gemini Response:", text);
     
@@ -292,16 +285,15 @@ export const getChatbotSuggestion = async (req, res) => {
     // B. Gọi AI
     const idString = await fetchGeminiDirect(prompt, songString);
 
-    // C. Parse ID (Chỉ lấy số)
+    // C. Parse ID
     const matches = idString.match(/\d+/g);
     const suggestedIds = matches ? matches.map(Number) : [];
 
     if (suggestedIds.length === 0) {
-        console.warn("⚠️ AI không trả về ID hợp lệ.");
         return res.json({ songs: [] });
     }
 
-    // D. Query chi tiết bài hát từ ID
+    // D. Query chi tiết
     const [songs] = await promiseDb.query(`
       SELECT s.*, GROUP_CONCAT(a.name SEPARATOR ', ') as artist_names
       FROM songs s
@@ -311,7 +303,6 @@ export const getChatbotSuggestion = async (req, res) => {
       GROUP BY s.id
     `, [suggestedIds]);
 
-    // E. Format & Sort
     const formattedSongs = songs.map(s => ({
         ...s,
         artists: s.artist_names ? s.artist_names.split(', ').map(name => ({ name })) : []
