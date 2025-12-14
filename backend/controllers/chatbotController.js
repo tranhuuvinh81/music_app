@@ -186,8 +186,7 @@
 import { GoogleGenAI } from "@google/genai";
 import db from "../config/db.js";
 
-// Khởi tạo SDK mới với API Key từ biến môi trường
-// Lưu ý: Đảm bảo biến môi trường trên Render tên là GOOGLE_GEMINI_API_KEY (hoặc sửa lại ở đây cho khớp)
+// Khởi tạo SDK mới
 const ai = new GoogleGenAI({
   apiKey: process.env.GOOGLE_GEMINI_API_KEY
 });
@@ -219,12 +218,15 @@ const getFormattedSongList = async () => {
   }
 };
 
-// --- HÀM HELPER: GỌI GEMINI (Dùng SDK MỚI @google/genai) ---
+// --- HÀM HELPER: GỌI GEMINI ---
 const fetchGeminiSuggestions = async (userPrompt, songListString) => {
   try {
-    console.log("📡 Đang gửi request tới Gemini (Model: gemini-3-pro-preview)...");
+    // [FIX QUAN TRỌNG] Đổi về 'gemini-1.5-flash' để dùng được gói Free
+    // 'gemini-3-pro-preview' hiện tại limit=0 với tài khoản free
+    const modelName = "gemini-1.5-flash"; 
+    
+    console.log(`📡 Đang gửi request tới Gemini (Model: ${modelName})...`);
 
-    // Cấu trúc Prompt
     const fullPrompt = `
       Bạn là một DJ âm nhạc chuyên nghiệp.
       
@@ -236,13 +238,13 @@ const fetchGeminiSuggestions = async (userPrompt, songListString) => {
 
       QUY TẮC BẮT BUỘC (QUAN TRỌNG):
       1. CHỈ trả về các con số ID của bài hát, cách nhau bởi dấu phẩy. Ví dụ: "10, 25, 3".
-      2. TUYỆT ĐỐI KHÔNG viết thêm bất kỳ chữ nào khác (Không chào, không giải thích, không Markdown).
+      2. TUYỆT ĐỐI KHÔNG viết thêm bất kỳ chữ nào khác.
       3. Nếu không tìm thấy bài nào phù hợp, hãy chọn ngẫu nhiên 3 ID từ danh sách.
     `;
 
-    // Gọi API bằng cú pháp SDK mới
+    // Gọi API
     const response = await ai.models.generateContent({
-      model: "gemini-3-pro-preview", // Model bạn yêu cầu
+      model: modelName, 
       contents: [
         {
           role: "user",
@@ -250,20 +252,16 @@ const fetchGeminiSuggestions = async (userPrompt, songListString) => {
         }
       ],
       config: {
-        temperature: 0.5, // Độ sáng tạo vừa phải để chọn bài chính xác
+        temperature: 0.5,
       }
     });
 
-    // Lấy kết quả text trực tiếp (SDK mới hỗ trợ getter .text)
     const text = response.text;
-    
     console.log("✅ Gemini Response:", text);
     return text || "";
 
   } catch (error) {
-    console.error("❌ Lỗi gọi Gemini SDK:", error);
-    // Fallback: Nếu model 'gemini-3-pro-preview' chưa khả dụng với key của bạn,
-    // hãy thử đổi fallback sang 'gemini-1.5-flash' ở đây nếu muốn.
+    console.error("❌ Lỗi gọi Gemini SDK:", JSON.stringify(error, null, 2));
     throw error;
   }
 };
@@ -281,7 +279,7 @@ export const getChatbotSuggestion = async (req, res) => {
     // 2. Gọi AI
     const idString = await fetchGeminiSuggestions(prompt, songString);
 
-    // 3. Xử lý chuỗi ID trả về (Lọc chỉ lấy số)
+    // 3. Xử lý chuỗi ID trả về
     const matches = idString.match(/\d+/g);
     const suggestedIds = matches ? matches.map(Number) : [];
 
@@ -300,13 +298,13 @@ export const getChatbotSuggestion = async (req, res) => {
       GROUP BY s.id
     `, [suggestedIds]);
 
-    // 5. Format lại mảng artists cho Frontend
+    // 5. Format lại mảng artists
     const formattedSongs = songs.map(s => ({
         ...s,
         artists: s.artist_names ? s.artist_names.split(', ').map(name => ({ name })) : []
     }));
 
-    // 6. Sắp xếp kết quả theo đúng thứ tự AI gợi ý (Quan trọng để bài hợp nhất lên đầu)
+    // 6. Sắp xếp kết quả
     const sortedSongs = suggestedIds
         .map(id => formattedSongs.find(s => s.id === id))
         .filter(Boolean);
@@ -315,6 +313,7 @@ export const getChatbotSuggestion = async (req, res) => {
 
   } catch (error) {
     console.error("🔥 Lỗi Controller Chatbot:", error.message);
+    // Trả về lỗi 500 kèm message để frontend biết đường xử lý
     res.status(500).json({ error: "Lỗi xử lý phía server: " + error.message });
   }
 };
