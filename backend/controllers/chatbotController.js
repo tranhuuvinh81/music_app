@@ -183,18 +183,13 @@
 // };
 
 // backend/controllers/chatbotController.js
-import { GoogleGenAI } from "@google/genai";
+import fetch from 'node-fetch'; // Đảm bảo đã cài: npm install node-fetch
 import db from "../config/db.js";
-
-// Khởi tạo SDK mới
-const ai = new GoogleGenAI({
-  apiKey: process.env.GOOGLE_GEMINI_API_KEY
-});
 
 // Wrapper Promise cho DB
 const promiseDb = db.promise();
 
-// --- HÀM HELPER: LẤY DANH SÁCH BÀI HÁT TỪ DB ---
+// --- 1. HÀM HELPER: LẤY DANH SÁCH BÀI HÁT ---
 const getFormattedSongList = async () => {
   try {
     const query = `
@@ -208,7 +203,7 @@ const getFormattedSongList = async () => {
     
     if (!songs || songs.length === 0) return null;
 
-    // Format dữ liệu gọn để gửi cho AI
+    // Format dữ liệu text để gửi cho AI
     return songs.map(song => 
       `ID:${song.id}|${song.title}|${song.artists}|${song.genre}`
     ).join('\n');
@@ -218,77 +213,95 @@ const getFormattedSongList = async () => {
   }
 };
 
-// --- HÀM HELPER: GỌI GEMINI ---
-const fetchGeminiSuggestions = async (userPrompt, songListString) => {
-  try {
-    // [FIX QUAN TRỌNG] Đổi về 'gemini-1.5-flash' để dùng được gói Free
-    // 'gemini-3-pro-preview' hiện tại limit=0 với tài khoản free
-    const modelName = "gemini-1.5-flash"; 
-    
-    console.log(`📡 Đang gửi request tới Gemini (Model: ${modelName})...`);
+// --- 2. HÀM GỌI GEMINI (DIRECT REST API) ---
+// Cách này không dùng SDK, tránh được lỗi version mapping
+const fetchGeminiDirect = async (userPrompt, songListString) => {
+  const apiKey = process.env.GOOGLE_GEMINI_API_KEY;
+  
+  if (!apiKey) {
+    console.error("❌ Thiếu API Key");
+    throw new Error("Server chưa cấu hình API Key");
+  }
 
-    const fullPrompt = `
-      Bạn là một DJ âm nhạc chuyên nghiệp.
-      
-      NHIỆM VỤ:
-      Chọn ra tối đa 5 bài hát phù hợp nhất với yêu cầu: "${userPrompt}" từ danh sách bên dưới.
+  // [QUAN TRỌNG] URL Cứng của Google (v1beta + model 1.5-flash)
+  // Đây là endpoint chuẩn nhất hiện tại cho tài khoản Free
+  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
-      DANH SÁCH BÀI HÁT CÓ SẴN:
-      ${songListString}
+  const payload = {
+    contents: [{
+      parts: [{
+        text: `
+          Bạn là một DJ âm nhạc chuyên nghiệp.
+          NHIỆM VỤ: Chọn ra 5 bài hát từ danh sách dưới đây phù hợp nhất với yêu cầu: "${userPrompt}".
+          
+          DANH SÁCH BÀI HÁT:
+          ${songListString}
 
-      QUY TẮC BẮT BUỘC (QUAN TRỌNG):
-      1. CHỈ trả về các con số ID của bài hát, cách nhau bởi dấu phẩy. Ví dụ: "10, 25, 3".
-      2. TUYỆT ĐỐI KHÔNG viết thêm bất kỳ chữ nào khác.
-      3. Nếu không tìm thấy bài nào phù hợp, hãy chọn ngẫu nhiên 3 ID từ danh sách.
-    `;
-
-    // Gọi API
-    const response = await ai.models.generateContent({
-      model: modelName, 
-      contents: [
-        {
-          role: "user",
-          parts: [{ text: fullPrompt }]
-        }
-      ],
-      config: {
+          YÊU CẦU ĐẦU RA:
+          1. CHỈ trả về các con số ID, cách nhau bởi dấu phẩy. Ví dụ: "10, 25, 3".
+          2. KHÔNG giải thích, KHÔNG chào hỏi, KHÔNG markdown.
+          3. Nếu không tìm thấy, chọn ngẫu nhiên 3 ID.
+        `
+      }]
+    }],
+    generationConfig: {
         temperature: 0.5,
-      }
+        maxOutputTokens: 100,
+    }
+  };
+
+  try {
+    console.log(`📡 Đang gửi request tới URL: .../models/gemini-1.5-flash:generateContent`);
+    
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
     });
 
-    const text = response.text;
+    const data = await response.json();
+
+    // Xử lý lỗi từ Google trả về
+    if (!response.ok) {
+      console.error("❌ Google API Error Detail:", JSON.stringify(data, null, 2));
+      throw new Error(`Google API lỗi: ${data.error?.message || response.statusText}`);
+    }
+
+    // Lấy text trả về an toàn
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
     console.log("✅ Gemini Response:", text);
+    
     return text || "";
 
   } catch (error) {
-    console.error("❌ Lỗi gọi Gemini SDK:", JSON.stringify(error, null, 2));
+    console.error("❌ Lỗi Fetch Gemini:", error.message);
     throw error;
   }
 };
 
-// --- CONTROLLER CHÍNH ---
+// --- 3. CONTROLLER CHÍNH ---
 export const getChatbotSuggestion = async (req, res) => {
   const { prompt } = req.body;
   if (!prompt) return res.status(400).json({ error: "Thiếu prompt" });
 
   try {
-    // 1. Lấy dữ liệu nhạc
+    // A. Lấy Data Nhạc
     const songString = await getFormattedSongList();
     if (!songString) return res.json({ songs: [] });
 
-    // 2. Gọi AI
-    const idString = await fetchGeminiSuggestions(prompt, songString);
+    // B. Gọi AI
+    const idString = await fetchGeminiDirect(prompt, songString);
 
-    // 3. Xử lý chuỗi ID trả về
+    // C. Parse ID (Chỉ lấy số)
     const matches = idString.match(/\d+/g);
     const suggestedIds = matches ? matches.map(Number) : [];
 
     if (suggestedIds.length === 0) {
-        console.log("⚠️ Không tìm thấy ID hợp lệ trong phản hồi.");
+        console.warn("⚠️ AI không trả về ID hợp lệ.");
         return res.json({ songs: [] });
     }
 
-    // 4. Lấy chi tiết bài hát từ DB
+    // D. Query chi tiết bài hát từ ID
     const [songs] = await promiseDb.query(`
       SELECT s.*, GROUP_CONCAT(a.name SEPARATOR ', ') as artist_names
       FROM songs s
@@ -298,13 +311,12 @@ export const getChatbotSuggestion = async (req, res) => {
       GROUP BY s.id
     `, [suggestedIds]);
 
-    // 5. Format lại mảng artists
+    // E. Format & Sort
     const formattedSongs = songs.map(s => ({
         ...s,
         artists: s.artist_names ? s.artist_names.split(', ').map(name => ({ name })) : []
     }));
 
-    // 6. Sắp xếp kết quả
     const sortedSongs = suggestedIds
         .map(id => formattedSongs.find(s => s.id === id))
         .filter(Boolean);
@@ -312,8 +324,7 @@ export const getChatbotSuggestion = async (req, res) => {
     res.json({ songs: sortedSongs });
 
   } catch (error) {
-    console.error("🔥 Lỗi Controller Chatbot:", error.message);
-    // Trả về lỗi 500 kèm message để frontend biết đường xử lý
-    res.status(500).json({ error: "Lỗi xử lý phía server: " + error.message });
+    console.error("🔥 Controller Error:", error.message);
+    res.status(500).json({ error: "Lỗi xử lý server: " + error.message });
   }
 };
