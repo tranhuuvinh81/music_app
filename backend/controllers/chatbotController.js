@@ -215,7 +215,7 @@ const getFormattedSongList = async () => {
 
 // --- HÀM GỌI GEMINI (Dùng thư viện chính chủ) ---
 const fetchGeminiSuggestionsFromLib = async (userPrompt, songListString) => {
-  const apiKey = process.env.GOOGLE_GEMINI_API_KEY; // Hoặc GEMINI_API_KEY tùy bạn đặt trên Render
+  const apiKey = process.env.GOOGLE_GEMINI_API_KEY;
   
   if (!apiKey) {
     console.error("❌ Thiếu API Key");
@@ -226,11 +226,10 @@ const fetchGeminiSuggestionsFromLib = async (userPrompt, songListString) => {
     // 1. Khởi tạo Google AI
     const genAI = new GoogleGenerativeAI(apiKey);
     
-    // 2. Chọn Model (Dùng gemini-1.5-flash cho nhanh và rẻ, hoặc gemini-pro)
-    // Thư viện sẽ tự xử lý version API phù hợp
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    // [FIX QUAN TRỌNG] Đổi sang 'gemini-pro' để đảm bảo không bị lỗi 404
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
-    // 3. Tạo Prompt
+    // 3. Tạo Prompt (Giữ nguyên)
     const systemInstruction = `
       Bạn là DJ âm nhạc.
       Nhiệm vụ: Chọn 5 bài hát phù hợp nhất với yêu cầu: "${userPrompt}" từ danh sách dưới.
@@ -243,7 +242,7 @@ const fetchGeminiSuggestionsFromLib = async (userPrompt, songListString) => {
     const fullPrompt = `DANH SÁCH BÀI HÁT:\n${songListString}\n\n${systemInstruction}`;
 
     // 4. Gửi yêu cầu
-    console.log("📡 Đang gửi request tới Gemini (qua thư viện)...");
+    console.log("📡 Đang gửi request tới Gemini (Model: gemini-pro)...");
     const result = await model.generateContent(fullPrompt);
     const response = await result.response;
     const text = response.text();
