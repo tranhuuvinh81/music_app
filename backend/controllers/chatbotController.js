@@ -183,8 +183,14 @@
 // };
 
 // backend/controllers/chatbotController.js
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 import db from "../config/db.js";
+
+// Khởi tạo SDK mới với API Key từ biến môi trường
+// Lưu ý: Đảm bảo biến môi trường trên Render tên là GOOGLE_GEMINI_API_KEY (hoặc sửa lại ở đây cho khớp)
+const ai = new GoogleGenAI({
+  apiKey: process.env.GOOGLE_GEMINI_API_KEY
+});
 
 // Wrapper Promise cho DB
 const promiseDb = db.promise();
@@ -201,9 +207,9 @@ const getFormattedSongList = async () => {
     `;
     const [songs] = await promiseDb.query(query);
     
-    if (songs.length === 0) return null;
+    if (!songs || songs.length === 0) return null;
 
-    // Format dữ liệu gọn nhẹ để tiết kiệm token gửi cho AI
+    // Format dữ liệu gọn để gửi cho AI
     return songs.map(song => 
       `ID:${song.id}|${song.title}|${song.artists}|${song.genre}`
     ).join('\n');
@@ -213,45 +219,51 @@ const getFormattedSongList = async () => {
   }
 };
 
-// --- HÀM GỌI GEMINI (Dùng thư viện chính chủ) ---
-const fetchGeminiSuggestionsFromLib = async (userPrompt, songListString) => {
-  const apiKey = process.env.GOOGLE_GEMINI_API_KEY;
-  
-  if (!apiKey) {
-    console.error("❌ Thiếu API Key");
-    throw new Error("Server chưa cấu hình API Key");
-  }
-
+// --- HÀM HELPER: GỌI GEMINI (Dùng SDK MỚI @google/genai) ---
+const fetchGeminiSuggestions = async (userPrompt, songListString) => {
   try {
-    // 1. Khởi tạo Google AI
-    const genAI = new GoogleGenerativeAI(apiKey);
-    
-    // [FIX QUAN TRỌNG] Đổi sang 'gemini-pro' để đảm bảo không bị lỗi 404
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    console.log("📡 Đang gửi request tới Gemini (Model: gemini-3-pro-preview)...");
 
-    // 3. Tạo Prompt (Giữ nguyên)
-    const systemInstruction = `
-      Bạn là DJ âm nhạc.
-      Nhiệm vụ: Chọn 5 bài hát phù hợp nhất với yêu cầu: "${userPrompt}" từ danh sách dưới.
-      Quy tắc bắt buộc:
-      - CHỈ trả về các con số ID cách nhau bằng dấu phẩy (Ví dụ: 10, 22, 5).
-      - KHÔNG giải thích, KHÔNG chào hỏi.
-      - Nếu không tìm thấy, chọn ngẫu nhiên 3 ID.
+    // Cấu trúc Prompt
+    const fullPrompt = `
+      Bạn là một DJ âm nhạc chuyên nghiệp.
+      
+      NHIỆM VỤ:
+      Chọn ra tối đa 5 bài hát phù hợp nhất với yêu cầu: "${userPrompt}" từ danh sách bên dưới.
+
+      DANH SÁCH BÀI HÁT CÓ SẴN:
+      ${songListString}
+
+      QUY TẮC BẮT BUỘC (QUAN TRỌNG):
+      1. CHỈ trả về các con số ID của bài hát, cách nhau bởi dấu phẩy. Ví dụ: "10, 25, 3".
+      2. TUYỆT ĐỐI KHÔNG viết thêm bất kỳ chữ nào khác (Không chào, không giải thích, không Markdown).
+      3. Nếu không tìm thấy bài nào phù hợp, hãy chọn ngẫu nhiên 3 ID từ danh sách.
     `;
 
-    const fullPrompt = `DANH SÁCH BÀI HÁT:\n${songListString}\n\n${systemInstruction}`;
+    // Gọi API bằng cú pháp SDK mới
+    const response = await ai.models.generateContent({
+      model: "gemini-3-pro-preview", // Model bạn yêu cầu
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: fullPrompt }]
+        }
+      ],
+      config: {
+        temperature: 0.5, // Độ sáng tạo vừa phải để chọn bài chính xác
+      }
+    });
 
-    // 4. Gửi yêu cầu
-    console.log("📡 Đang gửi request tới Gemini (Model: gemini-pro)...");
-    const result = await model.generateContent(fullPrompt);
-    const response = await result.response;
-    const text = response.text();
+    // Lấy kết quả text trực tiếp (SDK mới hỗ trợ getter .text)
+    const text = response.text;
     
     console.log("✅ Gemini Response:", text);
-    return text;
+    return text || "";
 
   } catch (error) {
-    console.error("❌ Lỗi thư viện Gemini:", error);
+    console.error("❌ Lỗi gọi Gemini SDK:", error);
+    // Fallback: Nếu model 'gemini-3-pro-preview' chưa khả dụng với key của bạn,
+    // hãy thử đổi fallback sang 'gemini-1.5-flash' ở đây nếu muốn.
     throw error;
   }
 };
@@ -262,20 +274,23 @@ export const getChatbotSuggestion = async (req, res) => {
   if (!prompt) return res.status(400).json({ error: "Thiếu prompt" });
 
   try {
-    // A. Lấy Data
+    // 1. Lấy dữ liệu nhạc
     const songString = await getFormattedSongList();
     if (!songString) return res.json({ songs: [] });
 
-    // B. Gọi AI
-    const idString = await fetchGeminiSuggestionsFromLib(prompt, songString);
+    // 2. Gọi AI
+    const idString = await fetchGeminiSuggestions(prompt, songString);
 
-    // C. Parse ID
+    // 3. Xử lý chuỗi ID trả về (Lọc chỉ lấy số)
     const matches = idString.match(/\d+/g);
     const suggestedIds = matches ? matches.map(Number) : [];
 
-    if (suggestedIds.length === 0) return res.json({ songs: [] });
+    if (suggestedIds.length === 0) {
+        console.log("⚠️ Không tìm thấy ID hợp lệ trong phản hồi.");
+        return res.json({ songs: [] });
+    }
 
-    // D. Lấy thông tin chi tiết từ DB theo ID đã gợi ý
+    // 4. Lấy chi tiết bài hát từ DB
     const [songs] = await promiseDb.query(`
       SELECT s.*, GROUP_CONCAT(a.name SEPARATOR ', ') as artist_names
       FROM songs s
@@ -285,13 +300,13 @@ export const getChatbotSuggestion = async (req, res) => {
       GROUP BY s.id
     `, [suggestedIds]);
 
-    // Format lại mảng artists
+    // 5. Format lại mảng artists cho Frontend
     const formattedSongs = songs.map(s => ({
         ...s,
         artists: s.artist_names ? s.artist_names.split(', ').map(name => ({ name })) : []
     }));
 
-    // Sắp xếp đúng thứ tự AI gợi ý
+    // 6. Sắp xếp kết quả theo đúng thứ tự AI gợi ý (Quan trọng để bài hợp nhất lên đầu)
     const sortedSongs = suggestedIds
         .map(id => formattedSongs.find(s => s.id === id))
         .filter(Boolean);
@@ -299,7 +314,7 @@ export const getChatbotSuggestion = async (req, res) => {
     res.json({ songs: sortedSongs });
 
   } catch (error) {
-    console.error("🔥 Lỗi Chatbot Controller:", error.message);
-    res.status(500).json({ error: "Lỗi xử lý phía server" });
+    console.error("🔥 Lỗi Controller Chatbot:", error.message);
+    res.status(500).json({ error: "Lỗi xử lý phía server: " + error.message });
   }
 };
