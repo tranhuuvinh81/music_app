@@ -261,17 +261,17 @@ import React, { useState, useContext, useRef, useEffect } from 'react';
 import { AudioContext } from '../../context/AudioContext';
 import { AuthContext } from '../../context/AuthContext';
 import api from '../../api/api';
-import { FiSend, FiX, FiUser } from 'react-icons/fi'; // Đã bỏ FiMusic nếu không dùng
+// [UPDATE] Thêm icon FiTrash2 (Thùng rác) để xóa lịch sử
+import { FiSend, FiX, FiUser, FiTrash2 } from 'react-icons/fi'; 
 import avt from '../../assets/images/onlylogo-removebg-preview.png'; 
 
-// --- HÀM GỌI BACKEND ---
+// --- HÀM GỌI BACKEND (GIỮ NGUYÊN) ---
 const fetchGeminiSuggestions = async (userPrompt) => {
   try {
     const response = await api.post('/api/chatbot/suggest', {
       prompt: userPrompt
     });
 
-    // [FIX] Trả về toàn bộ data (gồm cả reply và songs) thay vì chỉ songs
     if (!response.data) {
       throw new Error("Phản hồi từ server không hợp lệ.");
     }
@@ -293,37 +293,67 @@ const getImageUrl = (url) => {
 function ChatbotModal({ onClose }) {
   const { fullUser, user } = useContext(AuthContext);
   const currentUser = fullUser || user;
-
-  const [messages, setMessages] = useState([
-    {
-      sender: 'bot',
-      type: 'text',
-      text: 'Chào bạn! Tôi là trợ lý AI. Chúng ta có thể trò chuyện hoặc tôi có thể giúp bạn tìm nhạc.'
-    }
-  ]);
-  const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const { playSong } = useContext(AudioContext);
   const messagesEndRef = useRef(null);
 
+  // [NEW] Key để lưu vào localStorage
+  const STORAGE_KEY = 'music_app_chat_history';
+
+  // [UPDATE] Khởi tạo state messages từ localStorage (nếu có)
+  const [messages, setMessages] = useState(() => {
+    const savedMessages = localStorage.getItem(STORAGE_KEY);
+    if (savedMessages) {
+        try {
+            return JSON.parse(savedMessages);
+        } catch (e) {
+            console.error("Lỗi parse lịch sử chat:", e);
+        }
+    }
+    // Mặc định nếu chưa có lịch sử
+    return [{
+      sender: 'bot',
+      type: 'text',
+      text: 'Chào bạn! Tôi là trợ lý AI. Chúng ta có thể trò chuyện hoặc tôi có thể giúp bạn tìm nhạc.'
+    }];
+  });
+
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  // [NEW] Tự động cuộn xuống cuối mỗi khi messages thay đổi
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isLoading]); // Thêm isLoading để cuộn khi đang loading
+
+  // [NEW] Tự động lưu vào localStorage mỗi khi messages thay đổi
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
   }, [messages]);
+
+  // [NEW] Hàm xóa lịch sử chat
+  const handleClearChat = () => {
+    if (window.confirm("Bạn có chắc muốn xóa toàn bộ cuộc trò chuyện này không?")) {
+        const defaultMessage = [{
+            sender: 'bot',
+            type: 'text',
+            text: 'Chào bạn! Tôi là trợ lý AI. Chúng ta có thể trò chuyện hoặc tôi có thể giúp bạn tìm nhạc.'
+        }];
+        setMessages(defaultMessage);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultMessage));
+    }
+  };
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
 
-    // 1. Hiện tin nhắn của User ngay lập tức
     const userText = input;
     setMessages(prev => [...prev, { sender: 'user', type: 'text', text: userText }]);
     setInput('');
     setIsLoading(true);
 
-    // 2. Gọi API
     const data = await fetchGeminiSuggestions(userText);
     
-    // 3. Xử lý phản hồi từ Bot
-    // [FIX QUAN TRỌNG] Hiển thị tin nhắn văn bản (reply) nếu có
+    // Logic xử lý phản hồi (GIỮ NGUYÊN NHƯ PHIÊN BẢN ỔN ĐỊNH)
     if (data.reply) {
         setMessages(prev => [
             ...prev,
@@ -331,7 +361,6 @@ function ChatbotModal({ onClose }) {
         ]);
     }
 
-    // 4. Hiển thị danh sách nhạc (songs) nếu có
     if (data.songs && data.songs.length > 0) {
       setMessages(prev => [
         ...prev,
@@ -347,7 +376,6 @@ function ChatbotModal({ onClose }) {
         }
       ]);
     } 
-    // Nếu không có reply và cũng không có songs (trường hợp hiếm)
     else if (!data.reply && (!data.songs || data.songs.length === 0)) {
        setMessages(prev => [
         ...prev,
@@ -360,12 +388,11 @@ function ChatbotModal({ onClose }) {
 
   const displayArtistNames = (artistsArray) => {
     if (!artistsArray || artistsArray.length === 0) return 'Nghệ sĩ không xác định';
-    if (typeof artistsArray === 'string') return artistsArray; // Fallback nếu data lỗi
+    if (typeof artistsArray === 'string') return artistsArray;
     return artistsArray.map(artist => artist.name).join(', ');
   };
 
   const handlePlaySuggestion = (song) => {
-    // Vì song từ chatbot có thể thiếu cấu trúc playlist chuẩn, ta wrap nó vào mảng
     playSong(song, [song], 0); 
   };
 
@@ -376,7 +403,8 @@ function ChatbotModal({ onClose }) {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-end md:items-center z-50 p-4">
       <div className="bg-white rounded-t-2xl md:rounded-2xl shadow-2xl w-full max-w-lg h-[70vh] flex flex-col overflow-hidden animate-slide-up">
-        {/* Header */}
+        
+        {/* HEADER */}
         <div className="bg-gradient-to-r from-[#7Ab2D3] to-[#4A90E2] p-4 flex justify-between items-center shrink-0">
           <div className="flex items-center space-x-2">
             <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center overflow-hidden shadow-sm">
@@ -387,23 +415,35 @@ function ChatbotModal({ onClose }) {
                 <p className="text-xs text-blue-100 font-medium">Online</p>
             </div>
           </div>
-          <button 
-            onClick={onClose} 
-            className="text-white hover:bg-white/20 rounded-full p-2 transition-all"
-          >
-            <FiX size={20} />
-          </button>
+          
+          <div className="flex items-center space-x-2">
+            {/* [NEW] Nút Xóa Lịch Sử */}
+            <button 
+                onClick={handleClearChat}
+                className="text-white/80 hover:text-white hover:bg-white/20 rounded-full p-2 transition-all"
+                title="Xóa đoạn chat"
+            >
+                <FiTrash2 size={20} />
+            </button>
+
+            <button 
+                onClick={onClose} 
+                className="text-white hover:bg-white/20 rounded-full p-2 transition-all"
+                title="Đóng"
+            >
+                <FiX size={20} />
+            </button>
+          </div>
         </div>
 
-        {/* Chat Area */}
+        {/* CHAT AREA */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#f8fafc]">
           {messages.map((msg, index) => (
             <div key={index} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
               
-              {/* TIN NHẮN DẠNG TEXT */}
+              {/* Text Message */}
               {msg.type === 'text' && (
                 <div className={`flex items-end gap-2 max-w-[85%] ${msg.sender === 'user' ? 'flex-row-reverse' : ''}`}>
-                  {/* Avatar nhỏ bên cạnh tin nhắn */}
                   <div className={`w-8 h-8 rounded-full flex-shrink-0 overflow-hidden border border-gray-200 bg-white flex items-center justify-center`}>
                     {msg.sender === 'user' ? (
                       userAvatarUrl ? <img src={userAvatarUrl} alt="User" className="w-full h-full object-cover" /> : <FiUser className="text-gray-500"/>
@@ -422,7 +462,7 @@ function ChatbotModal({ onClose }) {
                 </div>
               )}
 
-              {/* TIN NHẮN DẠNG DANH SÁCH BÀI HÁT */}
+              {/* Songs List Message */}
               {msg.type === 'songs' && (
                 <div className="flex items-start gap-2 max-w-[90%]">
                     <div className="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden border border-gray-200 bg-white flex items-center justify-center">
@@ -470,7 +510,7 @@ function ChatbotModal({ onClose }) {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input Area */}
+        {/* INPUT AREA (GIỮ NGUYÊN) */}
         <div className="p-4 bg-white border-t border-gray-100 shrink-0">
           <div className="flex items-center bg-gray-100 rounded-full px-4 py-2 border border-transparent focus-within:border-[#7Ab2D3] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#7Ab2D3] focus-within:ring-opacity-20 transition-all duration-300">
             <input
@@ -488,7 +528,7 @@ function ChatbotModal({ onClose }) {
                 className={`ml-2 p-2 rounded-full transition-all duration-300 ${
                     input.trim() && !isLoading
                     ? 'bg-gradient-to-r from-[#7Ab2D3] to-[#4A90E2] text-white shadow-md hover:scale-105'
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : 'bg-gray-300 text-gray-400 cursor-not-allowed'
                 }`}
             >
                 <FiSend size={18} />
