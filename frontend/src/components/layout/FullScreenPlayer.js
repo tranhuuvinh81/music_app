@@ -101,7 +101,7 @@ function FullScreenPlayer({ onClose }) {
         {/* --- CỘT TRÁI: ẢNH BÌA --- */}
         {/* Mobile: Chiều cao giới hạn (35vh). Desktop: Full height, flex-1 */}
         <div className="flex-none h-[35vh] md:h-auto md:flex-1 flex items-center justify-center p-4 md:p-8 transition-all duration-300">
-          <div className="h-full aspect-square md:w-full md:max-w-md md:aspect-square shadow-2xl rounded-xl overflow-hidden relative group border border-white/10">
+          <div className="w-full aspect-square md:w-full md:max-w-md md:aspect-square shadow-2xl rounded-xl overflow-hidden relative group border border-white/10">
              <img 
               src={getImageUrl(currentSong.image_url)} 
               alt={currentSong.title} 
