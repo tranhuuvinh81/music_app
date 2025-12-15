@@ -73,6 +73,72 @@ function AdminSongPage() {
     }
   };
 
+  const renderPagination = () => {
+    const pages = [];
+    
+    // Nếu tổng số trang ít (ví dụ <= 7), hiện tất cả
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Luôn hiện trang 1
+      pages.push(1);
+
+      // Xác định khoảng trang cần hiện xung quanh trang hiện tại
+      // Ví dụ: Hiện tại là 5 -> hiển thị 4, 5, 6
+      let startPage = Math.max(2, currentPage - 1);
+      let endPage = Math.min(totalPages - 1, currentPage + 1);
+
+      // Nếu khoảng cách từ trang 1 đến startPage > 1, thêm dấu "..."
+      if (startPage > 2) {
+        pages.push("...");
+      }
+
+      // Thêm các trang ở giữa
+      for (let i = startPage; i <= endPage; i++) {
+        pages.push(i);
+      }
+
+      // Nếu khoảng cách từ endPage đến trang cuối > 1, thêm dấu "..."
+      if (endPage < totalPages - 1) {
+        pages.push("...");
+      }
+
+      // Luôn hiện trang cuối
+      pages.push(totalPages);
+    }
+
+    return pages.map((page, index) => {
+      if (page === "...") {
+        return (
+          <span
+            key={`ellipsis-${index}`}
+            className="px-3 py-1 text-sm font-medium text-gray-400 bg-white border border-gray-300 rounded-md select-none"
+          >
+            ...
+          </span>
+        );
+      }
+
+      return (
+        <button
+          key={page}
+          onClick={() => paginate(page)}
+          className={`px-3 py-1 text-sm font-medium rounded-md border ${
+            currentPage === page
+              ? "bg-gray-600 text-white border-gray-600"
+              : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"
+          }`}
+        >
+          {page}
+        </button>
+      );
+    });
+  };
+
+  
+
   return (
     <section className="bg-white rounded-lg shadow-md overflow-hidden">
       <header className="px-6 py-4 border-b border-gray-200 flex flex-wrap justify-between items-center gap-4">
@@ -168,19 +234,8 @@ function AdminSongPage() {
           >
             Trước
           </button>
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((number) => (
-            <button
-              key={number}
-              onClick={() => paginate(number)}
-              className={`px-3 py-1 text-sm font-medium rounded-md border ${
-                currentPage === number
-                  ? "bg-gray-600 text-white border-gray-600"
-                  : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"
-              }`}
-            >
-              {number}
-            </button>
-          ))}
+                    {renderPagination()}
+
           <button
             onClick={() => paginate(currentPage + 1)}
             disabled={currentPage === totalPages}
