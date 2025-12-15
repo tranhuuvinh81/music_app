@@ -374,7 +374,7 @@ function SongForm({ songToEdit, onFormSubmit, onCancel }) {
               <label className="block text-sm font-medium text-gray-700">
                 File Lyric (.lrc)
               </label>
-              {isEditing && songToEdit.lyrics_url && (
+              {isEditing && songToEdit.lyric_url && (
                 <p className="text-xs text-gray-500 mb-1">
                   Hiện tại: {songToEdit.lyric_url.split("/").pop()}
                 </p>
