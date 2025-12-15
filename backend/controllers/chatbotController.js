@@ -284,7 +284,7 @@ const fetchGeminiResponse = async (userPrompt, songListString) => {
   if (!apiKey) throw new Error("Server chưa cấu hình API Key");
 
   // Sử dụng model đang hoạt động tốt (2.5-flash hoặc 1.5-flash-latest)
-  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-001:generateContent?key=${apiKey}`;
+  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
   // [QUAN TRỌNG] SYSTEM PROMPT ĐỂ PHÂN LOẠI YÊU CẦU
   const systemPrompt = `
