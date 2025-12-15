@@ -201,7 +201,7 @@ export const getChatbotSuggestion = async (req, res) => {
   }
 
   // 2. Cấu hình URL gọi Gemini 1.5 Flash (Bản ổn định nhất)
-  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
 
   // 3. Payload đơn giản nhất: Chỉ gửi text, không system instruction phức tạp
   const payload = {
