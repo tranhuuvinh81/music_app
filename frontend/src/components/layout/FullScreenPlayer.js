@@ -1,4 +1,3 @@
-// frontend/src/components/layout/FullScreenPlayer.js
 import React, { useContext, useState, useRef, useEffect } from "react";
 import { AudioContext } from "../../context/AudioContext";
 import api from "../../api/api";
@@ -233,7 +232,7 @@ function FullScreenPlayer({ onClose }) {
       </div>
 
       {/* FOOTER: Controls */}
-      <div className="bg-black/60 backdrop-blur-xl border-t border-white/10 px-4 md:px-8 py-2 md:py-0 h-auto md:h-24 flex flex-col md:flex-row items-center justify-between shrink-0 safe-area-bottom">
+      <div className="bg-black/60 backdrop-blur-xl border-t border-white/10 px-4 md:px-8 py-2 md:py-0 h-auto md:h-24 flex flex-col md:flex-row items-center justify-between shrink-0">
         
         {/* Info (Desktop Only) */}
         <div className="hidden md:flex flex-col w-1/4">
