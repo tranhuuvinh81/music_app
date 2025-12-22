@@ -387,7 +387,7 @@ async function importSpotifyData(keyword = "pop", manualGenre = null) {
   // await importSpotifyData("Mono"); 
 
   // CÁCH DÙNG 2: Ép cứng genre mong muốn (Khuyên dùng để dữ liệu sạch)
-  await importSpotifyData("Còn gì đẹp hơn", "Vpop");
+  await importSpotifyData("Nguyễn Đình Vũ", "Vpop");
 
 
   // Đóng kết nối
