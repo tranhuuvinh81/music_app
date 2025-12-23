@@ -12,7 +12,7 @@ import SongInfoModal from "../../components/modals/SongInforModal";
 
 // --- CẤU HÌNH DANH SÁCH BÀI HÁT MUỐN GHIM (ID) ---
 // Bạn hãy thay các số này bằng ID bài hát thực tế trong Database của bạn
-const PINNED_SONG_IDS = [214, 268, 251, 244, , 496]; 
+const PINNED_SONG_IDS = [214, 268, 251, 244, 242, 496]; 
 
 function HomeSongsPage() {
   const [pinnedSongs, setPinnedSongs] = useState([]); // Danh sách ghim
