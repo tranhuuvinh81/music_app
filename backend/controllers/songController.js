@@ -40,7 +40,7 @@ const fetchArtistsForSongs = (songs) => {
 // Lấy tất cả bài hát (có kèm nghệ sĩ)
 export const getAllSongs = async (req, res) => {
   const query =
-    "SELECT id, title, album, genre, release_year, country, file_url, image_url, lyrics_url, listen_count, created_at FROM songs ORDER BY listen_count DESC";
+    "SELECT id, title, album, genre, release_year, country, file_url, image_url, lyrics_url, listen_count, created_at FROM songs ORDER BY id DESC";
   db.query(query, async (err, songs) => {
     // Thêm async
     if (err) return res.status(500).json({ error: "Lỗi khi truy vấn bài hát" });
