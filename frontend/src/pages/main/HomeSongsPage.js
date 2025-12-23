@@ -1,4 +1,3 @@
-// frontend/src/pages/main/HomeSongsPage.js
 import React, { useState, useEffect, useContext } from "react";
 import { useOutletContext } from "react-router-dom";
 import api from "../../api/api";
@@ -189,7 +188,7 @@ function HomeSongsPage() {
             </div>
             
             {/* Chỉ hiển thị 10 bài đầu tiên nếu chưa mở rộng */}
-            {renderSongGrid(isListExpanded ? trendingSongs : trendingSongs.slice(0, 10))}
+            {renderSongGrid(isListExpanded ? trendingSongs.slice(0, 20) : trendingSongs.slice(0, 10))}
             
             {trendingSongs.length > 10 && (
             <div className="flex justify-center mt-8">
@@ -197,7 +196,7 @@ function HomeSongsPage() {
                     onClick={toggleListExpansion}
                     className="px-8 py-3 rounded-full border-2 border-[#7Ab2D3] text-[#7Ab2D3] font-bold hover:bg-[#7Ab2D3] hover:text-white transition-all duration-300 shadow-sm hover:shadow-md"
                 >
-                    {isListExpanded ? "Thu gọn danh sách" : "Xem tất cả bài hát"}
+                    {isListExpanded ? "Thu gọn danh sách" : "Xem thêm bài hát"}
                 </button>
             </div>
             )}
