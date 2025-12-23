@@ -1,4 +1,3 @@
-// frontend/src/pages/main/ArtistsPage.js
 import React, { useState, useEffect, useContext } from "react";
 import { useOutletContext } from "react-router-dom";
 import api from "../../api/api";
@@ -188,7 +187,7 @@ function ArtistsPage() {
                 </h2>
             </div>
             
-            {renderArtistGrid(isArtistListExpanded ? otherArtists : otherArtists.slice(0, 10))}
+            {renderArtistGrid(isArtistListExpanded ? otherArtists.slice(0, 20) : otherArtists.slice(0, 10))}
             
             {otherArtists.length > 10 && (
                 <div className="flex justify-center mt-4">
@@ -196,7 +195,7 @@ function ArtistsPage() {
                         onClick={toggleArtistListExpansion}
                         className="px-6 py-2 rounded-full border border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400 transition-all font-medium"
                     >
-                        {isArtistListExpanded ? "Thu gọn danh sách" : "Xem tất cả nghệ sĩ"}
+                        {isArtistListExpanded ? "Thu gọn danh sách" : "Xem thêm nghệ sĩ"}
                     </button>
                 </div>
             )}
