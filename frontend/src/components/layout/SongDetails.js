@@ -210,7 +210,7 @@ function SongDetails({ onExpand, openAddModal, openArtistModal }) {
   };
 
   return (
-    <div ref={containerRef} className="flex flex-col bg-gradient-to-b from-white to-[#f0f9ff] rounded-xl shadow-lg overflow-hidden h-full">
+    <div ref={containerRef} className="font-genos flex flex-col bg-gradient-to-b from-white to-[#f0f9ff] rounded-xl shadow-lg overflow-hidden h-full">
       
       {/* PHẦN THÔNG TIN & CONTROL (Sẽ ẩn khi mở Queue/Lyrics trên màn hình nhỏ nếu cần, ở đây giữ nguyên hiệu ứng scale) */}
       <div className={`p-6 transition-all duration-500 ${isAnimating ? "opacity-0 transform scale-95" : "opacity-100 transform scale-100"}`}>
@@ -234,7 +234,7 @@ function SongDetails({ onExpand, openAddModal, openArtistModal }) {
 
           <div className="text-center w-full">
             <h3 className="text-2xl font-bold text-gray-800 truncate w-full mb-1">{currentSong.title}</h3>
-            <p className="text-gray-600 text-xl">{displayArtistNames(currentSong.artists)}</p>
+            <p className="text-gray-600 text-2xl">{displayArtistNames(currentSong.artists)}</p>
           </div>
         </div>
 
@@ -258,7 +258,7 @@ function SongDetails({ onExpand, openAddModal, openArtistModal }) {
           </div>
 
           {/* Progress & Volume (Giữ nguyên) */}
-          <div className="flex justify-between text-sm text-gray-600 mb-2"><span>{formatTime(currentTime)}</span><span>{formatTime(duration)}</span></div>
+          <div className="flex justify-between text-xl text-gray-600 mb-2"><span>{formatTime(currentTime)}</span><span>{formatTime(duration)}</span></div>
           <div className="mb-6 relative"><div className="h-2 bg-gray-200 rounded-full overflow-hidden"><div className="h-full bg-gradient-to-r from-[#7Ab2D3] to-[#4A90E2] rounded-full" style={{ width: `${progress}%` }}></div></div><input type="range" min="0" max="100" value={progress} onChange={handleSeek} className="absolute top-0 left-0 w-full h-2 opacity-0 cursor-pointer" /></div>
           
           <div className="flex items-center mb-4">

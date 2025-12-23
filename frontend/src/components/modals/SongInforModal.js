@@ -30,7 +30,7 @@ const SongInfoModal = ({ song, onClose }) => {
   return (
     <>
       {/* LỚP PHỦ MỜ (OVERLAY) - Tăng z-index lên cực cao */}
-      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-md animate-fade-in p-0 md:p-4">
+      <div className="fixed inset-0 z-[50] flex items-center justify-center bg-black/70 backdrop-blur-md animate-fade-in p-0 md:p-4">
         
         {/* CONTAINER CHÍNH */}
         {/* Mobile: Full màn hình, không bo góc. Desktop: Card nổi, bo góc */}

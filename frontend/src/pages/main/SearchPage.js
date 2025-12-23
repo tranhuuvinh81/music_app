@@ -202,7 +202,7 @@ function SearchPage() {
                       
                       {/* Custom Options Menu */}
                       {isAuthenticated && (
-                        <div className="absolute top-2 right-2 z-10">
+                        <div className="absolute top-2 right-2 z-1000">
                           <button 
                             onClick={() => toggleMenu(song.id)} 
                             className="p-2 bg-white bg-opacity-80 rounded-full text-gray-700 hover:bg-opacity-100 transition-all duration-200"

@@ -59,7 +59,7 @@ function MainLayout() {
   const avatarSrc = fullUser && fullUser.avatar_url ? getImageUrl(fullUser.avatar_url) : null;
 
   return (
-    <div className="font-genos text-xl flex flex-col h-screen bg-gradient-to-br from-[#f0f9ff] to-white overflow-hidden">
+    <div className=" text-xl flex flex-col h-screen bg-gradient-to-br from-[#f0f9ff] to-white overflow-hidden">
       
       {/* =================== MOBILE HEADER =================== */}
       <div className="md:hidden h-16 bg-gradient-to-r from-[#7Ab2D3] to-[#4A90E2] flex items-center justify-between px-3 shadow-md z-20 shrink-0 gap-3 relative">
