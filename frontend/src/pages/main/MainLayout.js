@@ -153,7 +153,7 @@ function MainLayout() {
         {/* =================== SIDEBAR (NAV) =================== */}
         <aside 
             className={`
-                bg-gradient-to-b from-[#7Ab2D3] to-white shadow-lg flex-shrink-0 transition-transform duration-300 z-30
+                bg-gradient-to-b from-[#7Ab2D3] to-[#7Ab2D3] shadow-lg flex-shrink-0 transition-transform duration-300 z-30
                 fixed inset-y-0 left-0 w-64 md:relative md:translate-x-0
                 ${isMobileNavOpen ? 'translate-x-0 top-16' : '-translate-x-full md:translate-x-0'}
             `}
