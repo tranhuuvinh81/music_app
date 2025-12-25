@@ -1,4 +1,3 @@
-// frontend/src/pages/main/GenresPage.js
 import React, { useState, useEffect, useContext } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import api from '../../api/api';
@@ -175,7 +174,7 @@ function GenresPage() {
           
           {/* Grid of Song Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-6">
-            {(isListExpanded ? displaySongs : displaySongs.slice(0, 10)).map((song, index) => {
+            {(isListExpanded ? displaySongs.slice(0, 20) : displaySongs.slice(0, 10)).map((song, index) => {
               // Check if this song is currently playing
               const isCurrentSong = currentSong && currentSong.id === song.id;
               const isFavorite = favoriteSongs.has(song.id);
@@ -262,4 +261,4 @@ function GenresPage() {
   );
 }
 
-export default GenresPage;
+export default GenresPage;  
