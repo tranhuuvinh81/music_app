@@ -141,7 +141,7 @@ function FullScreenPlayer({ onClose }) {
           </div>
 
           {/* Content Container */}
-          <div className="flex-1 relative bg-white/5 rounded-xl overflow-hidden border border-white/5 shadow-inner">
+          <div className="flex-1 relative mb-3 bg-white/5 rounded-xl overflow-hidden border border-white/5 shadow-inner">
              
              {/* Tab 1: Lyrics */}
              {activeTab === 'lyrics' && (
