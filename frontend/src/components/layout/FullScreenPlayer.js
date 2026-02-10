@@ -169,7 +169,7 @@ function FullScreenPlayer({ onClose }) {
               className="flex items-center gap-2 text-gray-200 hover:text-white"
             >
               <FiChevronLeft size={22} />
-              <span className="text-sm font-medium">Quay lai</span>
+              <span className="text-sm font-medium">Quay lại</span>
             </button>
             <span className="text-[11px] uppercase tracking-wider text-gray-400">
               {activeTab === 'lyrics' ? 'Nghe' : activeTab === 'comments' ? 'Khen' : 'Danh sách'}
@@ -228,7 +228,7 @@ function FullScreenPlayer({ onClose }) {
                   </div>
 
                   <div className="pb-4">
-                    <p className="text-[10px] font-bold text-gray-500 uppercase px-2 mb-2">Tiep theo</p>
+                    <p className="text-[10px] font-bold text-gray-500 uppercase px-2 mb-2">Tiếp theo</p>
                     {currentPlaylist.length > currentIndex + 1 ? (
                       currentPlaylist.map((song, index) => {
                         if (index <= currentIndex) return null;
@@ -255,7 +255,7 @@ function FullScreenPlayer({ onClose }) {
                           </div>
                         );
                       })
-                    ) : <p className="text-center text-gray-600 text-xs italic py-4">Het bai...</p>}
+                    ) : <p className="text-center text-gray-600 text-xs italic py-4">Hết bài...</p>}
                   </div>
                 </div>
               </div>
