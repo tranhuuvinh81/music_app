@@ -17,19 +17,19 @@ const Footer = () => {
             <h3 className="text-lg font-semibold mb-4">Liên kết</h3>
             <ul className="text-white text-opacity-80 text-sm space-y-2">
               <li>
-                <a href="#" className="hover:text-white transition-colors duration-300">
+                <button type="button" className="hover:text-white transition-colors duration-300">
                   Chính sách bảo mật
-                </a>
+                </button>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition-colors duration-300">
+                <button type="button" className="hover:text-white transition-colors duration-300">
                   Điều khoản sử dụng
-                </a>
+                </button>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition-colors duration-300">
+                <button type="button" className="hover:text-white transition-colors duration-300">
                   Liên hệ
-                </a>
+                </button>
               </li>
             </ul>
           </div>

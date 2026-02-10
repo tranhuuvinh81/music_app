@@ -5,24 +5,20 @@ import { FiX, FiCalendar, FiMapPin, FiMusic, FiUser, FiExternalLink, FiHeart } f
 
 function ArtistDetailsModal({ artist, onClose }) {
   const [details, setDetails] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('about'); // 'about' or 'songs'
   const [songs, setSongs] = useState([]);
   const [isFavorite, setIsFavorite] = useState(false);
 
   useEffect(() => {
     if (artist && artist.id) {
-      setLoading(true);
       api.get(`/api/artists/${artist.id}`)
         .then((res) => {
           setDetails(res.data);
-          setLoading(false);
         })
         .catch((err) => {
           console.error("Lỗi lấy chi tiết nghệ sĩ:", err);
           // If error, use basic artist info passed in
           setDetails(artist);
-          setLoading(false);
         });
     }
   }, [artist]);

@@ -50,7 +50,6 @@ function SongDetails({ onExpand, openAddModal, openArtistModal }) {
   const optionsRef = useRef(null);
   const containerRef = useRef(null);
 
-  const [menuOpenSongId, setMenuOpenSongId] = useState(null);
   const [showArtistSubmenu, setShowArtistSubmenu] = useState(false);
 
   // --- STATE MỚI CHO TÍNH NĂNG QUEUE ---
@@ -60,8 +59,6 @@ function SongDetails({ onExpand, openAddModal, openArtistModal }) {
   // --------------------------------------
 
   const [isAnimating, setIsAnimating] = useState(false);
-  const [albumRotation, setAlbumRotation] = useState(0);
-  const animationRef = useRef(null);
 
   const handleViewArtist = async (artistName) => {
     setShowOptions(false);
@@ -94,22 +91,6 @@ function SongDetails({ onExpand, openAddModal, openArtistModal }) {
     return () => window.removeEventListener("resize", updateContentHeight);
   }, [viewMode]);
 
-  // Xử lý Animation xoay đĩa
-  useEffect(() => {
-    if (isPlaying) {
-      const animate = () => {
-        setAlbumRotation((prev) => (prev + 0.5) % 360);
-        animationRef.current = requestAnimationFrame(animate);
-      };
-      animationRef.current = requestAnimationFrame(animate);
-    } else {
-      if (animationRef.current) cancelAnimationFrame(animationRef.current);
-    }
-    return () => {
-      if (animationRef.current) cancelAnimationFrame(animationRef.current);
-    };
-  }, [isPlaying]);
-
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (optionsRef.current && !optionsRef.current.contains(event.target)) {
@@ -134,7 +115,6 @@ function SongDetails({ onExpand, openAddModal, openArtistModal }) {
       if (viewMode === 'none') {
         setViewMode(mode);
       } else {
-        // Chuyển đổi giữa Lyrics và Queue không cần animation đóng mở
         setViewMode(mode);
       }
     }
@@ -182,7 +162,6 @@ function SongDetails({ onExpand, openAddModal, openArtistModal }) {
   const handlePlayPause = () => togglePlay();
 
   const handleOpenAddModal = (songId) => {
-    setMenuOpenSongId(null);
     setShowOptions(false);
     if (openAddModal) openAddModal(songId);
   };

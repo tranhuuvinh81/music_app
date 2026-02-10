@@ -1,7 +1,6 @@
 // frontend/src/components/ui/SongCard.js
 import React from 'react';
 import PlayPauseButton from './PlayPauseButton';
-import { FiHeart, FiMoreHorizontal } from 'react-icons/fi';
 
 const SongCard = ({ 
   song, 

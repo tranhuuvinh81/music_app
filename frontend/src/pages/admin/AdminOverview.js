@@ -23,13 +23,6 @@ function AdminOverview() {
     }));
   }, [topSongs]);
   
-  const artistChartData = useMemo(() => {
-    return (artistListens || []).map(artist => ({
-      name: artist.name,
-      listens: artist.listens || 0,
-    }));
-  }, [artistListens]);
-
   const colors = ["#8b5cf6", "#3b82f6", "#10b981", "#f59e0b", "#ef4444"];
 
   return (

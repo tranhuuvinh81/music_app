@@ -1,13 +1,13 @@
 // frontend/src/pages/main/SearchPage.js
 import React, { useState, useContext, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { SongContext } from "../../context/SongContext";
 import { AuthContext } from "../../context/AuthContext";
 import { AudioContext } from "../../context/AudioContext";
 import AddToPlaylistModal from "../../components/modals/AddToPlaylistModal";
 import ArtistDetailsModal from "../../components/modals/ArtistDetailModal";
 import SongCard from "../../components/ui/SongCard";
-import { FiHeart, FiMoreHorizontal } from "react-icons/fi";
+import { FiMoreHorizontal } from "react-icons/fi";
 import api from "../../api/api";
 import SongInfoModal from "../../components/modals/SongInforModal";
 
@@ -70,7 +70,6 @@ function SearchPage() {
   const [showInfoModal, setShowInfoModal] = useState(false);
   
 
-  const navigate = useNavigate();
   const location = useLocation();
 
   const getImageUrl = (url) => {

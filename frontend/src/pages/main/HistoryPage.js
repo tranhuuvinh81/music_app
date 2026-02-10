@@ -5,7 +5,7 @@ import api from '../../api/api';
 import { AudioContext } from '../../context/AudioContext';
 import { AuthContext } from '../../context/AuthContext';
 import SongCard from '../../components/ui/SongCard';
-import { FiHeart, FiMoreHorizontal } from 'react-icons/fi';
+import { FiMoreHorizontal } from 'react-icons/fi';
 import SongInfoModal from "../../components/modals/SongInforModal";
 
 

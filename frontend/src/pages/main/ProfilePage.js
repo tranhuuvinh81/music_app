@@ -1,5 +1,5 @@
 // frontend/src/pages/main/ProfilePage.js
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useCallback } from "react";
 import api from "../../api/api";
 import { AuthContext } from "../../context/AuthContext";
 import ProfileForm from "../../components/forms/ProfileForm";
@@ -29,8 +29,8 @@ function ProfilePage() {
   };
 
   // Fetch dữ liệu
-  const fetchData = async () => {
-    if (user) {
+  const fetchData = useCallback(async () => {
+    if (user?.id) {
       try {
         const [profileRes, playlistRes] = await Promise.all([
           api.get(`/api/users/${user.id}`),
@@ -42,11 +42,11 @@ function ProfilePage() {
         console.error(err);
       }
     }
-  };
+  }, [user?.id]);
 
   useEffect(() => {
     fetchData();
-  }, [user]);
+  }, [fetchData]);
 
   const handleFormSubmit = () => {
     setIsEditing(false);

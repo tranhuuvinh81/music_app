@@ -4,7 +4,7 @@ import { AudioContext } from "../../context/AudioContext";
 import api from "../../api/api";
 import { 
   FiSkipBack, FiSkipForward, FiVolume2, FiRepeat, 
-  FiShuffle, FiHeart, FiMoreHorizontal, FiList, FiMaximize2 // [NEW] Import Icons
+  FiShuffle, FiHeart, FiList, FiMaximize2 // [NEW] Import Icons
 } from "react-icons/fi";
 // [NEW] Import Modal FullScreen
 import FullScreenPlayer from "./FullScreenPlayer"; 
@@ -50,15 +50,12 @@ function AudioPlayer() {
     toggleShuffle,
   } = useContext(AudioContext);
    
-  const progressBarRef = useRef(null);
   const volumeBarRef = useRef(null);
   const [isFavorite, setIsFavorite] = useState(false);
-  const [showOptions, setShowOptions] = useState(false);
   
   // [NEW] State để bật/tắt FullScreen Modal
   const [isFullScreen, setIsFullScreen] = useState(false);
 
-  const optionsRef = useRef(null);
    
   useEffect(() => {
     const playerHeight = 80; 
@@ -69,19 +66,6 @@ function AudioPlayer() {
     };
   }, []);
    
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (optionsRef.current && !optionsRef.current.contains(event.target)) {
-        setShowOptions(false);
-      }
-    };
-    
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
   if (!currentSong) return null;
 
   const currentSongObj = currentPlaylist[currentIndex] || {};

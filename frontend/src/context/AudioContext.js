@@ -244,26 +244,12 @@ export const AudioProvider = ({ children }) => {
     }
   }, []);
 
-  // Play/Pause
-  useEffect(() => {
-    if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.play().catch(() => {});
-      } else {
-        audioRef.current.pause();
-      }
-    }
-  }, [isPlaying]);
-
   // Tải bài hát mới và lấy duration
   useEffect(() => {
     if (currentSong && audioRef.current) {
       const audio = audioRef.current;
       audio.src = currentSong;
       audio.load();
-      if (isPlaying) {
-        audio.play().catch(() => {});
-      }
       setProgress(0);
       setCurrentTime(0);
 
@@ -277,6 +263,17 @@ export const AudioProvider = ({ children }) => {
       };
     }
   }, [currentSong]);
+
+  // Play/Pause
+  useEffect(() => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.play().catch(() => {});
+      } else {
+        audioRef.current.pause();
+      }
+    }
+  }, [isPlaying, currentSong]);
 
   // --- BỌC CÁC HÀM TRONG useCallback ---
 
