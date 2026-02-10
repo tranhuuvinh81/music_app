@@ -134,7 +134,7 @@ function LyricsViewer() {
   return (
     <div
       ref={containerRef}
-      className="h-full w-full p-2 md:p-4 text-center relative overflow-hidden mask-linear-fade"
+      className="h-full min-h-0 w-full p-2 md:p-4 text-center relative overflow-hidden mask-linear-fade"
     >
       <ul
         className="space-y-4 md:space-y-6 absolute left-0 right-0 px-2 md:px-4 will-change-transform"

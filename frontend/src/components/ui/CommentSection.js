@@ -4,7 +4,7 @@ import api from '../../api/api';
 import { AuthContext } from '../../context/AuthContext';
 import { FiUser, FiSend, FiEdit2, FiTrash2 } from 'react-icons/fi';
 
-const CommentSection = ({ songId }) => {
+const CommentSection = ({ songId, fullHeight = false }) => {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [rating, setRating] = useState(5);
@@ -115,7 +115,7 @@ const CommentSection = ({ songId }) => {
   );
 
   return (
-    <div className="bg-gradient-to-b from-[#f0f9ff] to-white p-4 md:p-6 rounded-2xl shadow-lg h-full flex flex-col">
+    <div className="bg-gradient-to-b from-[#f0f9ff] to-white p-4 md:p-6 rounded-2xl shadow-lg h-full min-h-0 flex flex-col">
       <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-4 md:mb-6 flex items-center shrink-0">
         Bình luận & Đánh giá
         <span className="ml-2 text-xs md:text-sm font-normal text-gray-500">({comments.length})</span>
@@ -161,7 +161,11 @@ const CommentSection = ({ songId }) => {
       )}
 
       {/* Comments list (Responsive height) */}
-      <div className="space-y-3 md:space-y-4 overflow-y-auto flex-1 custom-scrollbar pr-1 max-h-[60vh] md:max-h-96">
+      <div
+        className={`space-y-3 md:space-y-4 overflow-y-auto flex-1 min-h-0 custom-scrollbar pr-1 ${
+          fullHeight ? "max-h-none" : "max-h-[60vh] md:max-h-96"
+        }`}
+      >
         {comments.length > 0 ? (
           comments.map((comment) => (
             <div key={comment.id} className="bg-white p-3 md:p-4 rounded-xl shadow-sm hover:shadow-md transition-all">
