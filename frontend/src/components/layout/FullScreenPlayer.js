@@ -262,8 +262,8 @@ function FullScreenPlayer({ onClose }) {
             )}
 
             {activeTab === 'comments' && (
-              <div className="flex-1 min-h-0 overflow-hidden bg-white/95 scrollbar-thin scrollbar-thumb-gray-300">
-                <div className="h-full min-h-0 p-4 text-gray-800">
+              <div className="flex-1 min-h-0 overflow-hidden bg-transparent scrollbar-thin scrollbar-thumb-gray-700">
+                <div className="h-full min-h-0 p-4">
                   <CommentSection songId={currentSong.id} fullHeight />
                 </div>
               </div>
@@ -412,13 +412,13 @@ function FullScreenPlayer({ onClose }) {
              )}
 
              {/* Tab 3: Comments */}
-             {activeTab === 'comments' && (
-                <div className="flex-1 min-h-0 overflow-y-auto bg-gray-50 scrollbar-thin scrollbar-thumb-gray-300">
-                    <div className="p-4 text-gray-800">
-                        <CommentSection songId={currentSong.id} />
-                    </div>
+              {activeTab === 'comments' && (
+                <div className="flex-1 min-h-0 overflow-y-auto bg-transparent scrollbar-thin scrollbar-thumb-gray-700">
+                  <div className="p-4">
+                    <CommentSection songId={currentSong.id} />
+                  </div>
                 </div>
-             )}
+              )}
           </div>
         </div>
       </div>

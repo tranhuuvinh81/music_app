@@ -143,7 +143,7 @@ const SongInfoModal = ({ song, onClose }) => {
             </div>
 
             {/* PHẦN 2: BÌNH LUẬN & ĐÁNH GIÁ */}
-            <div className="p-4 md:p-8 bg-gray-50 border-t border-gray-100 min-h-[400px]">
+            <div className="p-4 md:p-8 bg-gradient-to-b from-gray-900 via-gray-900 to-black border-t border-white/10 min-h-[400px]">
                 <div className="max-w-3xl mx-auto">
                     <CommentSection songId={song.id} />
                 </div>
