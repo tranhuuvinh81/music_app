@@ -153,7 +153,7 @@ function FullScreenPlayer({ onClose }) {
                 >
                   {tab === 'lyrics' && 'Nghe'}
                   {tab === 'comments' && 'Khen'}
-                  {tab === 'queue' && 'Danh sach'}
+                  {tab === 'queue' && 'Danh sách'}
                 </button>
               ))}
             </div>
@@ -172,7 +172,7 @@ function FullScreenPlayer({ onClose }) {
               <span className="text-sm font-medium">Quay lai</span>
             </button>
             <span className="text-[11px] uppercase tracking-wider text-gray-400">
-              {activeTab === 'lyrics' ? 'Nghe' : activeTab === 'comments' ? 'Khen' : 'Danh sach'}
+              {activeTab === 'lyrics' ? 'Nghe' : activeTab === 'comments' ? 'Khen' : 'Danh sách'}
             </span>
             <div className="w-6"></div>
           </div>
@@ -189,7 +189,7 @@ function FullScreenPlayer({ onClose }) {
                 >
                   {tab === 'lyrics' && 'Nghe'}
                   {tab === 'comments' && 'Khen'}
-                  {tab === 'queue' && 'Danh sach'}
+                  {tab === 'queue' && 'Danh sách'}
                 </button>
               ))}
             </div>
