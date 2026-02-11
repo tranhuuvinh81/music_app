@@ -93,7 +93,7 @@ function FullScreenPlayer({ onClose }) {
         <div className="flex items-center justify-between px-4 pt-3 pb-2">
           <div className="text-[10px] text-gray-400 uppercase tracking-wider flex items-center gap-2">
             <span className="animate-pulse w-2 h-2 bg-green-500 rounded-full"></span>
-            <span className="truncate max-w-[220px]">Dang phat</span>
+            <span className="truncate max-w-[220px]">Đang phát</span>
           </div>
           <button onClick={onClose} className="p-2 rounded-full hover:bg-white/10 transition-colors text-gray-300 hover:text-white">
             <FiMinimize2 size={22} />
