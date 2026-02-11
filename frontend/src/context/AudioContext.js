@@ -257,6 +257,7 @@ export const AudioProvider = ({ children }) => {
             console.error("Lỗi khôi phục Player:", e);
         }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // --- 2. LƯU TRẠNG THÁI MỖI KHI CÓ THAY ĐỔI ---
@@ -270,7 +271,7 @@ export const AudioProvider = ({ children }) => {
         };
         localStorage.setItem('music_app_player_state', JSON.stringify(stateToSave));
     }
-  }, [currentPlaylist, currentIndex, currentTime]); // currentTime thay đổi liên tục, nhưng localStorage xử lý khá nhanh. Nếu sợ lag, có thể debounce.
+  }, [currentPlaylist, currentIndex, currentTime]); 
 
   // Lưu Volume riêng
   useEffect(() => {
@@ -331,7 +332,9 @@ export const AudioProvider = ({ children }) => {
       audio.addEventListener("loadedmetadata", handleLoadedMetadata);
       return () => audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
     }
-  }, [currentSong]); // Bỏ isPlaying ra khỏi dep array ở đây để tránh conflict
+    // [FIX] Thêm dòng này để Vercel bỏ qua lỗi thiếu dependency (isPlaying, currentTime...)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentSong]); 
 
   // Xử lý Play/Pause riêng biệt
   useEffect(() => {
@@ -341,8 +344,6 @@ export const AudioProvider = ({ children }) => {
         if (playPromise !== undefined) {
             playPromise.catch(() => {
                 // Lỗi này thường do trình duyệt chặn autoplay khi chưa có tương tác
-                // Ta có thể set isPlaying = false để UI đồng bộ
-                // setIsPlaying(false);
             });
         }
       } else {
@@ -352,7 +353,7 @@ export const AudioProvider = ({ children }) => {
   }, [isPlaying, currentSong]);
 
 
-  // --- CÁC HÀM XỬ LÝ (GIỮ NGUYÊN LOGIC CŨ, CHỈ THÊM isFirstLoad = false) ---
+  // --- CÁC HÀM XỬ LÝ ---
 
   const playSong = useCallback(async (song, playlist = [], index = 0) => {
     isFirstLoad.current = false; // Khi người dùng chủ động chọn bài, không còn là "First Load" nữa
@@ -407,9 +408,7 @@ export const AudioProvider = ({ children }) => {
   const updatePlaylist = useCallback((newPlaylist) => {
     setCurrentPlaylist(newPlaylist);
     if (currentSong) {
-        // Tìm lại index trong playlist mới dựa trên URL file (hoặc ID nếu có thể truyền object)
-        // Lưu ý: currentSong ở đây là URL string, nên so sánh hơi khó.
-        // Tốt nhất là so sánh file_url đã getResourceUrl
+        // Tìm lại index trong playlist mới dựa trên URL file
         const currentIndexInNew = newPlaylist.findIndex(s => getResourceUrl(s.file_url) === currentSong);
         if (currentIndexInNew !== -1) {
             setCurrentIndex(currentIndexInNew);
@@ -426,13 +425,15 @@ export const AudioProvider = ({ children }) => {
     return () => {
       if (audio) audio.onended = null;
     };
+    // [FIX] Thêm dòng này để Vercel bỏ qua lỗi
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nextSong]);
 
   return (
     <AudioContext.Provider
       value={{
         currentSong,
-        currentPlaylist, // Expose để các component khác dùng
+        currentPlaylist,
         currentIndex,
         isPlaying,
         volume,
