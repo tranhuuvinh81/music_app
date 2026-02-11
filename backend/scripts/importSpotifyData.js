@@ -274,7 +274,7 @@ async function importSpotifyData(keyword = "pop", manualGenre = null) {
     const token = await getSpotifyAccessToken();
     
     // [FIX] Sửa lại URL chuẩn v1/search và sửa lỗi cú pháp string interpolation
-    const url = `https://api.spotify.com/v1/search?q=${encodeURIComponent(keyword)}&type=track&limit=10`;
+    const url = `https://api.spotify.com/v1/search?q=${encodeURIComponent(keyword)}&type=track&limit=20`;
 
     console.log(`🎧 Đang tìm kiếm "${keyword}"...`);
 
@@ -334,7 +334,7 @@ async function importSpotifyData(keyword = "pop", manualGenre = null) {
       const file_url = track.preview_url;
 
       // Xử lý Quốc gia
-      let country = "Việt Nam"; // Mặc định
+      let country = "Âu Mỹ"; // Mặc định
       // Nếu genre hoặc keyword có chứa từ khóa Việt Nam
       const checkStr = (keyword + " " + genre).toLowerCase();
       if (checkStr.includes('viet') || checkStr.includes('v-pop')) country = 'Việt Nam';
@@ -387,7 +387,7 @@ async function importSpotifyData(keyword = "pop", manualGenre = null) {
   // await importSpotifyData("Mono"); 
 
   // CÁCH DÙNG 2: Ép cứng genre mong muốn (Khuyên dùng để dữ liệu sạch)
-  await importSpotifyData("VSTRA", "Vpop");
+  await importSpotifyData("Justin Bieber", "US - UK");
 
 
   // Đóng kết nối

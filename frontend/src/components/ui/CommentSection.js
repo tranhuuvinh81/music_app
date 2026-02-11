@@ -41,7 +41,15 @@ const CommentSection = ({ songId, fullHeight = false }) => {
     setIsSubmitting(true);
     try {
       const res = await api.post('/api/comments', { songId, content: newComment, rating });
-      setComments([res.data, ...comments]);
+      // Khi thêm mới, Backend cần trả về cả full_name của user hiện tại
+      // Hoặc ta tự merge data từ context user vào để hiển thị ngay lập tức
+      const newCommentData = {
+          ...res.data,
+          full_name: user.full_name, // Lấy từ AuthContext để hiện ngay
+          username: user.username,
+          avatar_url: user.avatar_url
+      };
+      setComments([newCommentData, ...comments]);
       setNewComment("");
       setRating(5);
     } catch (err) {
@@ -140,7 +148,7 @@ const CommentSection = ({ songId, fullHeight = false }) => {
               <div className="relative">
                 <textarea
                   value={newComment} onChange={(e) => setNewComment(e.target.value)}
-                  placeholder="Bạn nghĩ gì về bài hát này?"
+                  placeholder={`Bình luận với tên ${user?.full_name || '...'}`}
                   className="w-full p-2 md:p-3 pr-10 md:pr-12 bg-gray-950/70 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/40 focus:border-transparent resize-none h-20 md:h-24 text-sm md:text-base text-gray-100 placeholder:text-gray-500"
                 />
                 <button
@@ -171,15 +179,19 @@ const CommentSection = ({ songId, fullHeight = false }) => {
             <div key={comment.id} className="bg-gray-900/70 p-3 md:p-4 rounded-xl border border-white/10 hover:border-white/20 transition-all">
               <div className="flex items-start gap-2 md:gap-3">
                 {comment.avatar_url ? (
-                  <img src={getImageUrl(comment.avatar_url)} alt={comment.username} className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover border border-white/10" />
+                  <img src={getImageUrl(comment.avatar_url)} alt={comment.full_name} className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover border border-white/10" />
                 ) : (
                   <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gray-800 flex items-center justify-center text-white font-bold text-sm border border-white/10">
-                    {comment.username?.charAt(0).toUpperCase() || 'U'}
+                    {/* [FIX] Hiển thị chữ cái đầu của full_name */}
+                    {(comment.full_name || comment.username || 'U').charAt(0).toUpperCase()}
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
-                    <h4 className="font-medium text-sm md:text-base text-gray-100 truncate">{comment.username}</h4>
+                    {/* [FIX] Hiển thị full_name */}
+                    <h4 className="font-medium text-sm md:text-base text-gray-100 truncate">
+                      {comment.full_name || comment.username}
+                    </h4>
                     <div className="flex items-center">{renderStars(comment.rating)}</div>
                   </div>
                   
@@ -231,4 +243,3 @@ const CommentSection = ({ songId, fullHeight = false }) => {
 };
 
 export default CommentSection;
-

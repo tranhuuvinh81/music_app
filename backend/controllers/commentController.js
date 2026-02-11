@@ -10,7 +10,7 @@ export const getCommentsBySong = async (req, res) => {
   try {
     // Join bảng comments với bảng users để lấy tên và avatar người bình luận
     const query = `
-      SELECT c.*, u.username, u.avatar_url 
+      SELECT c.*, u.username, u.avatar_url, u.full_name 
       FROM comments c
       JOIN users u ON c.user_id = u.id
       WHERE c.song_id = ?
