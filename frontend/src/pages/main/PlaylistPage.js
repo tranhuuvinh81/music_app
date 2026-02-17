@@ -230,23 +230,28 @@ function PlaylistPage() {
     }
   };
 
-  // Play random song from playlist
+  // Play random song from playlist (Đã sửa logic xáo trộn)
   const playRandomSongFromPlaylist = async (playlistId) => {
     try {
       const res = await api.get(`/api/playlists/${playlistId}/songs`);
       const songs = res.data || [];
       
       if (songs.length > 0) {
-        // Get a random index
-        const randomIndex = Math.floor(Math.random() * songs.length);
-        const randomSong = songs[randomIndex];
+        // 1. Tạo một bản sao của danh sách bài hát để xáo trộn (Tránh ảnh hưởng mảng gốc)
+        const shuffledSongs = [...songs];
         
-        // Play the random song
-        playSong(randomSong, songs, randomIndex);
+        // 2. Thuật toán Fisher-Yates để xáo trộn mảng ngẫu nhiên
+        for (let i = shuffledSongs.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffledSongs[i], shuffledSongs[j]] = [shuffledSongs[j], shuffledSongs[i]];
+        }
         
-        // Set the current playlist and songs
+        // 3. Phát bài đầu tiên của danh sách đã xáo trộn
+        playSong(shuffledSongs[0], shuffledSongs, 0);
+        
+        // 4. Cập nhật UI (Vẫn hiển thị danh sách gốc ra màn hình cho đẹp mắt)
         setCurrentPlaylistId(playlistId);
-        setPlaylistSongs(songs);
+        setPlaylistSongs(songs); 
       }
     } catch (error) {
       console.error("Lỗi khi phát ngẫu nhiên:", error);
