@@ -9,9 +9,8 @@ import bannerImg from "../../assets/images/116d710d1e61b0cc8debc32470695fff.jpg"
 import { FiMoreHorizontal } from "react-icons/fi";
 import SongInfoModal from "../../components/modals/SongInforModal";
 
-// --- CẤU HÌNH DANH SÁCH BÀI HÁT MUỐN GHIM (ID) ---
-// Bạn hãy thay các số này bằng ID bài hát thực tế trong Database của bạn
-const PINNED_SONG_IDS = [214, 268, 251, 244, 242, 496]; 
+// // --- CẤU HÌNH DANH SÁCH BÀI HÁT MUỐN GHIM (ID) ---
+// const PINNED_SONG_IDS = [214, 268, 251, 244, 242, 496]; 
 
 function HomeSongsPage() {
   const [pinnedSongs, setPinnedSongs] = useState([]); // Danh sách ghim
@@ -27,24 +26,27 @@ function HomeSongsPage() {
   // State quản lý Modal Info
   const [selectedSongForInfo, setSelectedSongForInfo] = useState(null);
 
+  // Cập nhật useEffect:
   useEffect(() => {
-    api
-      .get("/api/songs")
-      .then((res) => {
-        const allSongs = res.data;
+    // Lấy bài hát và cấu hình ghim cùng lúc
+    Promise.all([
+      api.get("/api/songs"),
+      api.get("/api/settings/pinned_song_ids")
+    ]).then(([songsRes, settingsRes]) => {
+        const allSongs = songsRes.data;
+        const pinnedIds = settingsRes.data || []; // Dữ liệu trả về từ bảng settings
+        
+        // 1. Lọc bài hát GHIM
+        const pinned = allSongs.filter(song => pinnedIds.includes(song.id));
+        // Sắp xếp đúng theo thứ tự Admin cấu hình
+        pinned.sort((a, b) => pinnedIds.indexOf(a.id) - pinnedIds.indexOf(b.id));
 
-        // 1. Lọc ra các bài được GHIM
-        const pinned = allSongs.filter(song => PINNED_SONG_IDS.includes(song.id));
-        // Sắp xếp lại theo đúng thứ tự trong mảng config PINNED_SONG_IDS
-        pinned.sort((a, b) => PINNED_SONG_IDS.indexOf(a.id) - PINNED_SONG_IDS.indexOf(b.id));
-
-        // 2. Các bài còn lại (Trending) - Loại bỏ bài đã ghim để tránh trùng
-        const others = allSongs.filter(song => !PINNED_SONG_IDS.includes(song.id));
+        // 2. Các bài còn lại (Trending)
+        const others = allSongs.filter(song => !pinnedIds.includes(song.id));
 
         setPinnedSongs(pinned);
         setTrendingSongs(others);
-      })
-      .catch((err) => console.error(err));
+    }).catch((err) => console.error(err));
   }, []);
 
   const getImageUrl = (url) => {

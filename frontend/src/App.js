@@ -17,6 +17,7 @@ import AdminUserPage from "./pages/admin/AdminUserPage";
 import AdminSongPage from "./pages/admin/AdminSongPage";
 import AdminArtistPage from "./pages/admin/AdminArtistPage";
 import AdminGenrePage from "./pages/admin/AdminGenrePage";
+import ManageContentHome from "./pages/admin/ManageContentHome";
 
 import MainLayout from "./pages/main/MainLayout"; 
 import HomeSongsPage from "./pages/main/HomeSongsPage";
@@ -97,6 +98,7 @@ function App() {
                 <Route path="songs" element={<AdminSongPage />} />
                 <Route path="artists" element={<AdminArtistPage />} />
                 <Route path="genres" element={<AdminGenrePage />} />
+                <Route path="home-content" element={<ManageContentHome />} />
               </Route>
             </Routes>
           </Router>

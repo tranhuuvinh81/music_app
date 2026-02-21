@@ -147,7 +147,7 @@ const processChartData = (apiData = []) => {
       <div className="flex h-screen bg-gray-100">
         <aside className="w-64 bg-white shadow-md flex-shrink-0">
           <div className="p-6">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">Admin Panel</h2>
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">Trang quản trị</h2>
             <nav>
               <ul className="space-y-2">
                 <li>
@@ -162,7 +162,7 @@ const processChartData = (apiData = []) => {
                       }`
                     }
                   >
-                    Dashboard
+                    Tổng quan
                   </NavLink>
                 </li>
                 <li>
@@ -176,7 +176,7 @@ const processChartData = (apiData = []) => {
                       }`
                     }
                   >
-                    User Management
+                    Quản lý Người dùng
                   </NavLink>
                 </li>
                 <li>
@@ -190,7 +190,7 @@ const processChartData = (apiData = []) => {
                       }`
                     }
                   >
-                    Song Management
+                    Quản lý Bài hát
                   </NavLink>
                 </li>
                 <li>
@@ -204,7 +204,7 @@ const processChartData = (apiData = []) => {
                       }`
                     }
                   >
-                    Artist Management
+                    Quản lý Nghệ sĩ
                   </NavLink>
                 </li>
                 <li>
@@ -218,7 +218,21 @@ const processChartData = (apiData = []) => {
                       }`
                     }
                   >
-                    Genre Management
+                    Quản lý Thể loại
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink
+                    to="/admin/home-content"
+                    className={({ isActive }) =>
+                      `w-full text-left px-4 py-3 rounded-lg font-medium transition-colors block ${
+                        isActive
+                          ? 'bg-gray-600 text-white'
+                          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                      }`
+                    }
+                  >
+                    Quản lý Trang chủ
                   </NavLink>
                 </li>
               </ul>

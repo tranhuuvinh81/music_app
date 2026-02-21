@@ -66,6 +66,7 @@ import { fileURLToPath } from "url";
 import statsRoutes from "./routes/statsRoutes.js";
 import chatbotRoutes from "./routes/chatbotRoutes.js";
 import commentRoutes from "./routes/commentRoutes.js";
+import settingRoutes from "./routes/settingRoutes.js"; 
 
 // Cần thiết cho __dirname trong ES Modules
 const __filename = fileURLToPath(import.meta.url);
@@ -99,6 +100,7 @@ app.use('/api/search', searchRoutes);
 app.use("/api/stats", statsRoutes);
 app.use("/api/chatbot", chatbotRoutes);
 app.use("/api/comments", commentRoutes);
+app.use("/api/settings", settingRoutes);
 
 // Test route
 app.get("/", (req, res) => {
