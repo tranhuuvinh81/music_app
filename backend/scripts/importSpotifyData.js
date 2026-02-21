@@ -274,7 +274,7 @@ async function importSpotifyData(keyword = "pop", manualGenre = null) {
     const token = await getSpotifyAccessToken();
     
     // [FIX] Sửa lại URL chuẩn v1/search và sửa lỗi cú pháp string interpolation
-    const url = `https://api.spotify.com/v1/search?q=${encodeURIComponent(keyword)}&type=track&limit=10`;
+    const url = `https://api.spotify.com/v1/search?q=${encodeURIComponent(keyword)}&type=track&limit=20`;
 
     console.log(`🎧 Đang tìm kiếm "${keyword}"...`);
 
@@ -387,7 +387,7 @@ async function importSpotifyData(keyword = "pop", manualGenre = null) {
   // await importSpotifyData("Mono"); 
 
   // CÁCH DÙNG 2: Ép cứng genre mong muốn (Khuyên dùng để dữ liệu sạch)
-  await importSpotifyData("Wonyoung", "Kpop");
+  await importSpotifyData("G-DRAGON", "Kpop");
 
 
   // Đóng kết nối
