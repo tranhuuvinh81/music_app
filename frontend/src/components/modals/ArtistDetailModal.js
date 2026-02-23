@@ -1,12 +1,12 @@
 // frontend/src/components/modals/ArtistDetailsModal.js
 import React, { useState, useEffect, useContext } from 'react';
 import api from '../../api/api';
-import { FiX, FiCalendar, FiMapPin, FiMusic, FiUser, FiExternalLink, FiHeart, FiPlay, FiClock } from 'react-icons/fi';
-import { AudioContext } from '../../context/AudioContext'; // Import AudioContext
+import { FiX, FiMapPin, FiMusic, FiUser, FiHeart, FiPlay, FiClock } from 'react-icons/fi';
+import { AudioContext } from '../../context/AudioContext';
 
 function ArtistDetailsModal({ artist, onClose }) {
   const [details, setDetails] = useState(null);
-  const [activeTab, setActiveTab] = useState('about'); // 'about' or 'songs'
+  const [activeTab, setActiveTab] = useState('about');
   const [songs, setSongs] = useState([]);
   const [isFavorite, setIsFavorite] = useState(false);
 

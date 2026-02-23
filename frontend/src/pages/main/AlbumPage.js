@@ -5,7 +5,7 @@ import api from '../../api/api';
 import { AudioContext } from '../../context/AudioContext';
 import { AuthContext } from '../../context/AuthContext';
 import SongCard from '../../components/ui/SongCard';
-import { FiMoreHorizontal, FiDisc, FiClock, FiPlay } from 'react-icons/fi'; // [SỬA] Import thêm FiPlay
+import { FiMoreHorizontal, FiClock, FiPlay } from 'react-icons/fi'; // [SỬA] Import thêm FiPlay
 import SongInfoModal from "../../components/modals/SongInforModal";
 
 // 1. Component Card hiển thị Album

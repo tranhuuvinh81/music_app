@@ -1,13 +1,13 @@
 // frontend/src/pages/main/SearchPage.js
 import React, { useState, useContext, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom"; // Thêm useNavigate
+import { useLocation } from "react-router-dom";
 import { SongContext } from "../../context/SongContext";
 import { AuthContext } from "../../context/AuthContext";
 import { AudioContext } from "../../context/AudioContext";
 import AddToPlaylistModal from "../../components/modals/AddToPlaylistModal";
 import ArtistDetailsModal from "../../components/modals/ArtistDetailModal";
 import SongCard from "../../components/ui/SongCard";
-import { FiMoreHorizontal, FiDisc } from "react-icons/fi"; // Thêm icon FiDisc cho Album
+import { FiMoreHorizontal, FiDisc } from "react-icons/fi";
 import api from "../../api/api";
 import SongInfoModal from "../../components/modals/SongInforModal";
 import AlbumDetailsModal from "../../components/modals/AlbumDetailsModal";
@@ -92,7 +92,6 @@ function SearchPage() {
   const [albumModalData, setAlbumModalData] = useState(null);
   
   const location = useLocation();
-  const navigate = useNavigate(); // Dùng để điều hướng khi click Album
 
   const getImageUrl = (url) => {
     if (!url) return 'https://via.placeholder.com/40';
