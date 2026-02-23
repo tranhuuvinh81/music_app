@@ -9,8 +9,6 @@ import SongCard from "../../components/ui/SongCard";
 import { FiMoreHorizontal, FiPlay } from "react-icons/fi"; // [SỬA] Thêm FiPlay
 import SongInfoModal from "../../components/modals/SongInforModal";
 
-const PINNED_ARTIST_IDS = [1, 2, 5, 8]; 
-
 // Component cho card nghệ sĩ
 // [SỬA] Thêm prop onPlayRandom
 const ArtistCard = ({ artist, onClick, onViewDetails, onPlayRandom }) => {
