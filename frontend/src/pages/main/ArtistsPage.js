@@ -86,20 +86,26 @@ function ArtistsPage() {
   };
 
   useEffect(() => {
-    api
-      .get("/api/artists")
-      .then((res) => {
-        const allArtists = res.data;
+    // Gọi song song API lấy danh sách nghệ sĩ và API cấu hình
+    Promise.all([
+      api.get("/api/artists"),
+      api.get("/api/settings/pinned_artist_ids")
+    ]).then(([artistsRes, settingsRes]) => {
+        const allArtists = artistsRes.data;
+        const pinnedIds = settingsRes.data || [];
         
-        const pinned = allArtists.filter(a => PINNED_ARTIST_IDS.includes(a.id));
-        pinned.sort((a, b) => PINNED_ARTIST_IDS.indexOf(a.id) - PINNED_ARTIST_IDS.indexOf(b.id));
+        // 1. Lọc nghệ sĩ nổi bật (Ghim)
+        const pinned = allArtists.filter(a => pinnedIds.includes(a.id));
+        // Sắp xếp theo đúng thứ tự Admin đã cấu hình
+        pinned.sort((a, b) => pinnedIds.indexOf(a.id) - pinnedIds.indexOf(b.id));
 
-        const others = allArtists.filter(a => !PINNED_ARTIST_IDS.includes(a.id));
+        // 2. Các nghệ sĩ còn lại
+        const others = allArtists.filter(a => !pinnedIds.includes(a.id));
 
         setPinnedArtists(pinned);
         setOtherArtists(others);
       })
-      .catch((err) => console.error(err));
+      .catch((err) => console.error("Lỗi tải trang nghệ sĩ:", err));
   }, []);
 
   useEffect(() => {

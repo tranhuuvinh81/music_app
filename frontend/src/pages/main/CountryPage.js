@@ -240,12 +240,14 @@ function CountryPage() {
           </div>
           
           {displaySongs.length > 10 && (
+            <div className="flex justify-center mt-8">
             <button 
               onClick={toggleListExpansion} 
-              className="mt-4 w-full py-2 text-center text-[#7Ab2D3] border border-[#7Ab2D3] rounded-full hover:bg-[#7Ab2D3] hover:text-white font-medium transition-colors"
+                className="px-8 py-2 rounded-full border border-[#7Ab2D3] text-[#7Ab2D3] font-medium hover:bg-[#7Ab2D3] hover:text-white transition-all duration-300"
             >
               {isListExpanded ? "Thu gọn" : "Xem thêm..."}
             </button>
+            </div>
           )}
         </>
       )}
