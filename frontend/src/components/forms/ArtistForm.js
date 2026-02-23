@@ -199,6 +199,7 @@ function ArtistForm({ artistToEdit, onFormSubmit, onCancel }) {
     birth_year: "",
     field: "",
     description: "",
+    country: "",
   });
   const [artistImage, setArtistImage] = useState(null);
   const [error, setError] = useState("");
@@ -213,6 +214,7 @@ function ArtistForm({ artistToEdit, onFormSubmit, onCancel }) {
         birth_year: artistToEdit.birth_year || "",
         field: artistToEdit.field || "",
         description: artistToEdit.description || "",
+        country: artistToEdit.country || "",
       });
     }
   }, [artistToEdit, isEditing]);
@@ -314,7 +316,17 @@ function ArtistForm({ artistToEdit, onFormSubmit, onCancel }) {
                 className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-gray-500 outline-none resize-none"
               />
             </div>
-            
+
+            {/* Quốc gia */}
+            <div>
+              <label htmlFor="country" className="block text-sm font-medium text-gray-700">Quốc gia</label>
+              <input
+                type="text" name="country" id="country"
+                value={formData.country} onChange={handleChange}
+                className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-gray-500 outline-none"
+              />
+            </div>
+
             {/* Ảnh nghệ sĩ */}
             <div>
               <label className="block text-sm font-medium text-gray-700">Ảnh nghệ sĩ</label>

@@ -1,15 +1,16 @@
+// frontend/src/pages/main/AlbumsPage.js
 import React, { useState, useEffect, useContext } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import api from '../../api/api';
 import { AudioContext } from '../../context/AudioContext';
 import { AuthContext } from '../../context/AuthContext';
 import SongCard from '../../components/ui/SongCard';
-import { FiMoreHorizontal, FiDisc, FiClock } from 'react-icons/fi';
+import { FiMoreHorizontal, FiDisc, FiClock, FiPlay } from 'react-icons/fi'; // [SỬA] Import thêm FiPlay
 import SongInfoModal from "../../components/modals/SongInforModal";
 
-
 // 1. Component Card hiển thị Album
-const AlbumCard = ({ album, onClick, badge }) => {
+// [SỬA] Thêm prop onPlayRandom
+const AlbumCard = ({ album, onClick, onPlayRandom, badge }) => {
   const getImageUrl = (url) => {
     if (!url) return "https://via.placeholder.com/300?text=No+Cover";
     if (url.startsWith("http")) return url;
@@ -34,9 +35,19 @@ const AlbumCard = ({ album, onClick, badge }) => {
           alt={album.name}
           className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
         />
-        {/* Overlay hiệu ứng đĩa than xoay nhẹ khi hover */}
-        <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-           <FiDisc className="text-white text-4xl animate-spin-slow" />
+        
+        {/* [SỬA] Overlay nút Play ngẫu nhiên khi hover */}
+        <div className="absolute inset-0 bg-black/40 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+           <button
+             onClick={(e) => {
+               e.stopPropagation(); // Ngăn sự kiện click lan ra ngoài (tránh mở chi tiết album)
+               if (onPlayRandom) onPlayRandom(album);
+             }}
+             className="p-3 bg-white bg-opacity-90 rounded-full text-[#4A90E2] hover:bg-white transition-all duration-300 hover:scale-110 shadow-lg"
+             title="Phát ngẫu nhiên"
+           >
+             <FiPlay className="text-xl pl-1" fill="currentColor" />
+           </button>
         </div>
       </div>
       
@@ -54,12 +65,11 @@ const AlbumCard = ({ album, onClick, badge }) => {
 function AlbumsPage() {
   const [topAlbums, setTopAlbums] = useState([]);
   const [recentAddedAlbums, setRecentAddedAlbums] = useState([]);
-  const [recentlyViewedAlbums, setRecentlyViewedAlbums] = useState([]); // Album user đã click xem
+  const [recentlyViewedAlbums, setRecentlyViewedAlbums] = useState([]); 
   
   const [displaySongs, setDisplaySongs] = useState([]);
   const [selectedAlbum, setSelectedAlbum] = useState(null);
   
-  // State UI
   const [menuOpenSongId, setMenuOpenSongId] = useState(null);
   const [favoriteSongs, setFavoriteSongs] = useState(new Set());
   
@@ -69,7 +79,6 @@ function AlbumsPage() {
 
   const [showInfoModal, setShowInfoModal] = useState(false);
   
-
   const getImageUrl = (url) => {
     if (!url) return "https://via.placeholder.com/300";
     if (url.startsWith("http")) return url;
@@ -81,9 +90,7 @@ function AlbumsPage() {
     return artistsArray.map((artist) => artist.name).join(", ");
   };
 
-  // --- FETCH DATA ---
   useEffect(() => {
-    // 1. Lấy dữ liệu thống kê từ Backend
     api.get('/api/stats/albums')
       .then(res => {
         setTopAlbums(res.data.top_albums || []);
@@ -91,25 +98,18 @@ function AlbumsPage() {
       })
       .catch(err => console.error("Lỗi lấy albums:", err));
 
-    // 2. Lấy lịch sử xem từ LocalStorage
     const viewed = JSON.parse(localStorage.getItem('viewed_albums') || '[]');
     setRecentlyViewedAlbums(viewed);
   }, []);
 
-  // --- LOGIC KHI CHỌN ALBUM ---
   useEffect(() => {
     if (selectedAlbum) {
-      // Gọi API tìm kiếm bài hát theo tên Album
-      // Lưu ý: Backend cần hỗ trợ search hoặc filter theo album. 
-      // Ở đây ta tái sử dụng API search vì search thường quét cả cột album.
       api.get(`/api/songs/album/${encodeURIComponent(selectedAlbum.name)}`)
-  .then(res => {
-      // API mới trả về trực tiếp mảng songs đúng chuẩn
-      setDisplaySongs(res.data);
-  })
-  .catch(err => console.error("Lỗi lấy bài hát album:", err));
+        .then(res => {
+          setDisplaySongs(res.data);
+        })
+        .catch(err => console.error("Lỗi lấy bài hát album:", err));
       
-      // Lưu vào lịch sử "Đã xem gần đây" (Client-side)
       addToViewedHistory(selectedAlbum);
     } else {
       setDisplaySongs([]);
@@ -118,15 +118,40 @@ function AlbumsPage() {
 
   const addToViewedHistory = (album) => {
     let viewed = JSON.parse(localStorage.getItem('viewed_albums') || '[]');
-    // Xóa trùng lặp cũ
     viewed = viewed.filter(a => a.name !== album.name);
-    // Thêm vào đầu danh sách
     viewed.unshift(album);
-    // Giữ tối đa 5 item
     if (viewed.length > 5) viewed.pop();
     
     localStorage.setItem('viewed_albums', JSON.stringify(viewed));
     setRecentlyViewedAlbums(viewed);
+  };
+
+  // --- [MỚI] HÀM PHÁT NGẪU NHIÊN BÀI HÁT TỪ ALBUM ---
+  const playRandomSongFromAlbum = async (album) => {
+    try {
+      const res = await api.get(`/api/songs/album/${encodeURIComponent(album.name)}`);
+      const songs = res.data || [];
+      
+      if (songs.length > 0) {
+        // 1. Copy mảng để không ảnh hưởng dữ liệu gốc
+        const shuffledSongs = [...songs];
+        
+        // 2. Thuật toán Fisher-Yates xáo trộn mảng
+        for (let i = shuffledSongs.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffledSongs[i], shuffledSongs[j]] = [shuffledSongs[j], shuffledSongs[i]];
+        }
+        
+        // 3. Đưa danh sách đã xáo trộn vào Player (phát bài đầu tiên)
+        playSong(shuffledSongs[0], shuffledSongs, 0);
+        
+        // 4. Mở chi tiết Album ra cho người dùng xem và lưu lịch sử
+        setSelectedAlbum(album);
+        setDisplaySongs(songs); // Vẫn hiển thị danh sách gốc ở UI
+      }
+    } catch (error) {
+      console.error("Lỗi khi phát ngẫu nhiên album:", error);
+    }
   };
 
   // --- HANDLERS ---
@@ -157,7 +182,7 @@ function AlbumsPage() {
     <div className="p-6 flex-grow animate-fade-in">
       {!selectedAlbum ? (
         <>
-          {/* SECTION 1: TOP ALBUMS (Dựa trên listen_count) */}
+          {/* SECTION 1: TOP ALBUMS */}
           <div className="mb-8">
             <h2 className="text-2xl font-bold mb-4 text-gray-800 flex items-center">
                Album Nổi Bật 
@@ -168,6 +193,7 @@ function AlbumsPage() {
                   key={album.name} 
                   album={album} 
                   onClick={setSelectedAlbum} 
+                  onPlayRandom={playRandomSongFromAlbum} // [SỬA] Truyền hàm
                   badge={`Top ${index + 1}`}
                 />
               ))}
@@ -183,12 +209,13 @@ function AlbumsPage() {
                   key={album.name} 
                   album={album} 
                   onClick={setSelectedAlbum} 
+                  onPlayRandom={playRandomSongFromAlbum} // [SỬA] Truyền hàm
                 />
               ))}
             </div>
           </div>
 
-          {/* SECTION 3: ĐÃ XEM GẦN ĐÂY (Client Side History) */}
+          {/* SECTION 3: ĐÃ XEM GẦN ĐÂY */}
           {recentlyViewedAlbums.length > 0 && (
             <div className="mt-10 pt-6 border-t border-gray-200">
                <h2 className="text-xl font-bold mb-4 text-gray-600 flex items-center">
@@ -197,7 +224,11 @@ function AlbumsPage() {
                <div className="flex gap-4 overflow-x-auto pb-4">
                  {recentlyViewedAlbums.map((album) => (
                    <div key={album.name} className="w-40 flex-shrink-0">
-                      <AlbumCard album={album} onClick={setSelectedAlbum} />
+                      <AlbumCard 
+                        album={album} 
+                        onClick={setSelectedAlbum} 
+                        onPlayRandom={playRandomSongFromAlbum} // [SỬA] Truyền hàm
+                      />
                    </div>
                  ))}
                </div>

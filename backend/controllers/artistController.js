@@ -15,6 +15,7 @@ export const getAllArtists = async (req, res) => {
         a.birth_year, 
         a.field, 
         a.description, 
+        a.country,
         a.created_at,
         COALESCE(SUM(s.listen_count), 0) AS total_listens
       FROM 
@@ -24,7 +25,7 @@ export const getAllArtists = async (req, res) => {
       LEFT JOIN 
         songs s ON sa.song_id = s.id
       GROUP BY 
-        a.id, a.name, a.image_url, a.birth_year, a.field, a.description, a.created_at
+        a.id, a.name, a.image_url, a.birth_year, a.field, a.description, a.country, a.created_at
       ORDER BY 
         total_listens DESC;
     `;
@@ -52,7 +53,7 @@ export const getArtistById = async (req, res) => {
 
 // (Admin) Thêm nghệ sĩ mới
 export const createArtist = async (req, res) => {
-  const { name, birth_year, field, description } = req.body;
+  const { name, birth_year, field, description, country } = req.body;
   if (!name) {
     return res.status(400).json({ error: "Tên nghệ sĩ là bắt buộc" });
   }
@@ -62,9 +63,9 @@ export const createArtist = async (req, res) => {
   const image_url = req.file ? req.file.path : null;
 
   try {
-    const query = "INSERT INTO artists (name, birth_year, field, description, image_url, created_at) VALUES (?, ?, ?, ?, ?, NOW())";
+    const query = "INSERT INTO artists (name, birth_year, field, description, country, image_url, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())";
     
-    const [result] = await promiseDb.query(query, [name, birth_year, field, description, image_url]);
+    const [result] = await promiseDb.query(query, [name, birth_year, field, description, country, image_url]);
     
     res.status(201).json({ message: "Thêm nghệ sĩ thành công", id: result.insertId });
   } catch (err) {
@@ -75,7 +76,7 @@ export const createArtist = async (req, res) => {
 // (Admin) Cập nhật nghệ sĩ
 export const updateArtist = async (req, res) => {
   const { id } = req.params;
-  const { name, birth_year, field, description } = req.body;
+  const { name, birth_year, field, description, country } = req.body;
 
   try {
     // 1. Lấy thông tin cũ để giữ lại ảnh nếu không upload mới
@@ -89,9 +90,9 @@ export const updateArtist = async (req, res) => {
     const image_url = req.file ? req.file.path : existing[0].image_url;
 
     // 3. Update
-    const query = "UPDATE artists SET name = ?, birth_year = ?, field = ?, description = ?, image_url = ? WHERE id = ?";
+    const query = "UPDATE artists SET name = ?, birth_year = ?, field = ?, description = ?, country = ?, image_url = ? WHERE id = ?";
     
-    await promiseDb.query(query, [name, birth_year, field, description, image_url, id]);
+    await promiseDb.query(query, [name, birth_year, field, description, country, image_url, id]);
     
     res.json({ message: "Cập nhật thành công" });
   } catch (err) {
