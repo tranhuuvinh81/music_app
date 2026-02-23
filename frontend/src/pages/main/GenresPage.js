@@ -1,49 +1,33 @@
+// frontend/src/pages/main/GenresPage.js
 import React, { useState, useEffect, useContext } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import api from '../../api/api';
 import { AudioContext } from '../../context/AudioContext';
 import { AuthContext } from '../../context/AuthContext';
 import SongCard from '../../components/ui/SongCard';
-import { FiMoreHorizontal } from 'react-icons/fi';
+import { FiMoreHorizontal, FiPlay } from 'react-icons/fi'; // [SỬA] Thêm FiPlay
 import SongInfoModal from "../../components/modals/SongInforModal";
 
-
 // Component cho card thể loại
-const GenreCard = ({ genre, onClick }) => {
-  // Create a gradient color based on genre name
+// [SỬA] Thêm prop onPlayRandom
+const GenreCard = ({ genre, onClick, onPlayRandom }) => {
   const getGenreColor = (genreName) => {
-    // This is a simplified mapping, in a real app you'd use a more comprehensive approach
     const colorMap = {
-      'Pop': 'from-pink-400 to-purple-600',
-      'Rock': 'from-red-500 to-orange-600',
-      'Jazz': 'from-blue-400 to-indigo-600',
-      'Classical': 'from-purple-400 to-pink-600',
-      'Electronic': 'from-cyan-400 to-blue-600',
-      'Hip Hop': 'from-yellow-400 to-orange-600',
-      'Country': 'from-green-400 to-teal-600',
-      'R&B': 'from-purple-500 to-pink-600',
-      'Reggae': 'from-yellow-500 to-green-600',
-      'Folk': 'from-green-500 to-blue-600',
+      'Pop': 'from-pink-400 to-purple-600', 'Rock': 'from-red-500 to-orange-600',
+      'Jazz': 'from-blue-400 to-indigo-600', 'Classical': 'from-purple-400 to-pink-600',
+      'Electronic': 'from-cyan-400 to-blue-600', 'Hip Hop': 'from-yellow-400 to-orange-600',
+      'Country': 'from-green-400 to-teal-600', 'R&B': 'from-purple-500 to-pink-600',
+      'Reggae': 'from-yellow-500 to-green-600', 'Folk': 'from-green-500 to-blue-600',
     };
-    
     return colorMap[genreName] || 'from-[#7Ab2D3] to-[#4A90E2]';
   };
 
-  // Get an icon based on genre name
   const getGenreIcon = (genreName) => {
     const iconMap = {
-      'Pop': '🎤',
-      'Rock': '🎸',
-      'Jazz': '🎷',
-      'Classical': '🎻',
-      'Electronic': '🎧',
-      'Hip Hop': '🎵',
-      'Country': '🤠',
-      'R&B': '💿',
-      'Reggae': '🌴',
-      'Folk': '🎵',
+      'Pop': '🎤', 'Rock': '🎸', 'Jazz': '🎷', 'Classical': '🎻',
+      'Electronic': '🎧', 'Hip Hop': '🎵', 'Country': '🤠',
+      'R&B': '💿', 'Reggae': '🌴', 'Folk': '🎵',
     };
-    
     return iconMap[genreName] || '🎵';
   };
 
@@ -57,15 +41,23 @@ const GenreCard = ({ genre, onClick }) => {
           <span className="text-6xl">{getGenreIcon(genre)}</span>
         </div>
         
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
-        
-        {/* <div className="absolute bottom-0 left-0 right-0 p-4 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-          <p className="text-sm font-medium">Xem bài hát</p>
-        </div> */}
+        {/* [SỬA] Overlay hiệu ứng khi hover (Đã thêm nút Play) */}
+        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+             <button
+               onClick={(e) => {
+                 e.stopPropagation();
+                 if (onPlayRandom) onPlayRandom(genre);
+               }}
+               className="p-3 bg-white bg-opacity-90 rounded-full text-[#4A90E2] hover:bg-white transition-all duration-300 hover:scale-110 shadow-lg"
+               title="Phát ngẫu nhiên"
+             >
+               <FiPlay className="text-xl pl-1" fill="currentColor" />
+             </button>
+        </div>
       </div>
       
       <div className="p-4">
-        <h3 className="font-bold text-lg text-gray-800 truncate">{genre}</h3>
+        <h3 className="font-bold text-lg text-gray-800 truncate text-center">{genre}</h3>
       </div>
     </div>
   );
@@ -141,19 +133,41 @@ function GenresPage() {
     playSong(song, songs, index);
   };
 
+  // --- [MỚI] HÀM PHÁT NGẪU NHIÊN BÀI HÁT TỪ THỂ LOẠI ---
+  const playRandomSongFromGenre = async (genreName) => {
+    try {
+      const res = await api.get(`/api/songs/genre/${encodeURIComponent(genreName)}`);
+      const songs = res.data || [];
+      
+      if (songs.length > 0) {
+        const shuffledSongs = [...songs];
+        for (let i = shuffledSongs.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffledSongs[i], shuffledSongs[j]] = [shuffledSongs[j], shuffledSongs[i]];
+        }
+        playSong(shuffledSongs[0], shuffledSongs, 0);
+        setSelectedGenre(genreName);
+        setDisplaySongs(songs);
+      } else {
+        alert("Chưa có bài hát nào thuộc thể loại này!");
+      }
+    } catch (error) {
+      console.error("Lỗi khi phát ngẫu nhiên bài hát thể loại:", error);
+    }
+  };
+
   return (
     <div className="p-6 flex-grow">
       {!selectedGenre ? (
         <>
           <h2 className="text-2xl font-bold mb-6 text-gray-800">Thể loại âm nhạc</h2>
-          
-          {/* Grid of Genre Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-6">
             {genres.map((genre) => (
               <GenreCard
                 key={genre}
                 genre={genre}
                 onClick={setSelectedGenre}
+                onPlayRandom={playRandomSongFromGenre} // [SỬA] Truyền hàm
               />
             ))}
           </div>
@@ -168,23 +182,19 @@ function GenresPage() {
               Quay lại
             </button>
             <h2 className="text-2xl font-bold text-gray-800">
-              Những bài hát thuộc thể loại {selectedGenre}
+              Thể loại: <span className="text-[#4A90E2]">{selectedGenre}</span>
             </h2>
           </div>
           
-          {/* Grid of Song Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-6">
             {(isListExpanded ? displaySongs.slice(0, 20) : displaySongs.slice(0, 10)).map((song, index) => {
-              // Check if this song is currently playing
               const isCurrentSong = currentSong && currentSong.id === song.id;
               const isFavorite = favoriteSongs.has(song.id);
               
-              // Format song data for SongCard component
               const songCardData = {
                 id: song.id,
                 title: song.title,
                 artist: displayArtistNames(song.artists),
-                // coverImage: song.image_url ? `${api.defaults.baseURL}${song.image_url}` : null,
                 coverImage: getImageUrl(song.image_url),
                 listenCount: song.listen_count || 0
               };
@@ -200,11 +210,10 @@ function GenresPage() {
                     className="bg-gradient-to-b from-white to-[#f0f9ff] shadow-md"
                   />
                   
-                  {/* Custom Options Menu */}
                   {isAuthenticated && (
                     <div className="absolute top-2 right-2 z-1000">
                       <button 
-                        onClick={() => toggleMenu(song.id)} 
+                        onClick={(e) => { e.stopPropagation(); toggleMenu(song.id); }} 
                         className="p-2 bg-white bg-opacity-80 rounded-full text-gray-700 hover:bg-opacity-100 transition-all duration-200"
                       >
                         <FiMoreHorizontal />
@@ -217,14 +226,8 @@ function GenresPage() {
                           >
                             Thêm vào playlist
                           </button>
-                          {/* <button 
-                            onClick={() => toggleFavorite(song.id)}
-                            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                          >
-                            {isFavorite ? "Xóa khỏi yêu thích" : "Thêm vào yêu thích"}
-                          </button> */}
                           <button
-                            onClick={() => setShowInfoModal(true)}
+                            onClick={() => { setMenuOpenSongId(null); setShowInfoModal(true); }}
                             className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                           >
                             Xem thông tin
@@ -250,7 +253,7 @@ function GenresPage() {
           {displaySongs.length > 10 && (
             <button 
               onClick={toggleListExpansion} 
-              className="mt-4 w-full py-2 text-center text-gray-500 hover:text-gray-600 font-medium transition-colors"
+              className="mt-4 w-full py-2 text-center text-[#7Ab2D3] border border-[#7Ab2D3] rounded-full hover:bg-[#7Ab2D3] hover:text-white font-medium transition-colors"
             >
               {isListExpanded ? "Thu gọn" : "Xem thêm..."}
             </button>
@@ -261,4 +264,4 @@ function GenresPage() {
   );
 }
 
-export default GenresPage;  
+export default GenresPage;

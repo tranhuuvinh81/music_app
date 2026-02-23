@@ -1,3 +1,4 @@
+// frontend/src/pages/main/ArtistsPage.js
 import React, { useState, useEffect, useContext } from "react";
 import { useOutletContext } from "react-router-dom";
 import api from "../../api/api";
@@ -5,16 +6,14 @@ import { AudioContext } from "../../context/AudioContext";
 import { AuthContext } from "../../context/AuthContext";
 import { Button } from "../../components/ui";
 import SongCard from "../../components/ui/SongCard";
-import { FiMoreHorizontal } from "react-icons/fi";
+import { FiMoreHorizontal, FiPlay } from "react-icons/fi"; // [SỬA] Thêm FiPlay
 import SongInfoModal from "../../components/modals/SongInforModal";
 
-// --- CẤU HÌNH NGHỆ SĨ NỔI BẬT (GHIM) ---
-// Bạn có thể dùng ID hoặc Tên. Ở đây tôi dùng ID (giả sử là số).
-// Hãy thay đổi các số này bằng ID thật trong database của bạn.
 const PINNED_ARTIST_IDS = [1, 2, 5, 8]; 
 
-// Component cho card nghệ sĩ (Tách ra để tái sử dụng)
-const ArtistCard = ({ artist, onClick, onViewDetails }) => {
+// Component cho card nghệ sĩ
+// [SỬA] Thêm prop onPlayRandom
+const ArtistCard = ({ artist, onClick, onViewDetails, onPlayRandom }) => {
   return (
     <div className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer group border border-gray-100">
       <div className="relative aspect-square overflow-hidden" onClick={() => onClick(artist.name)}>
@@ -32,9 +31,18 @@ const ArtistCard = ({ artist, onClick, onViewDetails }) => {
           </div>
         )}
         
-        {/* Overlay hiệu ứng khi hover */}
+        {/* [SỬA] Overlay hiệu ứng khi hover (Đã thêm nút Play) */}
         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-             <span className="text-white font-medium border border-white px-4 py-1 rounded-full">Xem bài hát</span>
+             <button
+               onClick={(e) => {
+                 e.stopPropagation(); // Ngăn sự kiện click mở danh sách bài hát
+                 if (onPlayRandom) onPlayRandom(artist.name);
+               }}
+               className="p-3 bg-white bg-opacity-90 rounded-full text-[#4A90E2] hover:bg-white transition-all duration-300 hover:scale-110 shadow-lg"
+               title="Phát ngẫu nhiên"
+             >
+               <FiPlay className="text-xl pl-1" fill="currentColor" />
+             </button>
         </div>
       </div>
       
@@ -54,19 +62,15 @@ const ArtistCard = ({ artist, onClick, onViewDetails }) => {
 };
 
 function ArtistsPage() {
-  // State quản lý danh sách nghệ sĩ
   const [pinnedArtists, setPinnedArtists] = useState([]);
   const [otherArtists, setOtherArtists] = useState([]);
   
-  // State quản lý bài hát của nghệ sĩ được chọn
   const [displaySongs, setDisplaySongs] = useState([]);
   const [selectedArtist, setSelectedArtist] = useState(null);
   
-  // State quản lý mở rộng danh sách
-  const [isListExpanded, setIsListExpanded] = useState(false); // Cho bài hát
-  const [isArtistListExpanded, setIsArtistListExpanded] = useState(false); // Cho danh sách nghệ sĩ thường
+  const [isListExpanded, setIsListExpanded] = useState(false); 
+  const [isArtistListExpanded, setIsArtistListExpanded] = useState(false); 
 
-  // State quản lý menu & yêu thích
   const [menuOpenSongId, setMenuOpenSongId] = useState(null);
   const [favoriteSongs, setFavoriteSongs] = useState(new Set());
   const [selectedSongForInfo, setSelectedSongForInfo] = useState(null);
@@ -81,19 +85,15 @@ function ArtistsPage() {
     return `${api.defaults.baseURL}${url}`;
   };
 
-  // Fetch danh sách nghệ sĩ và phân loại
   useEffect(() => {
     api
       .get("/api/artists")
       .then((res) => {
         const allArtists = res.data;
         
-        // 1. Lọc nghệ sĩ nổi bật (Ghim)
         const pinned = allArtists.filter(a => PINNED_ARTIST_IDS.includes(a.id));
-        // Sắp xếp theo thứ tự cấu hình
         pinned.sort((a, b) => PINNED_ARTIST_IDS.indexOf(a.id) - PINNED_ARTIST_IDS.indexOf(b.id));
 
-        // 2. Các nghệ sĩ còn lại
         const others = allArtists.filter(a => !PINNED_ARTIST_IDS.includes(a.id));
 
         setPinnedArtists(pinned);
@@ -102,7 +102,6 @@ function ArtistsPage() {
       .catch((err) => console.error(err));
   }, []);
 
-  // Fetch bài hát khi chọn nghệ sĩ
   useEffect(() => {
     if (selectedArtist) {
       api
@@ -144,7 +143,38 @@ function ArtistsPage() {
     playSong(song, songs, index);
   };
 
+  // --- [MỚI] HÀM PHÁT NGẪU NHIÊN BÀI HÁT TỪ NGHỆ SĨ ---
+  const playRandomSongFromArtist = async (artistName) => {
+    try {
+      const res = await api.get(`/api/songs/artist/${encodeURIComponent(artistName)}`);
+      const songs = res.data || [];
+      
+      if (songs.length > 0) {
+        // 1. Copy mảng để không ảnh hưởng dữ liệu gốc
+        const shuffledSongs = [...songs];
+        
+        // 2. Thuật toán Fisher-Yates xáo trộn mảng
+        for (let i = shuffledSongs.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffledSongs[i], shuffledSongs[j]] = [shuffledSongs[j], shuffledSongs[i]];
+        }
+        
+        // 3. Đưa danh sách đã xáo trộn vào Player (phát bài đầu tiên)
+        playSong(shuffledSongs[0], shuffledSongs, 0);
+        
+        // 4. Mở danh sách bài hát của nghệ sĩ ra (Giao diện vẫn giữ nguyên thứ tự gốc)
+        setSelectedArtist(artistName);
+        setDisplaySongs(songs);
+      } else {
+        alert("Nghệ sĩ này hiện chưa có bài hát nào!");
+      }
+    } catch (error) {
+      console.error("Lỗi khi phát ngẫu nhiên bài hát của nghệ sĩ:", error);
+    }
+  };
+
   // --- RENDER HÀM CON ---
+  // [SỬA] Truyền hàm playRandomSongFromArtist vào ArtistCard
   const renderArtistGrid = (artists) => (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6 mb-8">
         {artists.map((artist) => (
@@ -153,6 +183,7 @@ function ArtistsPage() {
             artist={artist}
             onClick={setSelectedArtist}
             onViewDetails={openArtistModal}
+            onPlayRandom={playRandomSongFromArtist} 
             />
         ))}
     </div>
