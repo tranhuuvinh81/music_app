@@ -298,44 +298,6 @@ function SongForm({ songToEdit, onFormSubmit, onCancel }) {
                 className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md"
               />
             </div>
-
-            {/* File Inputs (Song, Image, Lyric) */}
-            {/* <div>
-              <label className="block text-sm font-medium text-gray-700">
-                File bài hát (MP3)
-              </label>
-              <input
-                type="file"
-                name="songFile"
-                onChange={handleSongFileChange}
-                accept="audio/*"
-                className="mt-1 w-full text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Ảnh bìa
-              </label>
-              <input
-                type="file"
-                name="imageFile"
-                onChange={handleImageFileChange}
-                accept="image/*"
-                className="mt-1 w-full text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                File Lyric (.lrc)
-              </label>
-              <input
-                type="file"
-                name="lyricFile"
-                onChange={handleLyricFileChange}
-                accept=".lrc, text/plain"
-                className="mt-1 w-full text-sm"
-              />
-            </div> */}
             <div>
               <label className="block text-sm font-medium text-gray-700">
                 File bài hát (MP3)

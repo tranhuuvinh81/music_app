@@ -1,6 +1,8 @@
 // backend/controllers/userController.js
 import bcrypt from "bcryptjs";
 import db from "../config/db.js";
+import crypto from "crypto";
+import nodemailer from "nodemailer";
 
 const promiseDb = db.promise();
 
@@ -337,4 +339,111 @@ export const getListenHistory = (req, res) => {
     });
     res.json(historyWithParsedArtists);
   });
+};
+
+
+// --- QUÊN MẬT KHẨU (GỬI EMAIL) ---
+export const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ message: "Vui lòng nhập email" });
+
+  try {
+    // 1. Kiểm tra email có tồn tại không
+    const [users] = await promiseDb.query("SELECT id, username FROM users WHERE email = ?", [email]);
+    if (users.length === 0) {
+      return res.status(404).json({ message: "Không tìm thấy tài khoản với email này" });
+    }
+    const user = users[0];
+
+    // 2. Tạo Token ngẫu nhiên (Reset Token)
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    // Mã hóa token trước khi lưu vào DB (để bảo mật)
+    const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex");
+    
+    // Set thời hạn token (VD: 15 phút)
+    const resetExpires = new Date(Date.now() + 15 * 60 * 1000); 
+
+    // 3. Lưu token vào Database
+    await promiseDb.query(
+      "UPDATE users SET reset_password_token = ?, reset_password_expires = ? WHERE id = ?",
+      [hashedToken, resetExpires, user.id]
+    );
+
+    // 4. Gửi Email chứa link khôi phục
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    // Link này trỏ về Frontend, KHÔNG PHẢI Backend
+    const resetUrl = `${frontendUrl}/reset-password/${resetToken}`;
+
+    // Cấu hình transporter của Nodemailer
+    const transporter = nodemailer.createTransport({
+      service: "Gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    const mailOptions = {
+      from: `"Music App Support" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Khôi phục mật khẩu - Music App",
+      html: `
+        <h3>Xin chào ${user.username},</h3>
+        <p>Bạn đã yêu cầu đặt lại mật khẩu. Vui lòng click vào đường dẫn bên dưới để thiết lập mật khẩu mới:</p>
+        <a href="${resetUrl}" style="padding: 10px 20px; background-color: #4A90E2; color: white; text-decoration: none; border-radius: 5px; display: inline-block; margin: 10px 0;">
+          Đặt lại mật khẩu
+        </a>
+        <p><i>Link này sẽ hết hạn sau 15 phút. Nếu bạn không yêu cầu, vui lòng bỏ qua email này.</i></p>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    res.status(200).json({ message: "Email khôi phục đã được gửi. Vui lòng kiểm tra hộp thư." });
+
+  } catch (error) {
+    console.error("Lỗi quên mật khẩu:", error);
+    res.status(500).json({ message: "Lỗi server, vui lòng thử lại sau" });
+  }
+};
+
+// --- ĐẶT LẠI MẬT KHẨU MỚI ---
+export const resetPassword = async (req, res) => {
+  const { token } = req.params;
+  const { newPassword } = req.body;
+
+  if (!newPassword || newPassword.length < 6) {
+    return res.status(400).json({ message: "Mật khẩu mới phải có ít nhất 6 ký tự" });
+  }
+
+  try {
+    // 1. Mã hóa lại token từ Params để so sánh với DB
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+    // 2. Tìm User có token này và token chưa hết hạn
+    const [users] = await promiseDb.query(
+      "SELECT id FROM users WHERE reset_password_token = ? AND reset_password_expires > NOW()",
+      [hashedToken]
+    );
+
+    if (users.length === 0) {
+      return res.status(400).json({ message: "Token không hợp lệ hoặc đã hết hạn!" });
+    }
+
+    const userId = users[0].id;
+
+    // 3. Hash mật khẩu mới và Cập nhật DB (đồng thời xóa luôn token cũ)
+    const newHashedPassword = await bcrypt.hash(newPassword, 10);
+    
+    await promiseDb.query(
+      "UPDATE users SET password = ?, reset_password_token = NULL, reset_password_expires = NULL WHERE id = ?",
+      [newHashedPassword, userId]
+    );
+
+    res.status(200).json({ message: "Đặt lại mật khẩu thành công! Bạn có thể đăng nhập ngay." });
+
+  } catch (error) {
+    console.error("Lỗi reset mật khẩu:", error);
+    res.status(500).json({ message: "Lỗi server" });
+  }
 };

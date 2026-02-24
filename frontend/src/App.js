@@ -9,6 +9,7 @@ import Navigation from "./components/layout/Navigation";
 import AudioPlayer from "./components/layout/AudioPlayer";
 import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
+import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
 
 // ... Import các trang khác giữ nguyên ...
 import AdminLayout from "./pages/admin/AdminLayout";
@@ -92,6 +93,7 @@ function App() {
               {/* Route Auth & Admin */}
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
+              <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
               <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
                 <Route index element={<AdminOverview />} />
                 <Route path="users" element={<AdminUserPage />} />
