@@ -374,13 +374,19 @@ export const forgotPassword = async (req, res) => {
     // Link này trỏ về Frontend, KHÔNG PHẢI Backend
     const resetUrl = `${frontendUrl}/reset-password/${resetToken}`;
 
-    // Cấu hình transporter của Nodemailer
+    // Cấu hình transporter của Nodemailer MỚI
     const transporter = nodemailer.createTransport({
-      service: "Gmail",
+      host: "smtp.gmail.com", // Khai báo rõ Host của Google
+      port: 465,              // Sử dụng cổng bảo mật SSL
+      secure: true,           // true vì dùng cổng 465
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
+      // Thêm cấu hình này để bỏ qua lỗi chứng chỉ (đôi khi xảy ra trên server Linux free)
+      tls: {
+        rejectUnauthorized: false 
+      }
     });
 
     const mailOptions = {
