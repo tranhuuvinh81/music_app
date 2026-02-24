@@ -342,7 +342,7 @@ export const getListenHistory = (req, res) => {
 };
 
 
-// --- QUÊN MẬT KHẨU (GỬI EMAIL) ---
+// --- QUÊN MẬT KHẨU (SỬ DỤNG BREVO API ĐỂ XUYÊN QUA TƯỜNG LỬA RENDER) ---
 export const forgotPassword = async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ message: "Vui lòng nhập email" });
@@ -357,11 +357,8 @@ export const forgotPassword = async (req, res) => {
 
     // 2. Tạo Token ngẫu nhiên (Reset Token)
     const resetToken = crypto.randomBytes(32).toString("hex");
-    // Mã hóa token trước khi lưu vào DB (để bảo mật)
     const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex");
-    
-    // Set thời hạn token (VD: 15 phút)
-    const resetExpires = new Date(Date.now() + 15 * 60 * 1000); 
+    const resetExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 phút
 
     // 3. Lưu token vào Database
     await promiseDb.query(
@@ -369,44 +366,58 @@ export const forgotPassword = async (req, res) => {
       [hashedToken, resetExpires, user.id]
     );
 
-    // 4. Gửi Email chứa link khôi phục
+    // 4. Gọi API của Brevo để gửi Email
     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
-    // Link này trỏ về Frontend, KHÔNG PHẢI Backend
     const resetUrl = `${frontendUrl}/reset-password/${resetToken}`;
+    
+    const brevoApiKey = process.env.BREVO_API_KEY; 
+    const senderEmail = process.env.EMAIL_USER; // Email bạn dùng đăng ký Brevo
 
-    const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 587,              // Cổng dự phòng
-      secure: false,          // false khi dùng cổng 587 (sẽ dùng STARTTLS)
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
+    // Payload gửi lên Brevo
+    const emailData = {
+      sender: { 
+        email: senderEmail, 
+        name: "Music App Support" 
       },
-      tls: {
-        rejectUnauthorized: false 
-      }
-    });
-
-    const mailOptions = {
-      from: `"Music App Support" <${process.env.EMAIL_USER}>`,
-      to: email,
+      to: [
+        { email: email, name: user.username }
+      ],
       subject: "Khôi phục mật khẩu - Music App",
-      html: `
-        <h3>Xin chào ${user.username},</h3>
-        <p>Bạn đã yêu cầu đặt lại mật khẩu. Vui lòng click vào đường dẫn bên dưới để thiết lập mật khẩu mới:</p>
-        <a href="${resetUrl}" style="padding: 10px 20px; background-color: #4A90E2; color: white; text-decoration: none; border-radius: 5px; display: inline-block; margin: 10px 0;">
-          Đặt lại mật khẩu
-        </a>
-        <p><i>Link này sẽ hết hạn sau 15 phút. Nếu bạn không yêu cầu, vui lòng bỏ qua email này.</i></p>
-      `,
+      htmlContent: `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+          <h3 style="color: #4A90E2;">Xin chào ${user.username},</h3>
+          <p>Bạn đã yêu cầu đặt lại mật khẩu cho tài khoản tại Music App. Vui lòng click vào nút bên dưới để thiết lập mật khẩu mới:</p>
+          <div style="margin: 20px 0;">
+            <a href="${resetUrl}" style="padding: 12px 25px; background-color: #4A90E2; color: white; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">
+              Đặt lại mật khẩu
+            </a>
+          </div>
+          <p style="font-size: 13px; color: #777;"><i>Link này sẽ tự động hết hạn sau 15 phút. Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email.</i></p>
+        </div>
+      `
     };
 
-    await transporter.sendMail(mailOptions);
+    // Sử dụng fetch tích hợp sẵn của Node.js
+    const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "api-key": brevoApiKey
+      },
+      body: JSON.stringify(emailData)
+    });
+
+    if (!response.ok) {
+      const errorDetail = await response.json();
+      console.error("Lỗi từ Brevo:", errorDetail);
+      throw new Error("API Brevo từ chối gửi email");
+    }
 
     res.status(200).json({ message: "Email khôi phục đã được gửi. Vui lòng kiểm tra hộp thư." });
 
   } catch (error) {
-    console.error("Lỗi quên mật khẩu:", error);
+    console.error("Lỗi hệ thống quên mật khẩu:", error);
     res.status(500).json({ message: "Lỗi server, vui lòng thử lại sau" });
   }
 };
