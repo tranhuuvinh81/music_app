@@ -74,7 +74,7 @@ function GenresPage() {
   const { currentSong, isPlaying, playSong } = useContext(AudioContext);
   const { openAddModal } = useOutletContext();
   const { isAuthenticated } = useContext(AuthContext);
-  const [showInfoModal, setShowInfoModal] = useState(false);
+  // const [showInfoModal, setShowInfoModal] = useState(false);
 
   const [selectedSongForInfo, setSelectedSongForInfo] = useState(null);
 

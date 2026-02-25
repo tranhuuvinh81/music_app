@@ -2,7 +2,6 @@
 import bcrypt from "bcryptjs";
 import db from "../config/db.js";
 import crypto from "crypto";
-import nodemailer from "nodemailer";
 
 const promiseDb = db.promise();
 
