@@ -9,7 +9,6 @@ import EditPlaylistModal from "../../components/forms/EditPlaylistModal";
 import SongCard from "../../components/ui/SongCard";
 import SongInfoModal from "../../components/modals/SongInforModal";
 
-
 // --- HELPERS ---
 const getImageUrl = (url) => {
   if (!url) return 'https://via.placeholder.com/150';
@@ -33,21 +32,13 @@ const getFirstArtistName = (song) => {
 
 // Component cho card playlist
 const PlaylistCard = ({ 
-  playlist, 
-  isActive, 
-  onClick, 
-  onEdit, 
-  onDelete, 
-  onPlayRandom,
-  songCount 
-}) => {
+  playlist, isActive, onClick, onEdit, onDelete, onPlayRandom, songCount}) => {
   return (
     <div 
       onClick={() => onClick(playlist.id)}
       className={`relative overflow-hidden rounded-xl shadow-md hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer ${
         isActive ? 'ring-2 ring-[#7Ab2D3] ring-opacity-70' : ''
-      }`}
-    >
+      }`}>
       <div className="aspect-square relative group">
         {playlist.thumbnail_url ? (
           <img
@@ -60,13 +51,7 @@ const PlaylistCard = ({
             <FiMusic className="text-white text-4xl" />
           </div>
         )}
-        
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
-        
-        {/* <div className="absolute bottom-0 left-0 right-0 p-4 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-          <p className="text-sm font-medium">Xem chi tiết</p>
-        </div> */}
-        
         {/* Play button overlay */}
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           <button
@@ -80,17 +65,10 @@ const PlaylistCard = ({
             <FiPlay className="text-xl" />
           </button>
         </div>
-        
-        {/* Song count badge -- Đang lỗi, sẽ fix sau*/}
-        {/* <div className="absolute top-2 right-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded-full">
-          {songCount} bài
-        </div> */}
       </div>
-      
       <div className="p-4 bg-white">
         <h3 className="font-bold text-gray-800 truncate">{playlist.name}</h3>
         <p className="text-gray-600 text-sm truncate mt-1">{playlist.description || "Chưa có mô tả"}</p>
-        
         <div className="flex justify-end mt-3 space-x-2" onClick={(e) => e.stopPropagation()}>
           <button
             onClick={() => onEdit(playlist)}
@@ -143,7 +121,6 @@ function PlaylistPage() {
 
   const [showInfoModal, setShowInfoModal] = useState(false);
   
-
   // Fetch danh sách Playlist
   const fetchPlaylists = useCallback(() => {
     if (isAuthenticated && user?.id) {
@@ -157,7 +134,6 @@ function PlaylistPage() {
               .then(res => ({ id, count: res.data.count }))
               .catch(() => ({ id, count: 0 }))
           );
-          
           Promise.all(countPromises)
             .then(results => {
               const counts = {};
@@ -178,7 +154,6 @@ function PlaylistPage() {
   // Logic Lọc và Sắp xếp (Client-side)
   const processedSongs = useMemo(() => {
     let result = [...playlistSongs];
-
     // Lọc
     if (filterQuery) {
       const lowerQuery = filterQuery.toLowerCase();
@@ -193,7 +168,6 @@ function PlaylistPage() {
         return titleMatch || artistMatch;
       });
     }
-
     // Sắp xếp
     if (sortBy === 'title_asc') {
       result.sort((a, b) => a.title.localeCompare(b.title));
@@ -204,7 +178,6 @@ function PlaylistPage() {
         return artistA.localeCompare(artistB);
       });
     }
-
     return result;
   }, [playlistSongs, filterQuery, sortBy]);
 
@@ -214,7 +187,6 @@ function PlaylistPage() {
     
     const artistName = getFirstArtistName(baseSong);
     if (!artistName) return;
-
     try {
       const res = await api.get(`/api/search?q=${encodeURIComponent(artistName)}`);
       const foundSongs = res.data.songs || [];
@@ -627,12 +599,6 @@ function PlaylistPage() {
                           >
                             Xóa khỏi playlist
                           </button>
-                          {/* <button 
-                            onClick={() => toggleFavorite(song.id)}
-                            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                          >
-                            {isFavorite ? "Xóa khỏi yêu thích" : "Thêm vào yêu thích"}
-                          </button> */}
                           <button
                             onClick={() => setShowInfoModal(true)}
                             className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"

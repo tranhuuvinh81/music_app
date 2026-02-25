@@ -76,6 +76,8 @@ function GenresPage() {
   const { isAuthenticated } = useContext(AuthContext);
   const [showInfoModal, setShowInfoModal] = useState(false);
 
+  const [selectedSongForInfo, setSelectedSongForInfo] = useState(null);
+
   const getImageUrl = (url) => {
     if (!url) return "https://via.placeholder.com/300";
     if (url.startsWith("http")) return url;
@@ -227,17 +229,11 @@ function GenresPage() {
                             Thêm vào playlist
                           </button>
                           <button
-                            onClick={() => { setMenuOpenSongId(null); setShowInfoModal(true); }}
+                            onClick={() => { setMenuOpenSongId(null); setSelectedSongForInfo(song); }}
                             className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                           >
                             Xem thông tin
-                          </button>
-                          {showInfoModal && (
-                            <SongInfoModal
-                              song={song}
-                              onClose={() => setShowInfoModal(false)}
-                            />
-                          )}
+                          </button>                          
                           <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                             Chia sẻ
                           </button>
@@ -261,6 +257,12 @@ function GenresPage() {
             </div>
           )}
         </>
+      )}
+      {selectedSongForInfo && (
+        <SongInfoModal
+          song={selectedSongForInfo}
+          onClose={() => setSelectedSongForInfo(null)}
+        />
       )}
     </div>
   );

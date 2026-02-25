@@ -11,6 +11,7 @@
 │   │   ├── 📄 commentController.js
 │   │   ├── 📄 playlistController.js
 │   │   ├── 📄 searchController.js
+│   │   ├── 📄 settingController.js
 │   │   ├── 📄 songController.js
 │   │   ├── 📄 statsController.js
 │   │   └── 📄 userController.js
@@ -23,6 +24,7 @@
 │   │   ├── 📄 commentRoutes.js
 │   │   ├── 📄 playlistRoutes.js
 │   │   ├── 📄 searchRoutes.js
+│   │   ├── 📄 settingRoutes.js
 │   │   ├── 📄 songRoutes.js
 │   │   ├── 📄 statsRoutes.js
 │   │   └── 📄 userRoutes.js
@@ -70,6 +72,7 @@
 │   │   │   │   └── 📄 SongDetails.js
 │   │   │   ├── 📁 modals
 │   │   │   │   ├── 📄 AddToPlaylistModal.js
+│   │   │   │   ├── 📄 AlbumDetailModal.js
 │   │   │   │   ├── 📄 ArtistDetailModal.js
 │   │   │   │   ├── 📄 ChatbotModal.js
 │   │   │   │   ├── 📄 SongInforModal.js
@@ -95,10 +98,12 @@
 │   │   │   │   ├── 📄 AdminLayout.js
 │   │   │   │   ├── 📄 AdminOverview.js
 │   │   │   │   ├── 📄 AdminSongPage.js
-│   │   │   │   └── 📄 AdminUserPage.js
+│   │   │   │   ├── 📄 AdminUserPage.js
+│   │   │   │   └── 📄 ManageContentHome.js
 │   │   │   ├── 📁 auth
 │   │   │   │   ├── 📄 LoginPage.js
-│   │   │   │   └── 📄 RegisterPage.js
+│   │   │   │   ├── 📄 RegisterPage.js
+│   │   │   │   └── 📄 ResetPasswordPage.jsx
 │   │   │   └── 📁 main
 │   │   │       ├── 📄 AlbumPage.js
 │   │   │       ├── 📄 ArtistPage.js

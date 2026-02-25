@@ -264,7 +264,7 @@ export const getListenHistory = (req, res) => {
 
   const sql = `
     SELECT
-      s.id, s.title, s.album, s.genre, s.release_year, s.file_url, s.image_url, s.lyrics_url, s.created_at, s.listen_count,
+      s.id, s.title, s.album, s.genre, s.release_year, s.file_url, s.image_url, s.lyrics_url, s.country, s.created_at, s.listen_count,
       uh.last_listened,
       JSON_ARRAYAGG(
         JSON_OBJECT('id', a.id, 'name', a.name)
@@ -377,16 +377,16 @@ export const forgotPassword = async (req, res) => {
     const emailData = {
       sender: { 
         email: senderEmail, 
-        name: "Music App Support" 
+        name: "Nghe và Khen Support" 
       },
       to: [
         { email: email, name: user.username }
       ],
-      subject: "Khôi phục mật khẩu - Music App",
+      subject: "Khôi phục mật khẩu - Nghe và Khen",
       htmlContent: `
         <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
           <h3 style="color: #4A90E2;">Xin chào ${user.username},</h3>
-          <p>Bạn đã yêu cầu đặt lại mật khẩu cho tài khoản tại Music App. Vui lòng click vào nút bên dưới để thiết lập mật khẩu mới:</p>
+          <p>Bạn đã yêu cầu đặt lại mật khẩu cho tài khoản tại Nghe và Khen. Vui lòng click vào nút bên dưới để thiết lập mật khẩu mới:</p>
           <div style="margin: 20px 0;">
             <a href="${resetUrl}" style="padding: 12px 25px; background-color: #4A90E2; color: white; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">
               Đặt lại mật khẩu
