@@ -2,19 +2,16 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useOutletContext } from "react-router-dom";
 import api from "../../api/api";
-import { FiTrash2, FiEdit2, FiArrowUp, FiArrowDown } from "react-icons/fi"; // [NEW] Thêm icon mũi tên
+import { FiTrash2, FiEdit2, FiArrowUp, FiArrowDown } from "react-icons/fi";
 
 function AdminArtistPage() {
-  const { artists, handleAddArtistClick, handleEditArtistClick, fetchArtists } =
-    useOutletContext();
+  const { artists, handleAddArtistClick, handleEditArtistClick, fetchArtists } = useOutletContext();
   
-  // --- STATE CŨ ---
   const [artistCurrentPage, setArtistCurrentPage] = useState(1);
   const [artistsPerPage] = useState(5);
   const [artistSearchQuery, setArtistSearchQuery] = useState("");
   const [selectedArtistIds, setSelectedArtistIds] = useState([]);
 
-  // --- [NEW] STATE SẮP XẾP ---
   const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'desc' });
 
   // 1. Lọc (Search)
@@ -27,7 +24,7 @@ function AdminArtistPage() {
     );
   }, [artists, artistSearchQuery]);
 
-  // 2. [NEW] Sắp xếp (Sort)
+  // 2. Sắp xếp (Sort)
   const sortedArtists = useMemo(() => {
     let sortableArtists = [...filteredArtists];
     
@@ -66,7 +63,7 @@ function AdminArtistPage() {
 
   const artistTotalPages = Math.ceil(sortedArtists.length / artistsPerPage);
 
-  // [NEW] Hàm thay đổi tiêu chí
+  // Hàm thay đổi tiêu chí
   const handleSort = (key) => {
     let direction = 'asc';
     if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
@@ -75,7 +72,7 @@ function AdminArtistPage() {
     setSortConfig({ key, direction });
   };
 
-  // [NEW] Component Icon
+  // Component Icon
   const SortIcon = ({ columnKey }) => {
       if (sortConfig?.key !== columnKey) return null;
       return sortConfig.direction === 'asc' 
@@ -91,7 +88,7 @@ function AdminArtistPage() {
     }
   }, [sortedArtists, artistTotalPages, artistCurrentPage]);
 
-  // --- LOGIC CHỌN CHECKBOX (Giữ nguyên) ---
+  // --- LOGIC CHỌN CHECKBOX ---
   const handleSelectOne = (id) => {
     setSelectedArtistIds((prev) => prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]);
   };
@@ -109,7 +106,7 @@ function AdminArtistPage() {
 
   const isAllSelected = currentArtists.length > 0 && currentArtists.every(a => selectedArtistIds.includes(a.id));
 
-  // --- LOGIC XÓA (Giữ nguyên) ---
+  // --- LOGIC XÓA ---
   const deleteArtist = (artistId) => {
     if (window.confirm("Bạn có chắc chắn muốn xoá nghệ sĩ này?")) {
       api.delete(`/api/artists/${artistId}`)
@@ -182,7 +179,7 @@ function AdminArtistPage() {
 
   return (
     <section className="bg-white rounded-lg shadow-md overflow-hidden">
-      {/* HEADER (Giữ nguyên) */}
+      {/* HEADER */}
       <header className="px-6 py-4 border-b border-gray-200 flex justify-between items-center transition-all duration-300">
         {selectedArtistIds.length > 0 ? (
             <div className="flex items-center w-full justify-between bg-red-50 -mx-6 -my-4 px-6 py-4">
@@ -231,7 +228,7 @@ function AdminArtistPage() {
                     className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
                 />
               </th>
-              {/* [NEW] Thêm class cursor-pointer và onClick vào các cột muốn sort */}
+              {/* Thêm class cursor-pointer và onClick vào các cột muốn sort */}
               <th 
                 className="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase cursor-pointer hover:bg-gray-200 select-none"
                 onClick={() => handleSort('id')}
@@ -246,6 +243,12 @@ function AdminArtistPage() {
                 onClick={() => handleSort('name')}
               >
                 Name <SortIcon columnKey="name" />
+              </th>
+              <th 
+                className="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase cursor-pointer hover:bg-gray-200 select-none"
+                onClick={() => handleSort('birth_year')}
+              >
+                Birth Year <SortIcon columnKey="birth_year" />
               </th>
               <th 
                 className="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase cursor-pointer hover:bg-gray-200 select-none"
@@ -266,8 +269,7 @@ function AdminArtistPage() {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {currentArtists.map((artist) => {
-                const isSelected = selectedArtistIds.includes(artist.id);
-                
+                const isSelected = selectedArtistIds.includes(artist.id);              
                 return (
                 <tr key={artist.id} className={`hover:bg-gray-50 transition-colors ${isSelected ? 'bg-blue-50' : ''}`}>
                     <td className="px-6 py-4">
@@ -290,6 +292,9 @@ function AdminArtistPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {artist.name}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {artist.birth_year || "N/A"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {artist.country || "N/A"}
@@ -330,10 +335,8 @@ function AdminArtistPage() {
             className="px-3 py-1 text-sm font-medium text-gray-600 bg-white rounded-md border border-gray-300 hover:bg-gray-50 disabled:opacity-50"
           >
             Trước
-          </button>
-          
+          </button>          
           {renderPagination()}
-
           <button
             onClick={() => paginateArtists(artistCurrentPage + 1)}
             disabled={artistCurrentPage === artistTotalPages}

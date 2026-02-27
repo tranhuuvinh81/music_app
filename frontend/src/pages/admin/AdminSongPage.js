@@ -13,17 +13,16 @@ function AdminSongPage() {
     displayArtistNames,
   } = useOutletContext();
 
-  // --- STATE CŨ ---
   const [currentPage, setCurrentPage] = useState(1);
   const [songsPerPage] = useState(10);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSongIds, setSelectedSongIds] = useState([]);
 
-  // --- [NEW] STATE SẮP XẾP ---
+  // --- STATE SẮP XẾP ---
   // Khởi tạo mặc định sắp xếp theo ID (mới nhất lên đầu - giảm dần)
   const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'desc' });
 
-  // 1. Hàm Xử lý Lọc (Search) - Giữ nguyên
+  // 1. Hàm Xử lý Lọc (Search)
   const filteredSongs = useMemo(() => {
     if (!Array.isArray(songs)) return [];
     if (!searchQuery) return songs;
@@ -39,7 +38,7 @@ function AdminSongPage() {
     });
   }, [songs, searchQuery]);
 
-  // 2. [NEW] Hàm Xử lý Sắp xếp (Sort)
+  // 2. Hàm Xử lý Sắp xếp (Sort)
   const sortedSongs = useMemo(() => {
     // Copy mảng đã lọc ra để không làm thay đổi mảng gốc
     let sortableSongs = [...filteredSongs];
@@ -83,7 +82,7 @@ function AdminSongPage() {
 
   const totalPages = Math.ceil(sortedSongs.length / songsPerPage);
 
-  // [NEW] Hàm thay đổi tiêu chí sắp xếp khi click vào tiêu đề cột
+  // Hàm thay đổi tiêu chí sắp xếp khi click vào tiêu đề cột
   const handleSort = (key) => {
     let direction = 'asc';
     if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
@@ -92,7 +91,7 @@ function AdminSongPage() {
     setSortConfig({ key, direction });
   };
 
-  // [NEW] Component hiển thị Icon Sắp xếp
+  // Component hiển thị Icon Sắp xếp
   const SortIcon = ({ columnKey }) => {
       if (sortConfig?.key !== columnKey) return null;
       return sortConfig.direction === 'asc' 
@@ -114,7 +113,7 @@ function AdminSongPage() {
     }
   }, [sortedSongs, totalPages, currentPage]);
 
-  // --- LOGIC CHỌN CHECKBOX (Giữ nguyên) ---
+  // --- LOGIC CHỌN CHECKBOX ---
   const handleSelectOne = (id) => {
     setSelectedSongIds((prev) => prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]);
   };
@@ -132,7 +131,7 @@ function AdminSongPage() {
 
   const isAllSelected = currentSongs.length > 0 && currentSongs.every(s => selectedSongIds.includes(s.id));
 
-  // --- LOGIC XÓA (Giữ nguyên) ---
+  // --- LOGIC XÓA ---
   const deleteSong = (songId) => {
     if (window.confirm("Bạn có chắc muốn xóa bài hát này?")) {
       api.delete(`/api/songs/${songId}`)
@@ -202,7 +201,7 @@ function AdminSongPage() {
 
   return (
     <section className="bg-white rounded-lg shadow-md overflow-hidden">
-      {/* HEADER (Giữ nguyên) */}
+      {/* HEADER */}
       <header className="px-6 py-4 border-b border-gray-200 flex flex-wrap justify-between items-center gap-4 transition-all duration-300">
          {selectedSongIds.length > 0 ? (
             <div className="flex items-center w-full justify-between bg-red-50 -mx-6 -my-4 px-6 py-4">
@@ -251,7 +250,7 @@ function AdminSongPage() {
                     className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
                 />
               </th>
-              {/* [NEW] Thêm onClick và cursor-pointer để biến các cột thành nút sắp xếp */}
+              {/* Thêm onClick và cursor-pointer để biến các cột thành nút sắp xếp */}
               <th 
                 className="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-200 select-none"
                 onClick={() => handleSort('id')}
