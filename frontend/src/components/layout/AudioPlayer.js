@@ -53,7 +53,7 @@ function AudioPlayer() {
   const volumeBarRef = useRef(null);
   const [isFavorite, setIsFavorite] = useState(false);
   
-  // [NEW] State để bật/tắt FullScreen Modal
+  // State để bật/tắt FullScreen Modal
   const [isFullScreen, setIsFullScreen] = useState(false);
 
    
@@ -197,7 +197,7 @@ function AudioPlayer() {
               <FiHeart size={20} className={isFavorite ? "fill-current" : ""} />
             </button>
             
-            {/* [NEW] Nút Mở rộng */}
+            {/* Nút Mở rộng */}
             <button 
                 onClick={() => setIsFullScreen(true)} 
                 className="text-white/70 hover:text-white transition"
@@ -221,7 +221,7 @@ function AudioPlayer() {
         </div>
       </div>
 
-      {/* [NEW] MODAL FULL SCREEN */}
+      {/* MODAL FULL SCREEN */}
       {/* Hiển thị đè lên tất cả khi isFullScreen = true */}
       {isFullScreen && (
         <FullScreenPlayer 
