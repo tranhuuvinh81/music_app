@@ -2,7 +2,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useOutletContext } from "react-router-dom";
 import api from "../../api/api";
-import { FiTrash2, FiEdit2 } from "react-icons/fi"; // Import icon
+import { FiTrash2, FiEdit2, FiArrowUp, FiArrowDown } from "react-icons/fi"; // [NEW] Thêm icon mũi tên
 
 function AdminSongPage() {
   const {
@@ -17,10 +17,13 @@ function AdminSongPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [songsPerPage] = useState(10);
   const [searchQuery, setSearchQuery] = useState("");
-
-  // --- [NEW] STATE CHO CHỌN NHIỀU ---
   const [selectedSongIds, setSelectedSongIds] = useState([]);
 
+  // --- [NEW] STATE SẮP XẾP ---
+  // Khởi tạo mặc định sắp xếp theo ID (mới nhất lên đầu - giảm dần)
+  const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'desc' });
+
+  // 1. Hàm Xử lý Lọc (Search) - Giữ nguyên
   const filteredSongs = useMemo(() => {
     if (!Array.isArray(songs)) return [];
     if (!searchQuery) return songs;
@@ -36,13 +39,66 @@ function AdminSongPage() {
     });
   }, [songs, searchQuery]);
 
+  // 2. [NEW] Hàm Xử lý Sắp xếp (Sort)
+  const sortedSongs = useMemo(() => {
+    // Copy mảng đã lọc ra để không làm thay đổi mảng gốc
+    let sortableSongs = [...filteredSongs];
+    
+    if (sortConfig !== null) {
+      sortableSongs.sort((a, b) => {
+        let aValue = a[sortConfig.key];
+        let bValue = b[sortConfig.key];
+
+        // Xử lý các kiểu dữ liệu đặc biệt
+        if (sortConfig.key === 'title') {
+            // Sắp xếp chuỗi bỏ qua hoa/thường
+            aValue = aValue ? aValue.toString().toLowerCase() : '';
+            bValue = bValue ? bValue.toString().toLowerCase() : '';
+        } else if (sortConfig.key === 'listen_count') {
+            aValue = Number(aValue) || 0;
+            bValue = Number(bValue) || 0;
+        } else if (sortConfig.key === 'id') {
+            aValue = Number(aValue) || 0;
+            bValue = Number(bValue) || 0;
+        }
+
+        if (aValue < bValue) {
+          return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (aValue > bValue) {
+          return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    return sortableSongs;
+  }, [filteredSongs, sortConfig]);
+
+  // 3. Hàm Xử lý Phân trang (Cắt từ mảng đã sắp xếp)
   const currentSongs = useMemo(() => {
     const indexOfLastSong = currentPage * songsPerPage;
     const indexOfFirstSong = indexOfLastSong - songsPerPage;
-    return filteredSongs.slice(indexOfFirstSong, indexOfLastSong);
-  }, [filteredSongs, currentPage, songsPerPage]);
+    return sortedSongs.slice(indexOfFirstSong, indexOfLastSong);
+  }, [sortedSongs, currentPage, songsPerPage]);
 
-  const totalPages = Math.ceil(filteredSongs.length / songsPerPage);
+  const totalPages = Math.ceil(sortedSongs.length / songsPerPage);
+
+  // [NEW] Hàm thay đổi tiêu chí sắp xếp khi click vào tiêu đề cột
+  const handleSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  // [NEW] Component hiển thị Icon Sắp xếp
+  const SortIcon = ({ columnKey }) => {
+      if (sortConfig?.key !== columnKey) return null;
+      return sortConfig.direction === 'asc' 
+        ? <FiArrowUp className="inline ml-1 text-blue-500" /> 
+        : <FiArrowDown className="inline ml-1 text-blue-500" />;
+  };
 
   const getImageUrl = (url) => {
     if (!url) return "https://via.placeholder.com/300";
@@ -56,18 +112,13 @@ function AdminSongPage() {
     } else if (totalPages === 0 && currentPage !== 1) {
       setCurrentPage(1);
     }
-  }, [filteredSongs, totalPages, currentPage]);
+  }, [sortedSongs, totalPages, currentPage]);
 
-  // --- [NEW] LOGIC CHỌN CHECKBOX ---
-
-  // 1. Chọn/Bỏ chọn một dòng
+  // --- LOGIC CHỌN CHECKBOX (Giữ nguyên) ---
   const handleSelectOne = (id) => {
-    setSelectedSongIds((prev) => 
-      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
-    );
+    setSelectedSongIds((prev) => prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]);
   };
 
-  // 2. Chọn/Bỏ chọn tất cả (trên trang hiện tại)
   const handleSelectAll = (e) => {
     if (e.target.checked) {
       const currentIds = currentSongs.map(s => s.id);
@@ -79,19 +130,15 @@ function AdminSongPage() {
     }
   };
 
-  // Kiểm tra trang hiện tại đã full chưa
   const isAllSelected = currentSongs.length > 0 && currentSongs.every(s => selectedSongIds.includes(s.id));
 
-  // --- LOGIC XÓA ---
-
-  // Xóa 1 bài (Cũ)
+  // --- LOGIC XÓA (Giữ nguyên) ---
   const deleteSong = (songId) => {
     if (window.confirm("Bạn có chắc muốn xóa bài hát này?")) {
-      api
-        .delete(`/api/songs/${songId}`)
+      api.delete(`/api/songs/${songId}`)
         .then(() => {
           fetchSongs();
-          setSelectedSongIds(prev => prev.filter(id => id !== songId)); // Bỏ chọn nếu đang chọn
+          setSelectedSongIds(prev => prev.filter(id => id !== songId));
           if (currentSongs.length === 1 && currentPage > 1) {
             setCurrentPage(currentPage - 1);
           }
@@ -100,21 +147,14 @@ function AdminSongPage() {
     }
   };
 
-  // [NEW] Xóa nhiều bài
   const deleteSelectedSongs = async () => {
     const count = selectedSongIds.length;
     if (count === 0) return;
-
     if (window.confirm(`Bạn có chắc chắn muốn xoá ${count} bài hát đã chọn không?`)) {
         try {
-            await Promise.all(
-                selectedSongIds.map(id => api.delete(`/api/songs/${id}`))
-            );
-            
+            await Promise.all(selectedSongIds.map(id => api.delete(`/api/songs/${id}`)));
             await fetchSongs();
-            setSelectedSongIds([]); // Reset
-            
-            // Logic lùi trang nếu xoá sạch trang hiện tại
+            setSelectedSongIds([]);
             if (currentSongs.length === count && currentPage > 1) {
                 setCurrentPage(currentPage - 1);
             }
@@ -127,9 +167,7 @@ function AdminSongPage() {
   };
 
   const paginate = (pageNumber) => {
-    if (pageNumber > 0 && pageNumber <= totalPages) {
-      setCurrentPage(pageNumber);
-    }
+    if (pageNumber > 0 && pageNumber <= totalPages) setCurrentPage(pageNumber);
   };
 
   const renderPagination = () => {
@@ -164,11 +202,8 @@ function AdminSongPage() {
 
   return (
     <section className="bg-white rounded-lg shadow-md overflow-hidden">
-      
-      {/* HEADER: HIỂN THỊ CÔNG CỤ TÌM KIẾM HOẶC NÚT XÓA NHIỀU */}
+      {/* HEADER (Giữ nguyên) */}
       <header className="px-6 py-4 border-b border-gray-200 flex flex-wrap justify-between items-center gap-4 transition-all duration-300">
-         
-         {/* [NEW] Chế độ chọn nhiều */}
          {selectedSongIds.length > 0 ? (
             <div className="flex items-center w-full justify-between bg-red-50 -mx-6 -my-4 px-6 py-4">
                 <div className="flex items-center text-red-700 font-medium">
@@ -183,12 +218,9 @@ function AdminSongPage() {
                 </button>
             </div>
          ) : (
-            // Chế độ bình thường
             <>
                 <div className="flex items-center gap-4">
-                <h2 className="text-xl font-semibold text-gray-800">
-                    Songs Management
-                </h2>
+                <h2 className="text-xl font-semibold text-gray-800">Songs Management</h2>
                 <input
                     type="text"
                     placeholder="Tìm theo tên, nghệ sĩ..."
@@ -211,7 +243,6 @@ function AdminSongPage() {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              {/* [NEW] CHECKBOX SELECT ALL */}
               <th className="px-6 py-3 text-left">
                 <input 
                     type="checkbox" 
@@ -220,20 +251,36 @@ function AdminSongPage() {
                     className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
                 />
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                ID
+              {/* [NEW] Thêm onClick và cursor-pointer để biến các cột thành nút sắp xếp */}
+              <th 
+                className="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-200 select-none"
+                onClick={() => handleSort('id')}
+              >
+                ID <SortIcon columnKey="id" />
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Image
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Title
+              <th 
+                className="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-200 select-none"
+                onClick={() => handleSort('title')}
+              >
+                Title <SortIcon columnKey="title" />
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Artist
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Stream
+              <th 
+                className="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-200 select-none"
+                onClick={() => handleSort('country')}
+              >
+                Country <SortIcon columnKey="country" />
+              </th>
+              <th 
+                className="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-200 select-none"
+                onClick={() => handleSort('listen_count')}
+              >
+                Streams <SortIcon columnKey="listen_count" />
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Action
@@ -246,7 +293,6 @@ function AdminSongPage() {
                
                return (
                 <tr key={song.id} className={`hover:bg-gray-50 transition-colors ${isSelected ? 'bg-blue-50' : ''}`}>
-                    {/* [NEW] CHECKBOX ROW */}
                     <td className="px-6 py-4">
                         <input 
                             type="checkbox" 
@@ -270,6 +316,9 @@ function AdminSongPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {displayArtistNames(song.artists)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {song.country || "N/A"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {(song.listen_count || 0).toLocaleString()}

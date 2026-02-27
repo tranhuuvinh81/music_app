@@ -2,7 +2,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useOutletContext } from "react-router-dom";
 import api from "../../api/api";
-import { FiTrash2, FiEdit2 } from "react-icons/fi"; // [NEW] Thêm icon cho đẹp
+import { FiTrash2, FiEdit2, FiArrowUp, FiArrowDown } from "react-icons/fi"; // [NEW] Thêm icon mũi tên
 
 function AdminArtistPage() {
   const { artists, handleAddArtistClick, handleEditArtistClick, fetchArtists } =
@@ -12,10 +12,12 @@ function AdminArtistPage() {
   const [artistCurrentPage, setArtistCurrentPage] = useState(1);
   const [artistsPerPage] = useState(5);
   const [artistSearchQuery, setArtistSearchQuery] = useState("");
-
-  // --- [NEW] STATE CHO CHỌN NHIỀU ---
   const [selectedArtistIds, setSelectedArtistIds] = useState([]);
 
+  // --- [NEW] STATE SẮP XẾP ---
+  const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'desc' });
+
+  // 1. Lọc (Search)
   const filteredArtists = useMemo(() => {
     if (!Array.isArray(artists)) return [];
     if (!artistSearchQuery) return artists;
@@ -25,13 +27,61 @@ function AdminArtistPage() {
     );
   }, [artists, artistSearchQuery]);
 
+  // 2. [NEW] Sắp xếp (Sort)
+  const sortedArtists = useMemo(() => {
+    let sortableArtists = [...filteredArtists];
+    
+    if (sortConfig !== null) {
+      sortableArtists.sort((a, b) => {
+        let aValue = a[sortConfig.key];
+        let bValue = b[sortConfig.key];
+
+        // Xử lý các kiểu dữ liệu đặc biệt
+        if (sortConfig.key === 'name' || sortConfig.key === 'country') {
+            aValue = aValue ? aValue.toString().toLowerCase() : '';
+            bValue = bValue ? bValue.toString().toLowerCase() : '';
+        } else if (sortConfig.key === 'total_listens' || sortConfig.key === 'id') {
+            aValue = Number(aValue) || 0;
+            bValue = Number(bValue) || 0;
+        }
+
+        if (aValue < bValue) {
+          return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (aValue > bValue) {
+          return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    return sortableArtists;
+  }, [filteredArtists, sortConfig]);
+
+  // 3. Phân trang
   const currentArtists = useMemo(() => {
     const indexOfLastArtist = artistCurrentPage * artistsPerPage;
     const indexOfFirstArtist = indexOfLastArtist - artistsPerPage;
-    return filteredArtists.slice(indexOfFirstArtist, indexOfLastArtist);
-  }, [filteredArtists, artistCurrentPage, artistsPerPage]);
+    return sortedArtists.slice(indexOfFirstArtist, indexOfLastArtist);
+  }, [sortedArtists, artistCurrentPage, artistsPerPage]);
 
-  const artistTotalPages = Math.ceil(filteredArtists.length / artistsPerPage);
+  const artistTotalPages = Math.ceil(sortedArtists.length / artistsPerPage);
+
+  // [NEW] Hàm thay đổi tiêu chí
+  const handleSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  // [NEW] Component Icon
+  const SortIcon = ({ columnKey }) => {
+      if (sortConfig?.key !== columnKey) return null;
+      return sortConfig.direction === 'asc' 
+        ? <FiArrowUp className="inline ml-1 text-blue-500" /> 
+        : <FiArrowDown className="inline ml-1 text-blue-500" />;
+  };
 
   useEffect(() => {
     if (artistCurrentPage > artistTotalPages && artistTotalPages > 0) {
@@ -39,72 +89,49 @@ function AdminArtistPage() {
     } else if (artistTotalPages === 0 && artistCurrentPage !== 1) {
       setArtistCurrentPage(1);
     }
-  }, [filteredArtists, artistTotalPages, artistCurrentPage]);
+  }, [sortedArtists, artistTotalPages, artistCurrentPage]);
 
-  // --- [NEW] LOGIC CHỌN CHECKBOX ---
-  
-  // 1. Chọn/Bỏ chọn một dòng
+  // --- LOGIC CHỌN CHECKBOX (Giữ nguyên) ---
   const handleSelectOne = (id) => {
-    setSelectedArtistIds((prev) => 
-      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
-    );
+    setSelectedArtistIds((prev) => prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]);
   };
 
-  // 2. Chọn/Bỏ chọn tất cả (trên trang hiện tại)
   const handleSelectAll = (e) => {
     if (e.target.checked) {
-      // Lấy tất cả ID của trang hiện tại
       const currentIds = currentArtists.map(a => a.id);
-      // Gộp vào danh sách đã chọn (dùng Set để tránh trùng lặp)
       const uniqueIds = new Set([...selectedArtistIds, ...currentIds]);
       setSelectedArtistIds(Array.from(uniqueIds));
     } else {
-      // Bỏ chọn những ID đang nằm ở trang hiện tại
       const currentIds = currentArtists.map(a => a.id);
       setSelectedArtistIds(prev => prev.filter(id => !currentIds.includes(id)));
     }
   };
 
-  // Kiểm tra xem trang hiện tại đã được chọn hết chưa
   const isAllSelected = currentArtists.length > 0 && currentArtists.every(a => selectedArtistIds.includes(a.id));
 
-  // --- LOGIC XÓA ---
-
-  // Xóa 1 người (Logic cũ, giữ nguyên)
+  // --- LOGIC XÓA (Giữ nguyên) ---
   const deleteArtist = (artistId) => {
     if (window.confirm("Bạn có chắc chắn muốn xoá nghệ sĩ này?")) {
       api.delete(`/api/artists/${artistId}`)
         .then(() => {
           fetchArtists();
-          // Nếu xóa xong dòng được chọn thì bỏ chọn nó
           setSelectedArtistIds(prev => prev.filter(id => id !== artistId));
         })
         .catch(console.error);
     }
   };
 
-  // [NEW] Xóa nhiều người
   const deleteSelectedArtists = async () => {
     const count = selectedArtistIds.length;
     if (count === 0) return;
-
-    if (window.confirm(`Bạn có chắc chắn muốn xoá ${count} nghệ sĩ đã chọn không? Hành động này không thể hoàn tác.`)) {
+    if (window.confirm(`Bạn có chắc chắn muốn xoá ${count} nghệ sĩ đã chọn không?`)) {
       try {
-        // Gọi API xóa song song bằng Promise.all
-        // Lưu ý: Đây là cách xử lý ở Frontend nếu Backend chưa có API bulk delete
-        await Promise.all(
-          selectedArtistIds.map(id => api.delete(`/api/artists/${id}`))
-        );
-
-        // Sau khi xóa xong
-        await fetchArtists(); // Tải lại danh sách
-        setSelectedArtistIds([]); // Reset danh sách chọn
-        
-        // Logic lùi trang nếu trang hiện tại bị xóa sạch
+        await Promise.all(selectedArtistIds.map(id => api.delete(`/api/artists/${id}`)));
+        await fetchArtists(); 
+        setSelectedArtistIds([]); 
         if (currentArtists.length === count && artistCurrentPage > 1) {
              setArtistCurrentPage(artistCurrentPage - 1);
         }
-
         alert("Đã xoá thành công!");
       } catch (error) {
         console.error("Lỗi khi xoá hàng loạt:", error);
@@ -119,11 +146,8 @@ function AdminArtistPage() {
     return `${api.defaults.baseURL}${url}`;
   };
 
-  // --- LOGIC PHÂN TRANG (GIỮ NGUYÊN) ---
   const paginateArtists = (pageNumber) => {
-    if (pageNumber > 0 && pageNumber <= artistTotalPages) {
-      setArtistCurrentPage(pageNumber);
-    }
+    if (pageNumber > 0 && pageNumber <= artistTotalPages) setArtistCurrentPage(pageNumber);
   };
 
   const renderPagination = () => {
@@ -158,10 +182,8 @@ function AdminArtistPage() {
 
   return (
     <section className="bg-white rounded-lg shadow-md overflow-hidden">
-      {/* HEADER: HIỂN THỊ CÔNG CỤ TÌM KIẾM HOẶC NÚT XÓA NHIỀU */}
+      {/* HEADER (Giữ nguyên) */}
       <header className="px-6 py-4 border-b border-gray-200 flex justify-between items-center transition-all duration-300">
-        
-        {/* [NEW] Nếu có item được chọn, đổi Header thành chế độ Hành động */}
         {selectedArtistIds.length > 0 ? (
             <div className="flex items-center w-full justify-between bg-red-50 -mx-6 -my-4 px-6 py-4">
                 <div className="flex items-center text-red-700 font-medium">
@@ -176,12 +198,9 @@ function AdminArtistPage() {
                 </button>
             </div>
         ) : (
-            // Header bình thường
             <>
                 <div className="flex items-center gap-4">
-                <h2 className="text-xl font-semibold text-gray-800">
-                    Artist Management
-                </h2>
+                <h2 className="text-xl font-semibold text-gray-800">Artist Management</h2>
                 <input
                     type="text"
                     placeholder="Tìm theo tên nghệ sĩ..."
@@ -204,7 +223,6 @@ function AdminArtistPage() {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              {/* [NEW] CHECKBOX SELECT ALL */}
               <th className="px-6 py-3 text-left">
                 <input 
                     type="checkbox" 
@@ -213,20 +231,33 @@ function AdminArtistPage() {
                     className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
                 />
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                ID
+              {/* [NEW] Thêm class cursor-pointer và onClick vào các cột muốn sort */}
+              <th 
+                className="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase cursor-pointer hover:bg-gray-200 select-none"
+                onClick={() => handleSort('id')}
+              >
+                ID <SortIcon columnKey="id" />
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                 Image
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Name
+              <th 
+                className="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase cursor-pointer hover:bg-gray-200 select-none"
+                onClick={() => handleSort('name')}
+              >
+                Name <SortIcon columnKey="name" />
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Birth Year
+              <th 
+                className="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase cursor-pointer hover:bg-gray-200 select-none"
+                onClick={() => handleSort('country')}
+              >
+                Country <SortIcon columnKey="country" />
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Streams
+              <th 
+                className="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase cursor-pointer hover:bg-gray-200 select-none"
+                onClick={() => handleSort('total_listens')}
+              >
+                Streams <SortIcon columnKey="total_listens" />
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                 Actions
@@ -235,12 +266,10 @@ function AdminArtistPage() {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {currentArtists.map((artist) => {
-                // Kiểm tra xem dòng này có đang được chọn không
                 const isSelected = selectedArtistIds.includes(artist.id);
                 
                 return (
                 <tr key={artist.id} className={`hover:bg-gray-50 transition-colors ${isSelected ? 'bg-blue-50' : ''}`}>
-                    {/* [NEW] CHECKBOX SELECT ROW */}
                     <td className="px-6 py-4">
                         <input 
                             type="checkbox" 
@@ -263,7 +292,7 @@ function AdminArtistPage() {
                     {artist.name}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {artist.birth_year || "N/A"}
+                    {artist.country || "N/A"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {(artist.total_listens || 0).toLocaleString()}
