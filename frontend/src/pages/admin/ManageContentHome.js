@@ -267,7 +267,7 @@ function ManageContentHome() {
                                         onClick={(e) => { e.stopPropagation(); handleRemoveBlock(block.id); }}
                                         className="p-2 text-red-500 bg-red-50 rounded-lg hover:bg-red-500 hover:text-white transition"
                                     >
-                                        <FiTrashy />
+                                        <FiTrash/>
                                     </button>
                                 </div>
                             </div>
