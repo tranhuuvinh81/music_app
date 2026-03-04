@@ -179,6 +179,11 @@ function ManageContentHome() {
     }
   };
 
+  const displayArtistNames = (artistsArray) => {
+    if (!artistsArray || artistsArray.length === 0) return "Nghệ sĩ không xác định";
+    return artistsArray.map((artist) => artist.name).join(", ");
+  };
+
   const getImageUrl = (url) => {
     if (!url) return 'https://via.placeholder.com/50';
     if (url.startsWith('http')) return url;
@@ -282,7 +287,7 @@ function ManageContentHome() {
                                                 <img src={getImageUrl(song.image_url)} alt="" className="w-10 h-10 rounded object-cover mx-3" />
                                                 <div className="flex-1 min-w-0">
                                                     <p className="font-medium text-sm text-gray-800 truncate">{song.title}</p>
-                                                    <p className="text-xs text-gray-500 truncate">{artists.find(a => a.id === song.artist_id)?.name || 'Unknown'}</p>
+                                                    <p className="text-xs text-gray-500 truncate">{displayArtistNames(song.artists)}</p>
                                                 </div>
                                                 <div className="flex items-center space-x-1 ml-2">
                                                     <button onClick={(e) => { e.stopPropagation(); handleMoveSongUp(block.id, sIndex); }} disabled={sIndex === 0} className="p-1.5 text-gray-400 hover:text-blue-500 bg-white rounded shadow-sm disabled:opacity-30"><FiArrowUp size={14}/></button>
@@ -324,7 +329,8 @@ function ManageContentHome() {
                    <div key={song.id} className="flex items-center bg-white p-2 rounded-lg border border-gray-100 hover:border-blue-300 hover:shadow-sm transition cursor-pointer" onClick={() => handleAddSongToBlock(song.id)}>
                      <img src={getImageUrl(song.image_url)} alt="" className="w-12 h-12 rounded object-cover mr-3" />
                      <div className="flex-1 min-w-0">
-                       <p className="font-bold text-sm text-gray-800 truncate">{song.title}</p>
+                      <p className="font-bold text-sm text-gray-800 truncate">{song.title}</p>
+                      <p className="text-xs text-gray-500 truncate">{displayArtistNames(song.artists)}</p>
                      </div>
                      <button className="w-8 h-8 flex items-center justify-center bg-blue-50 text-blue-600 rounded-full hover:bg-blue-600 hover:text-white transition-colors shrink-0">
                        <FiPlus />
@@ -337,7 +343,7 @@ function ManageContentHome() {
            </div>
         )}
 
-        {/* --- TAB NGHỆ SĨ (Giữ nguyên code cũ của bạn) --- */}
+        {/* --- TAB NGHỆ SĨ --- */}
         {activeTab === 'artists' && (
            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-fade-in">
              <div className="bg-purple-50/50 p-4 rounded-lg border border-purple-100">
