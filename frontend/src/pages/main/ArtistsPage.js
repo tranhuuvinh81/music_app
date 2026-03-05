@@ -60,11 +60,8 @@ const ArtistCard = ({ artist, onClick, onViewDetails, onPlayRandom }) => {
 };
 
 function ArtistsPage() {
-  // const [pinnedArtists, setPinnedArtists] = useState([]);
-  // const [otherArtists, setOtherArtists] = useState([]);
-
-  const [artistBlocks, setArtistBlocks] = useState([]);
-  const [trendingArtists, setTrendingArtists] = useState([]);
+  const [pinnedArtists, setPinnedArtists] = useState([]);
+  const [otherArtists, setOtherArtists] = useState([]);
   
   const [displaySongs, setDisplaySongs] = useState([]);
   const [selectedArtist, setSelectedArtist] = useState(null);
@@ -93,42 +90,21 @@ function ArtistsPage() {
       api.get("/api/settings/pinned_artist_ids")
     ]).then(([artistsRes, settingsRes]) => {
         const allArtists = artistsRes.data;
-        const rawSettings = settingsRes.data || [];
+        const pinnedIds = settingsRes.data || [];
         
-        let blocks = [];
-        let allPinnedIds = new Set();
+        // 1. Lọc nghệ sĩ nổi bật (Ghim)
+        const pinned = allArtists.filter(a => pinnedIds.includes(a.id));
+        // Sắp xếp theo đúng thứ tự Admin đã cấu hình
+        pinned.sort((a, b) => pinnedIds.indexOf(a.id) - pinnedIds.indexOf(b.id));
 
-        // Kiểm tra cấu trúc dữ liệu từ DB
-        if (Array.isArray(rawSettings) && rawSettings.length > 0) {
-          if (typeof rawSettings[0] === "object") {
-            blocks = rawSettings.map(block => {
-              const artistInBlock = block.artist_ids
-                .map(id => allArtists.find(s => s.id === id))
-                .filter(Boolean);
-              
-              block.artist_ids.forEach(id => allPinnedIds.add(id));
-              return { ...block, artists: artistInBlock };
-            });
-          } else {
-            // Nếu dữ liệu chỉ là mảng ID, tạo một block mặc định
-            const pinnedArtists = allArtists.filter(artist => rawSettings.includes(artist.id));
-            pinnedArtists.sort((a, b) => rawSettings.indexOf(a.id) - rawSettings.indexOf(b.id));
-            blocks = [{ id: "legacy", title: "Nghệ sĩ nổi bật", artists: pinnedArtists }];
-            rawSettings.forEach(id => allPinnedIds.add(id));
-              
+        // 2. Các nghệ sĩ còn lại
+        const others = allArtists.filter(a => !pinnedIds.includes(a.id));
 
-            }
-          }
-          const others = allArtists
-            .filter(artist => !allPinnedIds.has(artist.id))
-            .sort((a, b) => (b.listen_count || 0) - (a.listen_count || 0));
-          
-          setArtistBlocks(blocks);
-          setTrendingArtists(others);
+        setPinnedArtists(pinned);
+        setOtherArtists(others);
       })
-      .catch(err => console.error("Lỗi khi tải nghệ sĩ:", err));
+      .catch((err) => console.error("Lỗi tải trang nghệ sĩ:", err));
   }, []);
-
 
   useEffect(() => {
     if (selectedArtist) {
@@ -224,48 +200,42 @@ function ArtistsPage() {
       {!selectedArtist ? (
         <div className="space-y-12">
           
-          {artistBlocks.map((block, index) => {
-            if (!block.artists || block.artists.length === 0) return null;
-            
-            const gradientColors = [
-              'from-[#7Ab2D3] to-[#4A90E2]',
-              'from-[#FF6B6B] to-[#FF8E53]',
-              'from-[#4A90E2] to-[#7Ab2D3]'
-            ];
-
-            return (
-              <section key={block.id}>
-                <div className="flex items-center mb-6">
-                  <div className={`w-1 h-8 ${gradientColors[index % gradientColors.length]} rounded-full mr-3`}></div>
-                  <h2 className="text-2xl md:text-3xl font-bold text-gray-800">
-                    {block.title}
-                  </h2>
-                </div>
-                {renderArtistGrid(block.artists)}
-              </section>
-            );
-          })}
-          {trendingArtists.length > 0 && (
+          {/* Section: Nghệ sĩ nổi bật (Ghim) */}
+          {pinnedArtists.length > 0 && (
             <section>
-              <div className="flex items-center mb-6">
-                <div className="w-1 h-8 from-[#7Ab2D3] to-[#4A90E2] rounded-full mr-3"></div>
-                <h2 className="text-2xl md:text-3xl font-bold text-gray-800">
-                  Nghệ sĩ thịnh hành
-                </h2>
-              </div>
-              {renderArtistGrid(isArtistListExpanded ? trendingArtists : trendingArtists.slice(0, 20))}
-              {trendingArtists.length > 20 && (
-                <div className="flex justify-center mt-6">
-                  <button
-                    onClick={toggleArtistListExpansion}
-                    className="px-8 py-3 rounded-full border-2 border-[#7Ab2D3] text-[#7Ab2D3] font-medium hover:bg-[#7Ab2D3] hover:text-white transition-all duration-300"
-                  >
-                    {isArtistListExpanded ? "Thu gọn" : "Xem thêm nghệ sĩ"}
-                  </button>
+                <div className="flex items-center mb-6">
+                    <div className="w-1 h-8 bg-gradient-to-b from-yellow-400 to-orange-500 rounded-full mr-3"></div>
+                    <h2 className="text-2xl md:text-3xl font-bold text-gray-800">
+                    Nghệ sĩ tiêu biểu
+                    </h2>
                 </div>
-              )}
+                {renderArtistGrid(pinnedArtists)}
             </section>
           )}
+
+          {/* Section: Tất cả nghệ sĩ */}
+          <section>
+             <div className="flex items-center mb-6">
+                <div className="w-1 h-8 bg-gradient-to-b from-[#7Ab2D3] to-[#4A90E2] rounded-full mr-3"></div>
+                <h2 className="text-2xl md:text-3xl font-bold text-gray-800">
+                Khám phá thêm
+                </h2>
+            </div>
+            
+            {renderArtistGrid(isArtistListExpanded ? otherArtists.slice(0, 20) : otherArtists.slice(0, 10))}
+            
+            {otherArtists.length > 10 && (
+                <div className="flex justify-center mt-4">
+                    <button
+                        onClick={toggleArtistListExpansion}
+                        className="px-6 py-2 rounded-full border border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400 transition-all font-medium"
+                    >
+                        {isArtistListExpanded ? "Thu gọn danh sách" : "Xem thêm nghệ sĩ"}
+                    </button>
+                </div>
+            )}
+          </section>
+
         </div>
       ) : (
         
