@@ -17,6 +17,8 @@ const SongCard = ({
           <img 
             src={song.coverImage} 
             alt={song.title} 
+            loading="lazy"      /* [TỐI ƯU] Trì hoãn tải ảnh cho đến khi cuộn tới */
+            decoding="async"    /* [TỐI ƯU] Giải mã ảnh bất đồng bộ giúp mượt UI */
             className="w-full h-full object-cover"
           />
         ) : (

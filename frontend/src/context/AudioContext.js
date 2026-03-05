@@ -321,7 +321,7 @@ export const AudioProvider = ({ children }) => {
       }}
     >
       {children}
-      <audio ref={audioRef} />
+      <audio ref={audioRef} prefix="none" />
     </AudioContext.Provider>
   );
 };
