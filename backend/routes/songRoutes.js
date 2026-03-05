@@ -1,4 +1,4 @@
-// backend/routes/songRoutes.js
+// // backend/routes/songRoutes.js
 import express from "express";
 import {
   getAllSongs,
@@ -12,8 +12,7 @@ import {
   incrementListenCount,
   getUniqueCountries,
   getSongsByCountry,
-  getSongsByAlbum,
-  getHomeData,
+  getSongsByAlbum
 } from "../controllers/songController.js";
 import { verifyToken, isAdmin } from "../middleware/authMiddleware.js";
 import upload from "../middleware/upload.js";
@@ -22,8 +21,6 @@ import uploadCloud from "../config/cloudinary.js";
 const router = express.Router();
 
 // Public Routes
-router.get("/home-data", getHomeData); // Thêm route này lên trên cùng
-
 router.get("/", getAllSongs); // Lấy tất cả bài hát (đã bao gồm nghệ sĩ)
 router.get("/genres", getGenres); // Lấy danh sách thể loại
 router.get("/artist/:artistName", getSongsByArtist); // Lấy bài hát theo TÊN nghệ sĩ
@@ -34,7 +31,6 @@ router.post("/:id/listen", incrementListenCount); // Tăng lượt nghe bài há
 router.get("/countries", getUniqueCountries); // Lấy danh sách quốc gia
 router.get("/country/:countryName", getSongsByCountry); // Lấy bài hát theo quốc gia
 router.get("/album/:name", getSongsByAlbum); // Lấy bài hát theo tên album
-
 
 router.get("/:id", getSongById); // Lấy chi tiết bài hát (đã bao gồm nghệ sĩ)
 // Admin only Routes

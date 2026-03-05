@@ -57,91 +57,6 @@ export const getAllSongs = async (req, res) => {
   });
 };
 
-// [NEW] API chuyên dụng cho Trang chủ (Gộp 2 request thành 1)
-export const getHomeData = async (req, res) => {
-  try {
-    // 1. Lấy cấu hình pinned_song_ids từ bảng settings
-    const [settingsResults] = await promiseDb.query(
-      "SELECT setting_value FROM settings WHERE setting_key = 'pinned_song_ids'"
-    );
-    
-    let rawSettings = [];
-    if (settingsResults.length > 0) {
-      try {
-         rawSettings = JSON.parse(settingsResults[0].setting_value);
-      } catch(e) {
-         rawSettings = [];
-      }
-    }
-
-    // 2. Lấy TOÀN BỘ bài hát (kèm theo thông tin liên kết với bảng artists)
-    // Thay vì gọi fetchArtistsForSongs sau khi select (sẽ tạo thêm N query phụ),
-    // Ta dùng LEFT JOIN và JSON_ARRAYAGG để MySQL gộp mảng nghệ sĩ ngay trong 1 lần query duy nhất!
-    const query = `
-      SELECT 
-        s.id, s.title, s.album, s.genre, s.release_year, s.country, 
-        s.file_url, s.image_url, s.lyrics_url, s.listen_count, s.created_at,
-        JSON_ARRAYAGG(
-          JSON_OBJECT('id', a.id, 'name', a.name)
-        ) AS artists
-      FROM songs s
-      LEFT JOIN song_artists sa ON s.id = sa.song_id
-      LEFT JOIN artists a ON sa.artist_id = a.id
-      GROUP BY s.id
-    `;
-    const [results] = await promiseDb.query(query);
-
-    // Chuẩn hóa mảng artists (Vì MySQL trả về JSON object có null bên trong nếu không có nghệ sĩ)
-    const allSongs = results.map(song => {
-        let parsedArtists = [];
-        if (typeof song.artists === 'string') {
-            parsedArtists = JSON.parse(song.artists);
-        } else if (Array.isArray(song.artists)) {
-            parsedArtists = song.artists;
-        }
-        // Xóa các object null (nếu bài hát chưa gán nghệ sĩ nào)
-        parsedArtists = parsedArtists.filter(a => a && a.id !== null);
-        
-        return { ...song, artists: parsedArtists };
-    });
-
-    // 3. Phân loại và tạo cấu trúc trả về cho Frontend
-    let blocks = [];
-    let allPinnedIds = new Set(); 
-
-    if (Array.isArray(rawSettings) && rawSettings.length > 0) {
-        if (typeof rawSettings[0] === 'object') {
-            // Định dạng mới (CMS Blocks)
-            blocks = rawSettings.map(block => {
-                const songsInBlock = block.songIds
-                    .map(id => allSongs.find(s => s.id === id))
-                    .filter(Boolean);
-                block.songIds.forEach(id => allPinnedIds.add(id));
-                return { id: block.id, title: block.title, songs: songsInBlock };
-            });
-        } else {
-            // Fallback định dạng cũ (Mảng ID đơn)
-            const pinnedSongs = allSongs.filter(song => rawSettings.includes(song.id));
-            pinnedSongs.sort((a, b) => rawSettings.indexOf(a.id) - rawSettings.indexOf(b.id));
-            blocks = [{ id: 'legacy', title: 'Bài hát nổi bật', songs: pinnedSongs }];
-            rawSettings.forEach(id => allPinnedIds.add(id));
-        }
-    }
-
-    // Trending: Các bài hát không nằm trong Blocks, xếp theo lượt nghe giảm dần
-    const trending = allSongs
-        .filter(song => !allPinnedIds.has(song.id))
-        .sort((a, b) => (b.listen_count || 0) - (a.listen_count || 0));
-
-    // Trả về duy nhất 1 cục JSON "dọn sẵn" cho Frontend
-    res.json({ blocks, trending });
-
-  } catch (error) {
-    console.error("Lỗi getHomeData:", error);
-    res.status(500).json({ error: "Lỗi server khi tải dữ liệu trang chủ" });
-  }
-};
-
 // Lấy bài hát theo ID (có kèm nghệ sĩ)
 export const getSongById = async (req, res) => {
   const { id } = req.params;
@@ -165,6 +80,7 @@ export const getSongById = async (req, res) => {
     }
   });
 };
+
 // ==========================================
 // CÁC HÀM LOGIC XỬ LÝ (ADD/UPDATE/DELETE/ETC)
 // ==========================================
