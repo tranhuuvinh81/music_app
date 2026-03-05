@@ -5,22 +5,25 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter, Stack } from 'expo-router';
 import api from '../api/api';
 import { AudioContext } from '../context/AudioContext';
+// [THÊM] Import Modal
+import SongActionModal from '../components/SongActionModal';
 
 export default function SearchScreen() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
   
-  // State lưu kết quả từ API Backend của bạn
   const [results, setResults] = useState({
     songs: [] as any[],
     artists: [] as any[],
     albums: [] as any[]
   });
 
+  // [THÊM] State để mở Modal
+  const [selectedSongForModal, setSelectedSongForModal] = useState<any>(null);
+
   const { activeSong, isPlaying, playSong, getResourceUrl } = useContext(AudioContext);
 
-  // KỸ THUẬT DEBOUNCE: Chỉ gọi API sau khi người dùng ngừng gõ 500ms
   useEffect(() => {
     if (searchQuery.trim() === '') {
       setResults({ songs: [], artists: [], albums: [] });
@@ -30,7 +33,6 @@ export default function SearchScreen() {
 
     setLoading(true);
     const delayDebounceFn = setTimeout(() => {
-      // Gọi API search của bạn
       api.get(`/api/search?q=${encodeURIComponent(searchQuery)}`)
         .then(res => {
           setResults({
@@ -44,36 +46,44 @@ export default function SearchScreen() {
           console.error("Lỗi tìm kiếm:", err);
           setLoading(false);
         });
-    }, 500); // 500ms delay
+    }, 500);
 
     return () => clearTimeout(delayDebounceFn);
   }, [searchQuery]);
 
-  // UI Render Bài hát
-  const renderSongItem = (song: any) => {
+  const renderSongItem = (song: any, index: number) => {
     const isThisSongPlaying = activeSong?.id === song.id;
     return (
-      <TouchableOpacity
-        key={`song-${song.id}`}
-        style={[styles.card, isThisSongPlaying && styles.cardActive]}
-        onPress={() => playSong(song)}
-        activeOpacity={0.7}
-      >
-        <Image source={{ uri: getResourceUrl(song.image_url) }} style={styles.coverImage} />
-        <View style={styles.info}>
-          <Text style={[styles.title, isThisSongPlaying && { color: '#7Ab2D3' }]} numberOfLines={1}>{song.title}</Text>
-          <Text style={styles.subtitle} numberOfLines={1}>
-            {song.artists && song.artists.length > 0 ? song.artists.map((a: any) => a.name).join(', ') : 'Unknown'}
-          </Text>
-        </View>
-        {isThisSongPlaying && isPlaying && <Text style={styles.playingIndicator}>▶</Text>}
-      </TouchableOpacity>
+      <View key={`song-${song.id}`} style={[styles.card, isThisSongPlaying && styles.cardActive]}>
+        <TouchableOpacity
+          style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}
+          // [UPDATED] Truyền playlist tìm kiếm vào để Next/Prev mượt mà
+          onPress={() => playSong(song, results.songs, index)}
+          activeOpacity={0.7}
+        >
+          <Image source={{ uri: getResourceUrl(song.image_url) }} style={styles.coverImage} />
+          <View style={styles.info}>
+            <Text style={[styles.title, isThisSongPlaying && { color: '#7Ab2D3' }]} numberOfLines={1}>{song.title}</Text>
+            <Text style={styles.subtitle} numberOfLines={1}>
+              {song.artists && song.artists.length > 0 ? song.artists.map((a: any) => a.name).join(', ') : 'Unknown'}
+            </Text>
+          </View>
+          {isThisSongPlaying && isPlaying && <Text style={styles.playingIndicator}>▶</Text>}
+        </TouchableOpacity>
+
+        {/* NÚT 3 CHẤM */}
+        <TouchableOpacity style={{ padding: 10 }} onPress={() => setSelectedSongForModal(song)}>
+          <Ionicons name="ellipsis-vertical" size={20} color="#888" />
+        </TouchableOpacity>
+      </View>
     );
   };
 
-  // UI Render Nghệ sĩ
   const renderArtistItem = (artist: any) => (
-    <TouchableOpacity key={`artist-${artist.id}`} style={styles.card} activeOpacity={0.7}>
+    <TouchableOpacity 
+      key={`artist-${artist.id}`} style={styles.card} activeOpacity={0.7}
+      onPress={() => router.push({ pathname: '/artist-detail', params: { id: artist.id, name: artist.name } })}
+    >
       <Image source={{ uri: getResourceUrl(artist.image_url) }} style={styles.artistImage} />
       <View style={styles.info}>
         <Text style={styles.title} numberOfLines={1}>{artist.name}</Text>
@@ -83,9 +93,11 @@ export default function SearchScreen() {
     </TouchableOpacity>
   );
 
-  // UI Render Album
   const renderAlbumItem = (album: any, index: number) => (
-    <TouchableOpacity key={`album-${index}`} style={styles.card} activeOpacity={0.7}>
+    <TouchableOpacity 
+      key={`album-${index}`} style={styles.card} activeOpacity={0.7}
+      onPress={() => router.push({ pathname: '/album-detail', params: { name: album.name, image_url: album.image_url } })}
+    >
       <Image source={{ uri: getResourceUrl(album.image_url) }} style={styles.coverImage} />
       <View style={styles.info}>
         <Text style={styles.title} numberOfLines={1}>{album.name}</Text>
@@ -101,21 +113,13 @@ export default function SearchScreen() {
     <View style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
 
-      {/* THANH TÌM KIẾM */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={26} color="#333" />
         </TouchableOpacity>
         <View style={styles.searchContainer}>
           <Ionicons name="search" size={20} color="#888" style={styles.searchIcon} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Tìm bài hát, nghệ sĩ, album..."
-            placeholderTextColor="#999"
-            autoFocus
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
+          <TextInput style={styles.searchInput} placeholder="Tìm bài hát, nghệ sĩ, album..." placeholderTextColor="#999" autoFocus value={searchQuery} onChangeText={setSearchQuery} />
           {searchQuery !== '' && (
             <TouchableOpacity onPress={() => setSearchQuery('')} style={styles.clearIcon}>
               <Ionicons name="close-circle" size={20} color="#ccc" />
@@ -124,7 +128,6 @@ export default function SearchScreen() {
         </View>
       </View>
 
-      {/* KẾT QUẢ TÌM KIẾM */}
       {loading ? (
         <ActivityIndicator size="large" color="#7Ab2D3" style={{ marginTop: 50 }} />
       ) : (
@@ -143,15 +146,13 @@ export default function SearchScreen() {
              </View>
           )}
 
-          {/* SECTION BÀI HÁT */}
           {results.songs.length > 0 && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Bài hát</Text>
-              {results.songs.map(renderSongItem)}
+              {results.songs.map((song, idx) => renderSongItem(song, idx))}
             </View>
           )}
 
-          {/* SECTION NGHỆ SĨ */}
           {results.artists.length > 0 && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Nghệ sĩ</Text>
@@ -159,7 +160,6 @@ export default function SearchScreen() {
             </View>
           )}
 
-          {/* SECTION ALBUM */}
           {results.albums.length > 0 && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Album</Text>
@@ -169,6 +169,13 @@ export default function SearchScreen() {
 
         </ScrollView>
       )}
+
+      {/* COMPONENT MODAL DÙNG CHUNG */}
+      <SongActionModal 
+        visible={!!selectedSongForModal} 
+        song={selectedSongForModal} 
+        onClose={() => setSelectedSongForModal(null)} 
+      />
     </View>
   );
 }
@@ -202,7 +209,7 @@ const styles = StyleSheet.create({
   },
   cardActive: { borderColor: '#7Ab2D3', borderWidth: 1, backgroundColor: '#f0f9ff' },
   coverImage: { width: 50, height: 50, borderRadius: 8 },
-  artistImage: { width: 50, height: 50, borderRadius: 25 }, // Ảnh nghệ sĩ thì bo tròn
+  artistImage: { width: 50, height: 50, borderRadius: 25 },
   info: { marginLeft: 15, flex: 1, justifyContent: 'center' },
   title: { fontSize: 16, fontWeight: 'bold', color: '#2c3e50', marginBottom: 4 },
   subtitle: { fontSize: 14, color: '#7f8c8d' },

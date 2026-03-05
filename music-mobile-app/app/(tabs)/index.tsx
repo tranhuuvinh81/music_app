@@ -3,11 +3,14 @@ import React, { useState, useEffect, useContext } from 'react';
 import { StyleSheet, Text, View, ScrollView, Image, ActivityIndicator, TouchableOpacity } from 'react-native';
 import api from '../../api/api';
 import { AudioContext } from '../../context/AudioContext';
+import SongActionModal from '@/components/SongActionModal';
+import Ionicons from '@expo/vector-icons/build/Ionicons';
 
 export default function HomeScreen() {
   const [songBlocks, setSongBlocks] = useState<any[]>([]);
   const [trendingSongs, setTrendingSongs] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [selectedSongForModal, setSelectedSongForModal] = useState<any>(null);
 
   // Lấy các state và hàm điều khiển từ AudioContext toàn cục
   const { activeSong, isPlaying, playSong, getResourceUrl } = useContext(AudioContext);
@@ -62,27 +65,32 @@ export default function HomeScreen() {
     );
   }
 
-  // Thêm 2 tham số: currentPlaylist và index
   const renderSongItem = (song: any, currentPlaylist: any[], index: number) => {
     const isThisSongPlaying = activeSong?.id === song.id;
 
     return (
-      <TouchableOpacity 
-        key={song.id} 
-        style={[styles.songCard, isThisSongPlaying && styles.songCardActive]}
-        onPress={() => playSong(song, currentPlaylist, index)} // TRUYỀN DỮ LIỆU VÀO ĐÂY
-        activeOpacity={0.7}
-      >
-        <Image source={{ uri: getResourceUrl(song.image_url) }} style={styles.coverImage} />
-        {/* ... (Các thẻ View, Text bên trong giữ nguyên) ... */}
-        <View style={styles.songInfo}>
-          <Text style={[styles.songTitle, isThisSongPlaying && { color: '#7Ab2D3' }]} numberOfLines={1}>{song.title}</Text>
-          <Text style={styles.artistName} numberOfLines={1}>
-            {song.artists && song.artists.length > 0 ? song.artists.map((a: any) => a.name).join(', ') : 'Unknown'}
-          </Text>
-        </View>
-        {isThisSongPlaying && isPlaying && <Text style={styles.playingIndicator}>▶</Text>}
-      </TouchableOpacity>
+      <View key={song.id} style={[styles.songCard, isThisSongPlaying && styles.songCardActive]}>
+        {/* Phần bấm để phát nhạc */}
+        <TouchableOpacity 
+          style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}
+          onPress={() => playSong(song, currentPlaylist, index)}
+          activeOpacity={0.7}
+        >
+          <Image source={{ uri: getResourceUrl(song.image_url) }} style={styles.coverImage} />
+          <View style={styles.songInfo}>
+            <Text style={[styles.songTitle, isThisSongPlaying && { color: '#7Ab2D3' }]} numberOfLines={1}>{song.title}</Text>
+            <Text style={styles.artistName} numberOfLines={1}>
+              {song.artists && song.artists.length > 0 ? song.artists.map((a: any) => a.name).join(', ') : 'Unknown'}
+            </Text>
+          </View>
+          {isThisSongPlaying && isPlaying && <Text style={styles.playingIndicator}>▶</Text>}
+        </TouchableOpacity>
+
+        {/* NÚT 3 CHẤM MỞ MENU TÙY CHỌN */}
+        <TouchableOpacity style={{ padding: 10 }} onPress={() => setSelectedSongForModal(song)}>
+          <Ionicons name="ellipsis-vertical" size={20} color="#888" />
+        </TouchableOpacity>
+      </View>
     );
   };
 
@@ -101,11 +109,16 @@ export default function HomeScreen() {
         })}
 
         <View style={[styles.section, { paddingBottom: 100 }]}>
-            <Text style={styles.headerTitle}>Có thể bạn sẽ thích 🎵</Text>
-            {/* Sửa dòng này */}
+            <Text style={styles.headerTitle}>Có thể bạn sẽ thích</Text>
             {trendingSongs.slice(0, 10).map((song: any, idx: number) => renderSongItem(song, trendingSongs, idx))}
           </View>
       </ScrollView>
+      {/* COMPONENT MODAL DÙNG CHUNG */}
+      <SongActionModal 
+        visible={!!selectedSongForModal} 
+        song={selectedSongForModal} 
+        onClose={() => setSelectedSongForModal(null)} 
+      />
     </View>
   );
 }

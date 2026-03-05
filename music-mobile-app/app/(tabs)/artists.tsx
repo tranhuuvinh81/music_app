@@ -2,11 +2,13 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, ScrollView, Image, ActivityIndicator, TouchableOpacity } from 'react-native';
 import api from '../../api/api';
+import { useRouter } from 'expo-router';
 
 export default function ArtistsScreen() {
   const [artistBlocks, setArtistBlocks] = useState<any[]>([]);
   const [trendingArtists, setTrendingArtists] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const router = useRouter();
 
   useEffect(() => {
     Promise.all([
@@ -68,9 +70,12 @@ export default function ArtistsScreen() {
     );
   }
 
-  // UI cho một thẻ ca sĩ dạng ngang (list)
   const renderArtistRow = (artist: any, index: number) => (
-    <TouchableOpacity key={artist.id} style={styles.artistRow} activeOpacity={0.7}>
+    <TouchableOpacity 
+      key={artist.id} style={styles.artistRow} activeOpacity={0.7}
+      // [THÊM SỰ KIỆN NÀY]
+      onPress={() => router.push({ pathname: '/artist-detail', params: { id: artist.id, name: artist.name } })}
+    >
       <Text style={styles.rankNumber}>{index + 1}</Text>
       <Image source={{ uri: getImageUrl(artist.image_url) }} style={styles.artistRowImage} />
       <View style={styles.artistInfo}>
@@ -82,9 +87,12 @@ export default function ArtistsScreen() {
     </TouchableOpacity>
   );
 
-  // UI cho thẻ ca sĩ dạng ô vuông (grid) cho các Blocks
   const renderArtistCard = (artist: any) => (
-    <TouchableOpacity key={artist.id} style={styles.artistCard} activeOpacity={0.7}>
+    <TouchableOpacity 
+      key={artist.id} style={styles.artistCard} activeOpacity={0.7}
+      // [THÊM SỰ KIỆN NÀY]
+      onPress={() => router.push({ pathname: '/artist-detail', params: { id: artist.id, name: artist.name } })}
+    >
       <Image source={{ uri: getImageUrl(artist.image_url) }} style={styles.artistCardImage} />
       <Text style={styles.artistCardName} numberOfLines={1}>{artist.name}</Text>
     </TouchableOpacity>
@@ -110,7 +118,7 @@ export default function ArtistsScreen() {
         {/* HIỂN THỊ DANH SÁCH TOP TRENDING */}
         {trendingArtists.length > 0 && (
           <View style={[styles.section, { paddingBottom: 100 }]}>
-            <Text style={styles.headerTitle}>Bảng xếp hạng Nghệ sĩ 🏆</Text>
+            <Text style={styles.headerTitle}>Bảng xếp hạng Nghệ sĩ</Text>
             <View style={styles.listContainer}>
                {trendingArtists.map((artist, index) => renderArtistRow(artist, index))}
             </View>

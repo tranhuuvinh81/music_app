@@ -6,12 +6,23 @@ import { useContext } from 'react';
 
 const GlobalMiniPlayer = () => {
   const router = useRouter();
-  const pathname = usePathname(); // [NEW] Lấy đường dẫn hiện tại của App
+  const pathname = usePathname(); // Lấy đường dẫn hiện tại
   
   const { activeSong, isPlaying, togglePlayPause, getResourceUrl } = useContext(AudioContext);
   
-  // [UPDATED] Ẩn Mini Player nếu chưa có bài hát HOẶC đang mở trang Player toàn màn hình
-  if (!activeSong || pathname === '/player') return null; 
+  // 1. TẠO "DANH SÁCH ĐEN" CÁC TRANG MUỐN ẨN MINI PLAYER
+  const hiddenPaths = [
+    '/player',
+    '/artist-detail',
+    '/album-detail',
+    '/category-detail',
+    '/playlist-detail',
+    '/search' // Tôi gợi ý ẩn luôn ở trang Search cho rộng chỗ gõ phím
+  ];
+
+  // 2. KIỂM TRA ĐIỀU KIỆN
+  // Nếu chưa chọn nhạc HOẶC trang hiện tại nằm trong "danh sách đen" -> Trả về null (Ẩn đi)
+  if (!activeSong || hiddenPaths.includes(pathname)) return null; 
 
   return (
     <TouchableOpacity 
@@ -41,6 +52,10 @@ export default function RootLayout() {
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="search" options={{ presentation: 'modal' }} />
           <Stack.Screen name="player" options={{ presentation: 'fullScreenModal' }} />
+          <Stack.Screen name="artist-detail" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="album-detail" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="category-detail" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="playlist-detail" options={{ presentation: 'modal' }} />
         </Stack>
         <GlobalMiniPlayer />
       </View>
