@@ -57,6 +57,91 @@ export const getAllSongs = async (req, res) => {
   });
 };
 
+// [NEW] API chuyên dụng cho Trang chủ (Gộp 2 request thành 1)
+export const getHomeData = async (req, res) => {
+  try {
+    // 1. Lấy cấu hình pinned_song_ids từ bảng settings
+    const [settingsResults] = await promiseDb.query(
+      "SELECT setting_value FROM settings WHERE setting_key = 'pinned_song_ids'"
+    );
+    
+    let rawSettings = [];
+    if (settingsResults.length > 0) {
+      try {
+         rawSettings = JSON.parse(settingsResults[0].setting_value);
+      } catch(e) {
+         rawSettings = [];
+      }
+    }
+
+    // 2. Lấy TOÀN BỘ bài hát (kèm theo thông tin liên kết với bảng artists)
+    // Thay vì gọi fetchArtistsForSongs sau khi select (sẽ tạo thêm N query phụ),
+    // Ta dùng LEFT JOIN và JSON_ARRAYAGG để MySQL gộp mảng nghệ sĩ ngay trong 1 lần query duy nhất!
+    const query = `
+      SELECT 
+        s.id, s.title, s.album, s.genre, s.release_year, s.country, 
+        s.file_url, s.image_url, s.lyrics_url, s.listen_count, s.created_at,
+        JSON_ARRAYAGG(
+          JSON_OBJECT('id', a.id, 'name', a.name)
+        ) AS artists
+      FROM songs s
+      LEFT JOIN song_artists sa ON s.id = sa.song_id
+      LEFT JOIN artists a ON sa.artist_id = a.id
+      GROUP BY s.id
+    `;
+    const [results] = await promiseDb.query(query);
+
+    // Chuẩn hóa mảng artists (Vì MySQL trả về JSON object có null bên trong nếu không có nghệ sĩ)
+    const allSongs = results.map(song => {
+        let parsedArtists = [];
+        if (typeof song.artists === 'string') {
+            parsedArtists = JSON.parse(song.artists);
+        } else if (Array.isArray(song.artists)) {
+            parsedArtists = song.artists;
+        }
+        // Xóa các object null (nếu bài hát chưa gán nghệ sĩ nào)
+        parsedArtists = parsedArtists.filter(a => a && a.id !== null);
+        
+        return { ...song, artists: parsedArtists };
+    });
+
+    // 3. Phân loại và tạo cấu trúc trả về cho Frontend
+    let blocks = [];
+    let allPinnedIds = new Set(); 
+
+    if (Array.isArray(rawSettings) && rawSettings.length > 0) {
+        if (typeof rawSettings[0] === 'object') {
+            // Định dạng mới (CMS Blocks)
+            blocks = rawSettings.map(block => {
+                const songsInBlock = block.songIds
+                    .map(id => allSongs.find(s => s.id === id))
+                    .filter(Boolean);
+                block.songIds.forEach(id => allPinnedIds.add(id));
+                return { id: block.id, title: block.title, songs: songsInBlock };
+            });
+        } else {
+            // Fallback định dạng cũ (Mảng ID đơn)
+            const pinnedSongs = allSongs.filter(song => rawSettings.includes(song.id));
+            pinnedSongs.sort((a, b) => rawSettings.indexOf(a.id) - rawSettings.indexOf(b.id));
+            blocks = [{ id: 'legacy', title: 'Bài hát nổi bật', songs: pinnedSongs }];
+            rawSettings.forEach(id => allPinnedIds.add(id));
+        }
+    }
+
+    // Trending: Các bài hát không nằm trong Blocks, xếp theo lượt nghe giảm dần
+    const trending = allSongs
+        .filter(song => !allPinnedIds.has(song.id))
+        .sort((a, b) => (b.listen_count || 0) - (a.listen_count || 0));
+
+    // Trả về duy nhất 1 cục JSON "dọn sẵn" cho Frontend
+    res.json({ blocks, trending });
+
+  } catch (error) {
+    console.error("Lỗi getHomeData:", error);
+    res.status(500).json({ error: "Lỗi server khi tải dữ liệu trang chủ" });
+  }
+};
+
 // Lấy bài hát theo ID (có kèm nghệ sĩ)
 export const getSongById = async (req, res) => {
   const { id } = req.params;
@@ -80,8 +165,6 @@ export const getSongById = async (req, res) => {
     }
   });
 };
-
-
 // ==========================================
 // CÁC HÀM LOGIC XỬ LÝ (ADD/UPDATE/DELETE/ETC)
 // ==========================================
@@ -472,244 +555,3 @@ export const getSongsByAlbum = (req, res) => {
     res.json(songs);
   });
 };
-
-
-// ------------------
-
-// // Tăng lượt nghe
-// export const incrementListenCount = (req, res) => {
-//   const { id } = req.params;
-//   const query = "UPDATE songs SET listen_count = listen_count + 1 WHERE id = ?";
-
-//   db.query(query, [id], (err, result) => {
-//     if (err) {
-//       // Ghi log lỗi nhưng không cần báo về client
-//       console.error(`Lỗi khi tăng lượt nghe cho song ${id}:`, err.message);
-//       return res.status(500).json({ error: "Lỗi server" });
-//     }
-//     if (result.affectedRows === 0) {
-//       return res.status(404).json({ message: "Không tìm thấy bài hát" });
-//     }
-//     // Gửi 204 No Content, client không cần dữ liệu trả về
-//     res.sendStatus(204);
-//   });
-// };
-
-// // Thêm bài hát mới (xử lý nhiều artistIds)
-// export const addSong = (req, res) => {
-//   const { title, artistIds, album, genre, release_year, country } = req.body;
-
-//   // Chuyển đổi chuỗi JSON thành mảng ID
-//   let parsedArtistIds = [];
-//   try {
-//     parsedArtistIds = JSON.parse(artistIds || "[]");
-//     if (!Array.isArray(parsedArtistIds) || parsedArtistIds.length === 0) {
-//       return res.status(400).json({ error: "Cần chọn ít nhất một nghệ sĩ" });
-//     }
-//   } catch (parseError) {
-//     return res
-//       .status(400)
-//       .json({ error: "Định dạng artistIds không hợp lệ (cần là mảng ID)" });
-//   }
-
-//   if (!title) {
-//     return res.status(400).json({ error: "Thiếu tiêu đề" });
-//   }
-//   if (!req.files || !req.files.songFile) {
-//     return res.status(400).json({ error: "Vui lòng upload file nhạc" });
-//   }
-
-//   const file_url = `/uploads/songs/${req.files.songFile[0].filename}`;
-//   const image_url = req.files.imageFile
-//     ? `/uploads/images/${req.files.imageFile[0].filename}`
-//     : null;
-//   const lyrics_url = req.files.lyricFile
-//     ? `/uploads/lyrics/${req.files.lyricFile[0].filename}`
-//     : null;
-
-//   const query = `INSERT INTO songs (title, album, genre, release_year, country, file_url, image_url, lyrics_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
-//   db.query(
-//     query,
-//     [
-//       title,
-//       album,
-//       genre,
-//       release_year,
-//       country || null,
-//       file_url,
-//       image_url,
-//       lyrics_url,
-//     ],
-//     (err, result) => {
-//       if (err)
-//         return res
-//           .status(500)
-//           .json({ error: "Lỗi khi thêm bài hát", details: err.message });
-
-//       const newSongId = result.insertId;
-
-//       // Thêm các liên kết vào bảng song_artists
-//       const artistLinks = parsedArtistIds.map((artistId) => [
-//         newSongId,
-//         artistId,
-//       ]);
-//       if (artistLinks.length > 0) {
-//         const linkQuery =
-//           "INSERT INTO song_artists (song_id, artist_id) VALUES ?";
-//         db.query(linkQuery, [artistLinks], (linkErr) => {
-//           if (linkErr) {
-//             // Cân nhắc xóa bài hát vừa tạo nếu liên kết thất bại (rollback)
-//             console.error("Lỗi khi liên kết nghệ sĩ:", linkErr);
-//             return res.status(500).json({
-//               error: "Lỗi khi liên kết nghệ sĩ",
-//               details: linkErr.message,
-//             });
-//           }
-//           res.status(201).json({
-//             message: "Thêm bài hát và liên kết nghệ sĩ thành công",
-//             id: newSongId,
-//           });
-//         });
-//       } else {
-//         // Trường hợp này không nên xảy ra do đã check ở trên
-//         res.status(201).json({
-//           message: "Thêm bài hát thành công (không có nghệ sĩ liên kết)",
-//           id: newSongId,
-//         });
-//       }
-//     }
-//   );
-// };
-
-// // Cập nhật bài hát (xử lý nhiều artistIds)
-// export const updateSong = async (req, res) => {
-//   const { id: songId } = req.params;
-//   const { title, artistIds, album, genre, release_year, country } = req.body;
-
-//   let parsedArtistIds = [];
-//   try {
-//     parsedArtistIds = JSON.parse(artistIds || "[]");
-//     if (!Array.isArray(parsedArtistIds) || parsedArtistIds.length === 0) {
-//       return res.status(400).json({ error: "Cần chọn ít nhất một nghệ sĩ" });
-//     }
-//   } catch (parseError) {
-//     return res.status(400).json({ error: "Định dạng artistIds không hợp lệ" });
-//   }
-
-//   try {
-//     const getOldSongQuery =
-//       "SELECT file_url, image_url, lyrics_url FROM songs WHERE id = ?";
-//     db.query(getOldSongQuery, [songId], (err, results) => {
-//       if (err)
-//         return res.status(500).json({ error: "Lỗi truy vấn bài hát cũ" });
-//       if (results.length === 0)
-//         return res.status(404).json({ message: "Không tìm thấy bài hát" });
-
-//       let { file_url, image_url, lyrics_url } = results[0];
-
-//       if (req.files) {
-//         if (req.files.songFile)
-//           file_url = `/uploads/songs/${req.files.songFile[0].filename}`;
-//         if (req.files.imageFile)
-//           image_url = `/uploads/images/${req.files.imageFile[0].filename}`;
-//         if (req.files.lyricFile)
-//           lyrics_url = `/uploads/lyrics/${req.files.lyricFile[0].filename}`;
-//       }
-
-//       const updateSongQuery = `UPDATE songs SET title=?, album=?, genre=?, release_year=?, country=?, file_url=?, image_url=?, lyrics_url=? WHERE id=?`;
-//       db.query(
-//         updateSongQuery,
-//         [
-//           title,
-//           album,
-//           genre,
-//           release_year,
-//           country || null,
-//           file_url,
-//           image_url,
-//           lyrics_url,
-//           songId,
-//         ],
-//         (updateErr) => {
-//           if (updateErr)
-//             return res.status(500).json({
-//               error: "Lỗi khi cập nhật bài hát",
-//               details: updateErr.message,
-//             });
-//           const deleteLinksQuery = "DELETE FROM song_artists WHERE song_id = ?";
-//           db.query(deleteLinksQuery, [songId], (deleteErr) => {
-//             if (deleteErr)
-//               return res.status(500).json({
-//                 error: "Lỗi khi xóa liên kết nghệ sĩ cũ",
-//                 details: deleteErr.message,
-//               });
-
-//             const newArtistLinks = parsedArtistIds.map((artistId) => [
-//               songId,
-//               artistId,
-//             ]);
-//             if (newArtistLinks.length > 0) {
-//               const insertLinksQuery =
-//                 "INSERT INTO song_artists (song_id, artist_id) VALUES ?";
-//               db.query(insertLinksQuery, [newArtistLinks], (insertErr) => {
-//                 if (insertErr)
-//                   return res.status(500).json({
-//                     error: "Lỗi khi thêm liên kết nghệ sĩ mới",
-//                     details: insertErr.message,
-//                   });
-//                 res.json({
-//                   message: "Cập nhật bài hát và liên kết nghệ sĩ thành công",
-//                 });
-//               });
-//             } else {
-//               res.json({
-//                 message:
-//                   "Cập nhật bài hát thành công (không có nghệ sĩ liên kết)",
-//               });
-//             }
-//           });
-//         }
-//       );
-//     });
-//   } catch (error) {
-//     res
-//       .status(500)
-//       .json({ error: "Lỗi server không xác định", details: error.message });
-//   }
-// };
-
-// // Xóa bài hát
-// export const deleteSong = (req, res) => {
-//   const { id } = req.params;
-//   db.query("DELETE FROM songs WHERE id = ?", [id], (err, result) => {
-//     if (err) return res.status(500).json({ error: "Lỗi khi xóa bài hát" });
-//     if (result.affectedRows === 0)
-//       return res.status(404).json({ message: "Không tìm thấy bài hát" });
-//     res.json({ message: "Xóa bài hát thành công" });
-//   });
-// };
-
-// // Lấy danh sách thể loại unique
-// export const getGenres = (req, res) => {
-//   // 1. Lấy TẤT CẢ các chuỗi genre
-//   const query =
-//     "SELECT genre FROM songs WHERE genre IS NOT NULL AND genre != ''";
-//   db.query(query, (err, results) => {
-//     if (err)
-//       return res.status(500).json({ error: "Lỗi khi lấy danh sách thể loại" });
-
-//     // 2. Tách chuỗi và tạo một Set (tập hợp) duy nhất
-//     const allGenres = new Set();
-//     results.forEach((row) => {
-//       // Tách chuỗi "Pop, K-Pop, Ballad" thành ["Pop", "K-Pop", "Ballad"]
-//       const genres = row.genre
-//         .split(",")
-//         .map((g) => g.trim()) // Xóa khoảng trắng
-//         .filter((g) => g); // Bỏ các chuỗi rỗng
-//       genres.forEach((g) => allGenres.add(g));
-//     });
-
-//     // 3. Chuyển Set thành mảng đã sắp xếp và trả về
-//     res.json(Array.from(allGenres).sort());
-//   });
-// };

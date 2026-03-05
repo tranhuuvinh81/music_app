@@ -24,48 +24,58 @@ function HomeSongsPage() {
   
   const [selectedSongForInfo, setSelectedSongForInfo] = useState(null);
 
-  useEffect(() => {
-    Promise.all([
-      api.get("/api/songs"),
-      api.get("/api/settings/pinned_song_ids")
-    ]).then(([songsRes, settingsRes]) => {
-        const allSongs = songsRes.data;
-        const rawSettings = settingsRes.data || []; 
+  // useEffect(() => {
+  //   Promise.all([
+  //     api.get("/api/songs"),
+  //     api.get("/api/settings/pinned_song_ids")
+  //   ]).then(([songsRes, settingsRes]) => {
+  //       const allSongs = songsRes.data;
+  //       const rawSettings = settingsRes.data || []; 
         
-        let blocks = [];
-        let allPinnedIds = new Set(); // Dùng Set để dễ dàng lọc ra Trending Songs
+  //       let blocks = [];
+  //       let allPinnedIds = new Set(); // Dùng Set để dễ dàng lọc ra Trending Songs
 
-        // Kiểm tra cấu trúc dữ liệu từ DB
-        if (Array.isArray(rawSettings) && rawSettings.length > 0) {
-            if (typeof rawSettings[0] === 'object') {
-                // Đây là dữ liệu Dynamic CMS mới
-                blocks = rawSettings.map(block => {
-                    // Map IDs thành Object Song thực tế
-                    const songsInBlock = block.songIds
-                        .map(id => allSongs.find(s => s.id === id))
-                        .filter(Boolean); // Bỏ qua nếu id đó đã bị xóa khỏi DB
+  //       // Kiểm tra cấu trúc dữ liệu từ DB
+  //       if (Array.isArray(rawSettings) && rawSettings.length > 0) {
+  //           if (typeof rawSettings[0] === 'object') {
+  //               // Đây là dữ liệu Dynamic CMS mới
+  //               blocks = rawSettings.map(block => {
+  //                   // Map IDs thành Object Song thực tế
+  //                   const songsInBlock = block.songIds
+  //                       .map(id => allSongs.find(s => s.id === id))
+  //                       .filter(Boolean); // Bỏ qua nếu id đó đã bị xóa khỏi DB
                     
-                    block.songIds.forEach(id => allPinnedIds.add(id));
+  //                   block.songIds.forEach(id => allPinnedIds.add(id));
                     
-                    return { ...block, songs: songsInBlock };
-                });
-            } else {
-                // Fallback nếu trong DB vẫn là mảng ID cũ
-                const pinned = allSongs.filter(song => rawSettings.includes(song.id));
-                pinned.sort((a, b) => rawSettings.indexOf(a.id) - rawSettings.indexOf(b.id));
-                blocks = [{ id: 'legacy', title: 'Bài hát nổi bật', songs: pinned }];
-                rawSettings.forEach(id => allPinnedIds.add(id));
-            }
-        }
+  //                   return { ...block, songs: songsInBlock };
+  //               });
+  //           } else {
+  //               // Fallback nếu trong DB vẫn là mảng ID cũ
+  //               const pinned = allSongs.filter(song => rawSettings.includes(song.id));
+  //               pinned.sort((a, b) => rawSettings.indexOf(a.id) - rawSettings.indexOf(b.id));
+  //               blocks = [{ id: 'legacy', title: 'Bài hát nổi bật', songs: pinned }];
+  //               rawSettings.forEach(id => allPinnedIds.add(id));
+  //           }
+  //       }
 
-        // Các bài hát còn lại cho vào Trending (Sắp xếp theo view giảm dần)
-        const others = allSongs
-            .filter(song => !allPinnedIds.has(song.id))
-            .sort((a, b) => (b.listen_count || 0) - (a.listen_count || 0));
+  //       // Các bài hát còn lại cho vào Trending (Sắp xếp theo view giảm dần)
+  //       const others = allSongs
+  //           .filter(song => !allPinnedIds.has(song.id))
+  //           .sort((a, b) => (b.listen_count || 0) - (a.listen_count || 0));
 
-        setSongBlocks(blocks);
-        setTrendingSongs(others);
-    }).catch((err) => console.error(err));
+  //       setSongBlocks(blocks);
+  //       setTrendingSongs(others);
+  //   }).catch((err) => console.error(err));
+  // }, []);
+  // Cập nhật useEffect: Chỉ gọi 1 API duy nhất
+  useEffect(() => {
+    api.get("/api/songs/home-data")
+      .then((res) => {
+         // Dữ liệu đã được Backend đóng gói sẵn chuẩn xác 100%
+         setSongBlocks(res.data.blocks || []);
+         setTrendingSongs(res.data.trending || []);
+      })
+      .catch((err) => console.error("Lỗi tải Home Data:", err));
   }, []);
 
   const getImageUrl = (url) => {
