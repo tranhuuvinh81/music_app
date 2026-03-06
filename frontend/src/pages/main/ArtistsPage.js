@@ -28,7 +28,6 @@ const ArtistCard = ({ artist, onClick, onViewDetails, onPlayRandom }) => {
           </div>
         )}
         
-        {/* Overlay hiệu ứng khi hover */}
         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
              <button
                onClick={(e) => {
@@ -59,9 +58,8 @@ const ArtistCard = ({ artist, onClick, onViewDetails, onPlayRandom }) => {
 };
 
 function ArtistsPage() {
-  const [artistBlocks, setArtistBlocks] = useState([]); // [MỚI] State lưu các block tự tạo
-  const [pinnedArtists, setPinnedArtists] = useState([]);
-  const [otherArtists, setOtherArtists] = useState([]);
+  const [artistBlocks, setArtistBlocks] = useState([]); // Chứa toàn bộ các Block từ Admin
+  const [otherArtists, setOtherArtists] = useState([]); // Nghệ sĩ chưa được xếp vào Block nào
   
   const [displaySongs, setDisplaySongs] = useState([]);
   const [selectedArtist, setSelectedArtist] = useState(null);
@@ -84,37 +82,48 @@ function ArtistsPage() {
   };
 
   useEffect(() => {
-    // [SỬA] Gọi thêm API lấy cấu hình block nghệ sĩ
     Promise.all([
       api.get("/api/artists"),
-      api.get("/api/settings/pinned_artist_ids").catch(() => ({ data: [] })),
-      api.get("/api/settings/artist_blocks").catch(() => ({ data: [] })) // Thay URL này nếu endpoint backend của bạn đặt tên khác
-    ]).then(([artistsRes, settingsRes, blocksRes]) => {
-        const allArtists = artistsRes.data;
-        const pinnedIds = settingsRes.data || [];
-        const blocksData = blocksRes.data || []; // Dữ liệu dạng: [{ title: "Tên block", artistIds: [1,2,3] }]
+      api.get("/api/settings/pinned_artist_ids").catch(() => ({ data: [] }))
+    ]).then(([artistsRes, settingsRes]) => {
+        const allArtists = artistsRes.data || [];
+        const rawArtistData = settingsRes.data || [];
         
-        // 1. Xử lý các Block tự tạo
-        const processedBlocks = blocksData.map(block => {
-           const blockArtists = (block.artistIds || [])
-              .map(id => allArtists.find(a => a.id === id))
-              .filter(Boolean);
-           return { ...block, artists: blockArtists };
-        }).filter(block => block.artists.length > 0);
+        let processedBlocks = [];
+        let usedIds = new Set(); // Theo dõi xem nghệ sĩ nào đã xuất hiện trên màn hình
 
-        // 2. Lọc nghệ sĩ nổi bật (Ghim truyền thống)
-        const pinned = allArtists.filter(a => pinnedIds.includes(a.id));
-        pinned.sort((a, b) => pinnedIds.indexOf(a.id) - pinnedIds.indexOf(b.id));
+        if (Array.isArray(rawArtistData) && rawArtistData.length > 0) {
+           // NẾU LÀ FORMAT MỚI (Mảng các Block Objects giống Admin)
+           if (typeof rawArtistData[0] === 'object') {
+              processedBlocks = rawArtistData.map(block => {
+                 const bArtists = (block.artistIds || [])
+                    .map(id => allArtists.find(a => a.id === id))
+                    .filter(Boolean); // Lọc bỏ id rác/null
+                 
+                 // Đánh dấu những nghệ sĩ này đã được dùng
+                 bArtists.forEach(a => usedIds.add(a.id));
+                 
+                 return { ...block, artists: bArtists };
+              }).filter(block => block.artists.length > 0);
+           } 
+           // TƯƠNG THÍCH NGƯỢC (Nếu Admin chưa bấm lưu, dữ liệu cũ là mảng ID)
+           else {
+              const bArtists = rawArtistData
+                 .map(id => allArtists.find(a => a.id === id))
+                 .filter(Boolean);
+              
+              bArtists.forEach(a => usedIds.add(a.id));
+              
+              if (bArtists.length > 0) {
+                 processedBlocks = [{ id: "legacy_block", title: "Nghệ sĩ tiêu biểu", artists: bArtists }];
+              }
+           }
+        }
 
-        // 3. Các nghệ sĩ còn lại (Lọc bỏ những người đã có trong Block và Ghim)
-        const usedIds = new Set([
-            ...pinnedIds,
-            ...blocksData.flatMap(b => b.artistIds || [])
-        ]);
+        // Lọc các nghệ sĩ còn lại chưa từng xuất hiện trong bất kỳ Block nào
         const others = allArtists.filter(a => !usedIds.has(a.id));
 
         setArtistBlocks(processedBlocks);
-        setPinnedArtists(pinned);
         setOtherArtists(others);
       })
       .catch((err) => console.error("Lỗi tải trang nghệ sĩ:", err));
@@ -126,7 +135,6 @@ function ArtistsPage() {
         .get(`/api/songs/artist/${encodeURIComponent(selectedArtist)}`)
         .then((res) => setDisplaySongs(res.data))
         .catch((err) => console.error(err));
-
       setIsListExpanded(false);
     } else {
       setDisplaySongs([]);
@@ -140,7 +148,6 @@ function ArtistsPage() {
 
   const toggleListExpansion = () => setIsListExpanded(!isListExpanded);
   const toggleArtistListExpansion = () => setIsArtistListExpanded(!isArtistListExpanded);
-
   const toggleMenu = (songId) => setMenuOpenSongId(prevId => (prevId === songId ? null : songId));
 
   const handleOpenAddModal = (songId) => {
@@ -179,7 +186,7 @@ function ArtistsPage() {
         alert("Nghệ sĩ này hiện chưa có bài hát nào!");
       }
     } catch (error) {
-      console.error("Lỗi khi phát ngẫu nhiên bài hát của nghệ sĩ:", error);
+      console.error("Lỗi khi phát ngẫu nhiên bài hát:", error);
     }
   };
 
@@ -187,11 +194,11 @@ function ArtistsPage() {
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6 mb-8">
         {artists.map((artist) => (
             <ArtistCard
-            key={artist.id}
-            artist={artist}
-            onClick={setSelectedArtist}
-            onViewDetails={openArtistModal}
-            onPlayRandom={playRandomSongFromArtist} 
+              key={artist.id}
+              artist={artist}
+              onClick={setSelectedArtist}
+              onViewDetails={openArtistModal}
+              onPlayRandom={playRandomSongFromArtist} 
             />
         ))}
     </div>
@@ -199,16 +206,19 @@ function ArtistsPage() {
 
   return (
     <div className="p-4 md:p-8 flex-grow">
-      
       {!selectedArtist ? (
         <div className="space-y-12">
           
-          {/* [MỚI] SECTION: CÁC BLOCK DO ADMIN CẤU HÌNH */}
+          {/* RENDER TẤT CẢ CÁC BLOCK DO ADMIN TẠO */}
           {artistBlocks.map((block, index) => (
-            <section key={`block-${index}`}>
+            <section key={block.id}>
                <div className="flex items-center mb-6">
-                  {/* Đổi màu gradient xen kẽ cho sinh động */}
-                  <div className={`w-1 h-8 rounded-full mr-3 ${index % 2 === 0 ? 'bg-gradient-to-b from-purple-400 to-pink-500' : 'bg-gradient-to-b from-green-400 to-teal-500'}`}></div>
+                  {/* Cột màu đầu dòng: Đổi màu luân phiên theo Index */}
+                  <div className={`w-1 h-8 rounded-full mr-3 ${
+                    index % 3 === 0 ? 'bg-gradient-to-b from-yellow-400 to-orange-500' : 
+                    index % 3 === 1 ? 'bg-gradient-to-b from-purple-400 to-pink-500' : 
+                    'bg-gradient-to-b from-[#7Ab2D3] to-[#4A90E2]'
+                  }`}></div>
                   <h2 className="text-2xl md:text-3xl font-bold text-gray-800">
                      {block.title}
                   </h2>
@@ -217,26 +227,13 @@ function ArtistsPage() {
             </section>
           ))}
 
-          {/* Section: Nghệ sĩ nổi bật (Ghim truyền thống - Ẩn nếu không có) */}
-          {pinnedArtists.length > 0 && (
-            <section>
-                <div className="flex items-center mb-6">
-                    <div className="w-1 h-8 bg-gradient-to-b from-yellow-400 to-orange-500 rounded-full mr-3"></div>
-                    <h2 className="text-2xl md:text-3xl font-bold text-gray-800">
-                    Nghệ sĩ tiêu biểu
-                    </h2>
-                </div>
-                {renderArtistGrid(pinnedArtists)}
-            </section>
-          )}
-
-          {/* Section: Tất cả nghệ sĩ còn lại */}
+          {/* RENDER NGHỆ SĨ CÒN LẠI (Khám phá thêm) */}
           {otherArtists.length > 0 && (
             <section>
                <div className="flex items-center mb-6">
-                  <div className="w-1 h-8 bg-gradient-to-b from-[#7Ab2D3] to-[#4A90E2] rounded-full mr-3"></div>
+                  <div className="w-1 h-8 bg-gradient-to-b from-gray-400 to-gray-600 rounded-full mr-3"></div>
                   <h2 className="text-2xl md:text-3xl font-bold text-gray-800">
-                  Khám phá thêm
+                     Khám phá thêm
                   </h2>
               </div>
               
@@ -257,7 +254,7 @@ function ArtistsPage() {
 
         </div>
       ) : (
-        
+        /* GIAO DIỆN BÀI HÁT KHI ĐÃ CLICK VÀO NGHỆ SĨ (Giữ nguyên) */
         <div className="animate-fade-in-up">
           <div className="flex items-center mb-8">
             <button
@@ -317,9 +314,6 @@ function ArtistsPage() {
                             className="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 hover:text-[#7Ab2D3] transition-colors"
                           >
                             Xem thông tin
-                          </button>
-                          <button className="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 hover:text-[#7Ab2D3] transition-colors">
-                            Chia sẻ
                           </button>
                         </div>
                       )}
