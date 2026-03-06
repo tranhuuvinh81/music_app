@@ -3,6 +3,7 @@ import { Stack, useRouter, usePathname } from 'expo-router'; // [UPDATED] Thêm 
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { AudioProvider, AudioContext } from '../context/AudioContext';
 import { useContext } from 'react';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const GlobalMiniPlayer = () => {
   const router = useRouter();
@@ -38,7 +39,7 @@ const GlobalMiniPlayer = () => {
         </Text>
       </View>
       <TouchableOpacity onPress={togglePlayPause} style={styles.playButton}>
-        <Text style={styles.playButtonText}>{isPlaying ? '⏸' : '▶'}</Text>
+        <Icon name={isPlaying ? 'pause' : 'play-arrow'} size={20} color="#fff" />
       </TouchableOpacity>
     </TouchableOpacity>
   );

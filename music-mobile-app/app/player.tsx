@@ -317,7 +317,7 @@ const styles = StyleSheet.create({
 
   playerWrapper: { flex: 1, justifyContent: 'space-between' },
   imageWrapper: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 10 },
-  coverImage: { width: '100%', maxWidth: width * 0.5, aspectRatio: 1, borderRadius: 20, shadowColor: "#000", shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.2, shadowRadius: 10 },
+  coverImage: { width: '65%', maxWidth: width * 0.85, aspectRatio: 1, borderRadius: 20, shadowColor: "#000", shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.2, shadowRadius: 10 },
   bottomControlsWrapper: { paddingBottom: 10 },
   infoContainer: { alignItems: 'center', marginBottom: 15 },
   title: { fontSize: 24, fontWeight: 'bold', color: '#333', marginBottom: 5, textAlign: 'center' },

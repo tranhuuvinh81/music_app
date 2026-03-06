@@ -1,6 +1,7 @@
-//music-mobile-app/context/AudioContext.tsx
 import React, { createContext, useState, useRef, useEffect } from 'react';
 import { Audio } from 'expo-av';
+import { AppState } from 'react-native'; // [THÊM MỚI] Theo dõi trạng thái App
+import AsyncStorage from '@react-native-async-storage/async-storage'; // [THÊM MỚI]
 import api from '../api/api';
 
 export const AudioContext = createContext<any>(null);
@@ -14,14 +15,75 @@ export const AudioProvider = ({ children }: any) => {
   const [volume, setVolumeState] = useState<number>(1.0);
   const [currentPlaylist, setCurrentPlaylist] = useState<any[]>([]);
 
-  // Các Ref để lưu trữ trạng thái ngầm, không bị ảnh hưởng bởi re-render
   const playlistRef = useRef<any[]>([]);
   const currentIndexRef = useRef<number>(-1);
   const soundRef = useRef<Audio.Sound | null>(null);
   const activeSongRef = useRef<any>(null);
-  
-  // [QUAN TRỌNG] Ổ khóa chống spam click (Ngăn lỗi phát nhạc đè lên nhau)
   const isProcessingRef = useRef<boolean>(false);
+
+  // [TÍNH NĂNG MỚI 1] Khôi phục bài hát đang nghe dở khi mở App
+  useEffect(() => {
+    const loadSavedPlayback = async () => {
+      try {
+        const savedData = await AsyncStorage.getItem('@saved_playback');
+        if (savedData) {
+          const { song, playlist, pos } = JSON.parse(savedData);
+          if (song) {
+            setActiveSong(song);
+            activeSongRef.current = song;
+            setCurrentPlaylist(playlist || []);
+            playlistRef.current = playlist || [];
+            setPosition(pos || 0);
+
+            // Nạp file nhạc nhưng KHÔNG phát luôn (tránh giật mình)
+            const audioUrl = getResourceUrl(song.file_url);
+            const { sound: newSound } = await Audio.Sound.createAsync(
+              { uri: audioUrl },
+              { shouldPlay: false, positionMillis: pos || 0, volume: volume },
+              onPlaybackStatusUpdate
+            );
+            soundRef.current = newSound;
+            setSound(newSound);
+          }
+        }
+      } catch (e) {
+        console.error("Lỗi khôi phục nhạc:", e);
+      }
+    };
+
+    // Cấu hình chạy nền
+    Audio.setAudioModeAsync({
+      staysActiveInBackground: true,
+      playsInSilentModeIOS: true,
+      shouldDuckAndroid: true,
+      playThroughEarpieceAndroid: false,
+    });
+
+    loadSavedPlayback();
+  }, []);
+
+  // [TÍNH NĂNG MỚI 2] Lưu lại vị trí nghe nhạc khi người dùng thoát/ẩn App
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', async (nextAppState) => {
+      // Khi app bị ẩn xuống nền hoặc tắt
+      if (nextAppState === 'background' || nextAppState === 'inactive') {
+        if (activeSongRef.current && soundRef.current) {
+          try {
+            const status = await soundRef.current.getStatusAsync();
+            const currentPos = status.isLoaded ? status.positionMillis : 0;
+            const playbackData = {
+              song: activeSongRef.current,
+              playlist: playlistRef.current,
+              pos: currentPos
+            };
+            await AsyncStorage.setItem('@saved_playback', JSON.stringify(playbackData));
+          } catch (e) { }
+        }
+      }
+    });
+
+    return () => subscription.remove();
+  }, []);
 
   const getResourceUrl = (url: string) => {
     if (!url) return "https://via.placeholder.com/150";
@@ -34,7 +96,15 @@ export const AudioProvider = ({ children }: any) => {
       setPosition(status.positionMillis);
       setDuration(status.durationMillis || 0);
 
-      // Khi bài hát kết thúc, gọi hàm Next thông qua Ref để tránh lỗi Stale Closure
+      // Lưu tự động sau mỗi 10 giây (dự phòng trường hợp app crash đột ngột)
+      if (status.isPlaying && status.positionMillis % 10000 < 500) {
+        AsyncStorage.setItem('@saved_playback', JSON.stringify({
+          song: activeSongRef.current,
+          playlist: playlistRef.current,
+          pos: status.positionMillis
+        })).catch(()=>{});
+      }
+
       if (status.didJustFinish) {
         playNextRef.current();
       }
@@ -42,32 +112,35 @@ export const AudioProvider = ({ children }: any) => {
   };
 
   const playSong = async (song: any, playlist: any[] = [], index: number = 0) => {
-    // Nếu hệ thống đang tải bài khác, khóa không cho click tiếp
     if (isProcessingRef.current) return;
     isProcessingRef.current = true;
 
     try {
-      // 1. CHỐNG ĐÈ NHẠC: Bấm lại đúng bài đang phát -> Chuyển thành Pause/Play
       if (activeSongRef.current && activeSongRef.current.id === song.id) {
         await togglePlayPauseAction();
         isProcessingRef.current = false;
         return;
       }
 
-      // 2. DỌN SẠCH NHẠC CŨ
       if (soundRef.current) {
         const oldSound = soundRef.current;
-        soundRef.current = null; // Cắt đứt UI ngay lập tức
+        soundRef.current = null;
         setIsPlaying(false);
-        await oldSound.unloadAsync(); // Đợi hủy xong bài cũ
+        await oldSound.unloadAsync();
       }
 
-      // 3. CẬP NHẬT DANH SÁCH MỚI
+      // [TÍNH NĂNG MỚI 3] Lưu bài hát vào Lịch sử nghe nhạc
+      const historyStr = await AsyncStorage.getItem('@listening_history');
+      let history = historyStr ? JSON.parse(historyStr) : [];
+      history = history.filter((s: any) => s.id !== song.id); // Xóa nếu trùng để đẩy lên đầu
+      history.unshift(song);
+      if (history.length > 20) history.pop(); // Chỉ lưu tối đa 20 bài gần nhất cho nhẹ máy
+      await AsyncStorage.setItem('@listening_history', JSON.stringify(history));
+
       playlistRef.current = playlist.length > 0 ? playlist : [song];
       setCurrentPlaylist(playlistRef.current);
       currentIndexRef.current = index;
 
-      // 4. BẬT BÀI MỚI
       const audioUrl = getResourceUrl(song.file_url);
       const { sound: newSound } = await Audio.Sound.createAsync(
         { uri: audioUrl },
@@ -84,25 +157,9 @@ export const AudioProvider = ({ children }: any) => {
     } catch (error) {
       console.error("Lỗi phát nhạc:", error);
     } finally {
-      // Mở khóa khi đã xử lý xong
       isProcessingRef.current = false;
     }
   };
-
-  // [THÊM MỚI] Hàm cập nhật lại danh sách và vị trí hiện tại sau khi kéo thả
-  const updatePlaylistOrder = (newList: any[]) => {
-    playlistRef.current = newList;
-    setCurrentPlaylist(newList);
-    
-    // Tìm lại xem bài đang phát hiện tại đang nằm ở vị trí thứ mấy trong danh sách mới
-    if (activeSongRef.current) {
-      const newIndex = newList.findIndex((s: any) => s.id === activeSongRef.current.id);
-      if (newIndex !== -1) {
-        currentIndexRef.current = newIndex;
-      }
-    }
-  };
-
 
   const playNextAction = async () => {
     if (playlistRef.current.length <= 1 || isProcessingRef.current) return;
@@ -118,7 +175,6 @@ export const AudioProvider = ({ children }: any) => {
     await playSong(playlistRef.current[prevIndex], playlistRef.current, prevIndex);
   };
 
-  // Dùng Ref để cất giữ hàm playNext, giúp sự kiện didJustFinish gọi chuẩn xác
   const playNextRef = useRef(playNextAction);
   useEffect(() => {
     playNextRef.current = playNextAction;
@@ -126,7 +182,6 @@ export const AudioProvider = ({ children }: any) => {
 
   const togglePlayPauseAction = async () => {
     if (!soundRef.current || isProcessingRef.current) return;
-    
     try {
       const status = await soundRef.current.getStatusAsync();
       if (status.isLoaded) {
@@ -138,9 +193,7 @@ export const AudioProvider = ({ children }: any) => {
           setIsPlaying(true);
         }
       }
-    } catch (e) {
-      console.error("Lỗi Play/Pause:", e);
-    }
+    } catch (e) {}
   };
 
   const seekToAction = async (value: number) => {
@@ -157,10 +210,19 @@ export const AudioProvider = ({ children }: any) => {
     }
   };
 
+  const updatePlaylistOrder = (newList: any[]) => {
+    playlistRef.current = newList;
+    setCurrentPlaylist(newList);
+    if (activeSongRef.current) {
+      const newIndex = newList.findIndex((s: any) => s.id === activeSongRef.current.id);
+      if (newIndex !== -1) currentIndexRef.current = newIndex;
+    }
+  };
+
   return (
     <AudioContext.Provider value={{ 
       sound, activeSong, isPlaying, position, duration, volume, currentPlaylist,
-      playSong, togglePlayPause: togglePlayPauseAction, playNext: playNextAction, playPrev: playPrevAction, seekTo: seekToAction, setVolume: setVolumeAction, getResourceUrl, updatePlaylistOrder 
+      playSong, togglePlayPause: togglePlayPauseAction, playNext: playNextAction, playPrev: playPrevAction, seekTo: seekToAction, setVolume: setVolumeAction, getResourceUrl, updatePlaylistOrder
     }}>
       {children}
     </AudioContext.Provider>
