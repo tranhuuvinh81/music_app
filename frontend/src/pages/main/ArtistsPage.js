@@ -6,7 +6,7 @@ import { AudioContext } from "../../context/AudioContext";
 import { AuthContext } from "../../context/AuthContext";
 import { Button } from "../../components/ui";
 import SongCard from "../../components/ui/SongCard";
-import { FiMoreHorizontal, FiPlay } from "react-icons/fi";
+import { FiMoreHorizontal, FiPlay } from "react-icons/fi"; 
 import SongInfoModal from "../../components/modals/SongInforModal";
 
 // Component cho card nghệ sĩ
@@ -32,7 +32,7 @@ const ArtistCard = ({ artist, onClick, onViewDetails, onPlayRandom }) => {
         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
              <button
                onClick={(e) => {
-                 e.stopPropagation();
+                 e.stopPropagation(); 
                  if (onPlayRandom) onPlayRandom(artist.name);
                }}
                className="p-3 bg-white bg-opacity-90 rounded-full text-[#4A90E2] hover:bg-white transition-all duration-300 hover:scale-110 shadow-lg"
@@ -59,8 +59,8 @@ const ArtistCard = ({ artist, onClick, onViewDetails, onPlayRandom }) => {
 };
 
 function ArtistsPage() {
-  // [SỬA] State mới để lưu các block nghệ sĩ động
-  const [artistBlocks, setArtistBlocks] = useState([]);
+  const [artistBlocks, setArtistBlocks] = useState([]); // [MỚI] State lưu các block tự tạo
+  const [pinnedArtists, setPinnedArtists] = useState([]);
   const [otherArtists, setOtherArtists] = useState([]);
   
   const [displaySongs, setDisplaySongs] = useState([]);
@@ -84,34 +84,37 @@ function ArtistsPage() {
   };
 
   useEffect(() => {
-    // Gọi API lấy danh sách nghệ sĩ và API lấy cấu hình các Block nghệ sĩ
+    // [SỬA] Gọi thêm API lấy cấu hình block nghệ sĩ
     Promise.all([
       api.get("/api/artists"),
-      api.get("/api/settings/artist_blocks").catch(() => ({ data: [] })) // Giả sử API lưu block là artist_blocks
-    ]).then(([artistsRes, blocksRes]) => {
-        const allArtists = artistsRes.data || [];
-        const blocks = blocksRes.data || [];
+      api.get("/api/settings/pinned_artist_ids").catch(() => ({ data: [] })),
+      api.get("/api/settings/artist_blocks").catch(() => ({ data: [] })) // Thay URL này nếu endpoint backend của bạn đặt tên khác
+    ]).then(([artistsRes, settingsRes, blocksRes]) => {
+        const allArtists = artistsRes.data;
+        const pinnedIds = settingsRes.data || [];
+        const blocksData = blocksRes.data || []; // Dữ liệu dạng: [{ title: "Tên block", artistIds: [1,2,3] }]
         
-        const usedArtistIds = new Set();
-        
-        // 1. Map ID thành Object Nghệ sĩ cho từng Block
-        const processedBlocks = blocks.map(block => {
-           const blockArtists = block.artistIds
+        // 1. Xử lý các Block tự tạo
+        const processedBlocks = blocksData.map(block => {
+           const blockArtists = (block.artistIds || [])
               .map(id => allArtists.find(a => a.id === id))
-              .filter(Boolean); // Lọc bỏ undefined nếu nghệ sĩ bị xóa
-           
-           block.artistIds.forEach(id => usedArtistIds.add(id));
-           
-           return {
-               ...block,
-               artists: blockArtists
-           };
-        }).filter(block => block.artists.length > 0); // Chỉ giữ lại các block có nghệ sĩ
+              .filter(Boolean);
+           return { ...block, artists: blockArtists };
+        }).filter(block => block.artists.length > 0);
 
-        // 2. Gom các nghệ sĩ chưa được phân vào block nào thành danh sách "Khám phá thêm"
-        const others = allArtists.filter(a => !usedArtistIds.has(a.id));
+        // 2. Lọc nghệ sĩ nổi bật (Ghim truyền thống)
+        const pinned = allArtists.filter(a => pinnedIds.includes(a.id));
+        pinned.sort((a, b) => pinnedIds.indexOf(a.id) - pinnedIds.indexOf(b.id));
+
+        // 3. Các nghệ sĩ còn lại (Lọc bỏ những người đã có trong Block và Ghim)
+        const usedIds = new Set([
+            ...pinnedIds,
+            ...blocksData.flatMap(b => b.artistIds || [])
+        ]);
+        const others = allArtists.filter(a => !usedIds.has(a.id));
 
         setArtistBlocks(processedBlocks);
+        setPinnedArtists(pinned);
         setOtherArtists(others);
       })
       .catch((err) => console.error("Lỗi tải trang nghệ sĩ:", err));
@@ -169,7 +172,6 @@ function ArtistsPage() {
           const j = Math.floor(Math.random() * (i + 1));
           [shuffledSongs[i], shuffledSongs[j]] = [shuffledSongs[j], shuffledSongs[i]];
         }
-        
         playSong(shuffledSongs[0], shuffledSongs, 0);
         setSelectedArtist(artistName);
         setDisplaySongs(songs);
@@ -195,48 +197,50 @@ function ArtistsPage() {
     </div>
   );
 
-  // Mảng màu gradient ngẫu nhiên cho các Block thêm phần sinh động
-  const gradients = [
-    "from-yellow-400 to-orange-500",
-    "from-pink-500 to-rose-500",
-    "from-green-400 to-emerald-500",
-    "from-purple-500 to-indigo-500",
-    "from-blue-400 to-cyan-500"
-  ];
-
   return (
     <div className="p-4 md:p-8 flex-grow">
       
       {!selectedArtist ? (
         <div className="space-y-12">
           
-          {/* [MỚI] Render DYNAMIC BLOCKS từ Admin cấu hình */}
-          {artistBlocks.map((block, index) => {
-            const gradientClass = gradients[index % gradients.length];
-            return (
-              <section key={`block-${index}`}>
-                  <div className="flex items-center mb-6">
-                      <div className={`w-1 h-8 bg-gradient-to-b ${gradientClass} rounded-full mr-3`}></div>
-                      <h2 className="text-2xl md:text-3xl font-bold text-gray-800">
-                      {block.title}
-                      </h2>
-                  </div>
-                  {renderArtistGrid(block.artists)}
-              </section>
-            );
-          })}
+          {/* [MỚI] SECTION: CÁC BLOCK DO ADMIN CẤU HÌNH */}
+          {artistBlocks.map((block, index) => (
+            <section key={`block-${index}`}>
+               <div className="flex items-center mb-6">
+                  {/* Đổi màu gradient xen kẽ cho sinh động */}
+                  <div className={`w-1 h-8 rounded-full mr-3 ${index % 2 === 0 ? 'bg-gradient-to-b from-purple-400 to-pink-500' : 'bg-gradient-to-b from-green-400 to-teal-500'}`}></div>
+                  <h2 className="text-2xl md:text-3xl font-bold text-gray-800">
+                     {block.title}
+                  </h2>
+               </div>
+               {renderArtistGrid(block.artists)}
+            </section>
+          ))}
 
-          {/* Section: Khám phá thêm (Những nghệ sĩ chưa được đưa vào block nào) */}
-          {otherArtists.length > 0 && (
+          {/* Section: Nghệ sĩ nổi bật (Ghim truyền thống - Ẩn nếu không có) */}
+          {pinnedArtists.length > 0 && (
             <section>
                 <div className="flex items-center mb-6">
-                  <div className="w-1 h-8 bg-gradient-to-b from-gray-400 to-gray-600 rounded-full mr-3"></div>
+                    <div className="w-1 h-8 bg-gradient-to-b from-yellow-400 to-orange-500 rounded-full mr-3"></div>
+                    <h2 className="text-2xl md:text-3xl font-bold text-gray-800">
+                    Nghệ sĩ tiêu biểu
+                    </h2>
+                </div>
+                {renderArtistGrid(pinnedArtists)}
+            </section>
+          )}
+
+          {/* Section: Tất cả nghệ sĩ còn lại */}
+          {otherArtists.length > 0 && (
+            <section>
+               <div className="flex items-center mb-6">
+                  <div className="w-1 h-8 bg-gradient-to-b from-[#7Ab2D3] to-[#4A90E2] rounded-full mr-3"></div>
                   <h2 className="text-2xl md:text-3xl font-bold text-gray-800">
                   Khám phá thêm
                   </h2>
               </div>
               
-              {renderArtistGrid(isArtistListExpanded ? otherArtists.slice(0, 20) : otherArtists.slice(0, 10))}
+              {renderArtistGrid(isArtistListExpanded ? otherArtists : otherArtists.slice(0, 10))}
               
               {otherArtists.length > 10 && (
                   <div className="flex justify-center mt-4">
