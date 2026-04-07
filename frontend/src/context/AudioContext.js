@@ -1,11 +1,5 @@
 // frontend/src/context/AudioContext.js
-import React, {
-  createContext,
-  useState,
-  useRef,
-  useEffect,
-  useCallback,
-} from "react";
+import React, { createContext, useState, useRef, useEffect, useCallback } from "react";
 import api from "../api/api";
 
 export const AudioContext = createContext();
@@ -17,6 +11,7 @@ const getResourceUrl = (url) => {
 };
 
 export const AudioProvider = ({ children }) => {
+  // --- STATE REACT (Dùng để hiển thị giao diện) ---
   const [currentSong, setCurrentSong] = useState(null);
   const [currentPlaylist, setCurrentPlaylist] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(-1);
@@ -30,10 +25,20 @@ export const AudioProvider = ({ children }) => {
   const [duration, setDuration] = useState(0);
   const [currentLyricsUrl, setCurrentLyricsUrl] = useState(null);
 
-  const isFirstLoad = useRef(true);
+  // --- REFS (VŨ KHÍ BÍ MẬT CHO IOS CHẠY NGẦM) ---
+  // Lưu giá trị chạy ngầm mà không cần chờ React Render
   const audioRef = useRef(null);
+  const isFirstLoad = useRef(true);
+  const playlistRef = useRef([]);
+  const indexRef = useRef(-1);
 
-  // --- 1. KHÔI PHỤC TRẠNG THÁI ---
+  // Đồng bộ State sang Refs liên tục
+  useEffect(() => {
+      playlistRef.current = currentPlaylist;
+      indexRef.current = currentIndex;
+  }, [currentPlaylist, currentIndex]);
+
+  // --- 1. KHÔI PHỤC VÀ LƯU TRẠNG THÁI ---
   useEffect(() => {
     const savedState = localStorage.getItem('music_app_player_state');
     if (savedState) {
@@ -48,59 +53,53 @@ export const AudioProvider = ({ children }) => {
                     const songUrl = getResourceUrl(song.file_url);
                     setCurrentSong(songUrl);
                     setCurrentLyricsUrl(song.lyrics_url || null);
-                    if (parsed.currentTime) {
-                        setCurrentTime(parsed.currentTime);
-                    }
+                    if (parsed.currentTime) setCurrentTime(parsed.currentTime);
                 }
             }
-        } catch (e) {
-            console.error("Lỗi khôi phục Player:", e);
-        }
+        } catch (e) {}
     }
   }, []);
 
-  // --- 2. LƯU TRẠNG THÁI ---
   useEffect(() => {
     if (currentPlaylist.length > 0 && currentIndex !== -1) {
-        const stateToSave = {
+        localStorage.setItem('music_app_player_state', JSON.stringify({
             playlist: currentPlaylist,
             index: currentIndex,
             currentTime: currentTime > 0 ? currentTime : 0
-        };
-        localStorage.setItem('music_app_player_state', JSON.stringify(stateToSave));
+        }));
     }
   }, [currentPlaylist, currentIndex, currentTime]); 
 
   useEffect(() => {
       localStorage.setItem('music_app_volume', volume);
-      if (audioRef.current) {
-        audioRef.current.volume = volume;
-      }
+      if (audioRef.current) audioRef.current.volume = volume;
   }, [volume]);
 
-  // --- 3. CÁC HÀM XỬ LÝ ĐIỀU KHIỂN ---
-  const playSong = useCallback(async (song, playlist = [], index = 0) => {
+
+  // --- 2. CÁC HÀM XỬ LÝ ĐIỀU KHIỂN ---
+  const playSong = useCallback((song, playlist = [], index = 0) => {
     isFirstLoad.current = false; 
-    setCurrentLyricsUrl(song.lyrics_url || null);
     const songUrl = getResourceUrl(song.file_url);
     
+    // Cập nhật Refs NGAY LẬP TỨC để tránh độ trễ
+    playlistRef.current = playlist;
+    indexRef.current = index;
+
+    // THAO TÁC DOM TRỰC TIẾP (Không dùng hàm async/await ở đây)
+    if (audioRef.current) {
+        audioRef.current.src = songUrl;
+        const playPromise = audioRef.current.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(e => console.log("Cảnh báo play:", e));
+        }
+    }
+
+    // Cập nhật State cho giao diện (Bất đồng bộ)
     setCurrentPlaylist(playlist);
     setCurrentIndex(index);
     setCurrentSong(songUrl);
+    setCurrentLyricsUrl(song.lyrics_url || null);
     setIsPlaying(true); 
-
-    // [QUAN TRỌNG NHẤT DÀNH CHO IOS]: Can thiệp DOM đồng bộ
-    // Ép Audio đổi nguồn và chạy ngay lập tức mà không chờ React Render
-    // Giúp giữ được phiên (session) chạy ngầm trên Safari
-    if (audioRef.current) {
-        audioRef.current.pause(); // Dừng bài cũ
-        audioRef.current.src = songUrl; // Nạp link bài mới
-        audioRef.current.load(); // Ép trình duyệt tải
-        const playPromise = audioRef.current.play(); // Kích hoạt ngay
-        if (playPromise !== undefined) {
-            playPromise.catch(e => console.log("Cảnh báo nền:", e));
-        }
-    }
 
     try {
       api.post(`/api/songs/${song.id}/listen`).catch(()=>{});
@@ -108,19 +107,23 @@ export const AudioProvider = ({ children }) => {
     } catch (err) {}
   }, []);
 
-  const togglePlay = useCallback(() => setIsPlaying((prev) => !prev), []);
+  const togglePlay = useCallback(() => setIsPlaying(prev => !prev), []);
 
   const nextSong = useCallback(() => {
-    if (currentPlaylist.length > 0 && currentIndex < currentPlaylist.length - 1) {
-      playSong(currentPlaylist[currentIndex + 1], currentPlaylist, currentIndex + 1);
+    const pList = playlistRef.current;
+    const idx = indexRef.current;
+    if (pList.length > 0 && idx < pList.length - 1) {
+      playSong(pList[idx + 1], pList, idx + 1);
     }
-  }, [currentPlaylist, currentIndex, playSong]);
+  }, [playSong]);
 
   const prevSong = useCallback(() => {
-    if (currentPlaylist.length > 0 && currentIndex > 0) {
-      playSong(currentPlaylist[currentIndex - 1], currentPlaylist, currentIndex - 1);
+    const pList = playlistRef.current;
+    const idx = indexRef.current;
+    if (pList.length > 0 && idx > 0) {
+      playSong(pList[idx - 1], pList, idx - 1);
     }
-  }, [currentPlaylist, currentIndex, playSong]);
+  }, [playSong]);
 
   const handleSeek = useCallback((e) => {
     if (audioRef.current && audioRef.current.duration) {
@@ -144,33 +147,65 @@ export const AudioProvider = ({ children }) => {
     }
   }, [currentSong]);
 
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (audio) audio.onended = nextSong; 
-    return () => { if (audio) audio.onended = null; };
-  }, [nextSong]);
 
-  // --- 4. XỬ LÝ AUDIO ELEMENT ---
+  // --- 3. BẮT SỰ KIỆN KẾT THÚC BÀI HÁT (CHỐNG CHẾT TRÊN IOS) ---
   useEffect(() => {
     const audio = audioRef.current;
-    if (audio) {
-      const updateProgress = () => {
-        if (audio.duration) {
-          setProgress((audio.currentTime / audio.duration) * 100);
-          setCurrentTime(audio.currentTime);
+    if (!audio) return;
+
+    const handleEnded = () => {
+        const pList = playlistRef.current;
+        const idx = indexRef.current;
+
+        if (pList.length > 0 && idx < pList.length - 1) {
+            const nextIndex = idx + 1;
+            const nextSongData = pList[nextIndex];
+            const songUrl = getResourceUrl(nextSongData.file_url);
+
+            // [QUAN TRỌNG NHẤT] Đổi src và play() NGAY LẬP TỨC trong cùng 1 tick
+            audio.src = songUrl;
+            audio.play().catch(e => console.log("Lỗi play auto next:", e));
+
+            // Sau đó mới báo cho React từ từ cập nhật giao diện
+            indexRef.current = nextIndex;
+            setCurrentIndex(nextIndex);
+            setCurrentSong(songUrl);
+            setCurrentLyricsUrl(nextSongData.lyrics_url || null);
+
+            api.post(`/api/songs/${nextSongData.id}/listen`).catch(()=>{});
+            api.post("/api/users/history", { song_id: nextSongData.id }).catch(()=>{});
+        } else {
+            setIsPlaying(false); // Hết danh sách thì tắt
         }
-      };
-      audio.addEventListener("timeupdate", updateProgress);
-      return () => audio.removeEventListener("timeupdate", updateProgress);
-    }
+    };
+
+    // Chỉ gán sự kiện ĐÚNG 1 LẦN duy nhất khi khởi động app
+    audio.addEventListener('ended', handleEnded);
+    return () => audio.removeEventListener('ended', handleEnded);
+  }, []); 
+
+
+  // --- 4. XỬ LÝ TIME UPDATE & METADATA ---
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const updateProgress = () => {
+      if (audio.duration) {
+        setProgress((audio.currentTime / audio.duration) * 100);
+        setCurrentTime(audio.currentTime);
+      }
+    };
+    audio.addEventListener("timeupdate", updateProgress);
+    return () => audio.removeEventListener("timeupdate", updateProgress);
   }, []);
 
-  // Chỉ lấy thông tin Meta (Đã gỡ bỏ logic play/load ở đây để nhường cho playSong)
-  // Chỉ lấy thông tin Meta
+  // Chỉ dùng để nạp thông tin độ dài bài hát và F5 lần đầu
   useEffect(() => {
     if (currentSong && audioRef.current) {
       const audio = audioRef.current;
       
+      // Xử lý khi người dùng F5 tải lại trang Web
       if (isFirstLoad.current && audio.src !== currentSong) {
           audio.src = currentSong;
           audio.load();
@@ -187,11 +222,10 @@ export const AudioProvider = ({ children }) => {
       audio.addEventListener("loadedmetadata", handleLoadedMetadata);
       return () => audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
     }
-    // Thêm dòng comment bên dưới để tắt cảnh báo khắt khe của Vercel
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentSong]);
+  }, [currentSong]); 
 
-  // Xử lý Play/Pause riêng biệt
+  // Xử lý Play/Pause qua nút bấm vật lý
   useEffect(() => {
     if (audioRef.current && currentSong && !isFirstLoad.current) {
       if (isPlaying) {
@@ -260,7 +294,6 @@ export const AudioProvider = ({ children }) => {
       }}
     >
       {children}
-      {/* Quan trọng: Thêm thuộc tính playsInline để iOS không bung video full màn hình (nếu có) */}
       <audio ref={audioRef} preload="auto" playsInline />
     </AudioContext.Provider>
   );
