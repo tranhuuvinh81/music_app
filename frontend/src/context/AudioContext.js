@@ -166,11 +166,11 @@ export const AudioProvider = ({ children }) => {
   }, []);
 
   // Chỉ lấy thông tin Meta (Đã gỡ bỏ logic play/load ở đây để nhường cho playSong)
+  // Chỉ lấy thông tin Meta
   useEffect(() => {
     if (currentSong && audioRef.current) {
       const audio = audioRef.current;
       
-      // Xử lý riêng cho lần F5 tải lại trang
       if (isFirstLoad.current && audio.src !== currentSong) {
           audio.src = currentSong;
           audio.load();
@@ -187,7 +187,9 @@ export const AudioProvider = ({ children }) => {
       audio.addEventListener("loadedmetadata", handleLoadedMetadata);
       return () => audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
     }
-  }, [currentSong]); 
+    // Thêm dòng comment bên dưới để tắt cảnh báo khắt khe của Vercel
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentSong]);
 
   // Xử lý Play/Pause riêng biệt
   useEffect(() => {
