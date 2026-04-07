@@ -114,6 +114,13 @@ function LoginPage() {
           >
             Đăng ký tài khoản mới
           </button>
+          <button
+            type="button"
+            onClick={() => navigate("/")}
+            className="w-full mt-4 bg-white border border-gray-300 text-gray-600 font-bold py-2 px-4 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Quay lại trang chủ
+          </button>
         </form>
       </div>
 

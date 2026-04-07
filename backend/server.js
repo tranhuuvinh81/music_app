@@ -102,6 +102,8 @@ app.use("/api/chatbot", chatbotRoutes);
 app.use("/api/comments", commentRoutes);
 app.use("/api/settings", settingRoutes);
 
+app.get('/api/ping', (req, res) => res.status(200).send('OK'));
+
 // Test route
 app.get("/", (req, res) => {
   res.send("Music App Backend đang hoạt động!");
